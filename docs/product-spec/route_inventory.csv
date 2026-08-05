@@ -1,0 +1,52 @@
+﻿route,type,category,discovery,status,confidence,notes
+/,Homepage,Core,Search-indexed; target URL,Live/indexed,High,Homepage claims 50+ free utilities; exact interactive state not inspected.
+/about,Informational,Core,Search-indexed/footer,Indexed,High,"Positions platform for Indian small businesses, retailers, vendors, MSMEs and startups."
+/trending,Collection,Core,Footer/search-indexed,Indexed,Medium,Collection route; ranking logic not publicly verified.
+/favorites,Collection,Core,Footer/search-indexed,Indexed,Medium,Likely browser-local due no-account positioning; storage mechanism unverified.
+/blog,Content hub,Core,Search-indexed/footer,Indexed,High,Article inventory not exhaustively retrievable in current environment.
+/faq,Help,Core,Search-indexed/footer,Indexed,High,Public FAQ states tools are free.
+/privacy-policy,Legal,Core,Search-indexed/footer,Indexed,High,States many calculations/rendering/compression/PDF operations occur in browser.
+/terms,Legal,Core,Search-indexed/footer,Indexed,High,Terms route visible in index.
+/disclaimer,Legal,Core,Search-indexed/footer,Indexed,High,Disclaims certified accounting/legal advice.
+/contact,Contact,Core,Footer label,Route not independently verified,Low,Contact is linked in public footer snippets; exact path and form behavior unverified.
+/tools/gst-calculator,Calculator,Billing & Taxes,Search-indexed,Indexed,High,Inclusive/exclusive GST; advertised 5/12/18/28 rates; CGST/SGST/IGST; PDF/thermal export and UPI QR mentioned.
+/tools/gst-invoice,Document generator,Billing & Taxes,Search-indexed,Indexed,High,Itemized GST invoice; A4/thermal PDF; merchant UPI QR.
+/tools/payment-receipt,Document generator,Billing & Taxes,Search-indexed,Indexed,High,Payment modes include UPI/Cash/Bank Transfer; 58mm/80mm thermal print.
+/tools/rent-receipt,Document generator,Billing & Taxes,Search-indexed,Indexed,High,Rent receipt generator; exact legal fields and HRA wording unverified.
+/tools/wage-slip,Document generator,Billing & Taxes,Search-indexed,Indexed,High,80mm thermal wage slip; WhatsApp sharing mentioned.
+/tools/maintenance-invoice,Document generator,Billing & Taxes,Search-indexed,Indexed,High,Maintenance invoice; exact schema unverified.
+/tools/electricity-bill,Simulator/document generator,Billing & Taxes,Search-indexed,Indexed,High,Explicitly presented as simulator/mock receipt; not for legal/commercial transactions.
+/tools/mobile-bill,Simulator/document generator,Billing & Taxes,Search-indexed,Indexed,High,Mock mobile bill; misuse/trust risk.
+/tools/broadband-bill?lang=en,Simulator/document generator,Billing & Taxes,Search-indexed,Indexed,High,Mock broadband bill; localized query parameter observed.
+/tools/letterhead,Document generator,Print & Logistics,Search-indexed,Indexed,High,"A4 PDF, custom logo/header/reference, printable workflow."
+/tools/logistics-documents,Document generator,Print & Logistics,Search-indexed,Indexed,High,Delivery challans and 12-up barcode price tags.
+/tools/media-suite,Image utility,Media & Images,Search-indexed,Indexed,High,"PNG/JPEG to WebP, resize/compress; public copy says images stay in browser."
+/tools/social-post-generator,Content generator,Marketing & Barcodes,Search-indexed,Indexed,High,Turns raw notes into social copy; AI implementation unverified.
+/tools/upi-standee,QR/document generator,Marketing & Barcodes,Search-indexed,Indexed,High,UPI payment standee; exact validation and QR payload rules unverified.
+/tools/url-qr,QR generator,Marketing & Barcodes,Search-indexed,Indexed,High,Custom colors/size; PNG/SVG; client-side claim.
+/tools/vcard-qr,QR generator,Marketing & Barcodes,Search-indexed,Indexed,High,vCard contact QR; client-side claim.
+/tools/wifi-qr,QR generator,Marketing & Barcodes,Search-indexed,Indexed,High,Wi-Fi QR payload pattern publicly described.
+/tools/menu-creator,Document/content generator,Marketing & Barcodes,Search-indexed,Indexed,High,Menu-card creation; exact templates/exports unverified.
+/tools/qr-barcode-scanner,Scanner utility,Marketing & Barcodes,Search-indexed,Indexed,High,Camera/file behavior and permission flow unverified.
+/tools/hsn-sac-finder,Lookup/compliance tool,Billing & Taxes,Search-indexed,Indexed,High,"HSN/SAC lookup; source, version, search dataset and update date unverified."
+/tools/area-converter,Converter,Store Operations,Search-indexed,Indexed,High,"Includes Bigha, Katha, Gaj, Acre, Hectare, sq ft and Guntha; regional-unit handling needs verification."
+/tools/business-days-calculator,Calculator,Store Operations,Search-indexed,Indexed,High,Working-day calculation; holiday source and weekend configuration unverified.
+/tools/cagr-calculator,Calculator,Financial Calculators,Search-indexed,Indexed,High,CAGR calculation; exact rounding unverified.
+/tools/ebitda-calculator,Calculator,Financial Calculators,Search-indexed,Indexed,High,EBITDA calculation; field definitions and treatment of D&A unverified.
+/tools/roi-calculator,Calculator,Financial Calculators,Search-indexed,Indexed,High,ROI calculator; cash-flow timing assumptions unverified.
+/tools/salary-calculator,Calculator,Financial Calculators,Search-indexed,Indexed,High,"After PF/PT/TDS; state, regime, FY, payroll assumptions unverified."
+/tools/currency-converter,Converter,Financial Calculators,Search-indexed,Indexed,High,"Claims real-time rates; API provider, timestamp, cache and failure handling unknown."
+/thermal-receipt-generator,Legacy/alternate,Legacy URLs,Search-indexed,Indexed title/path mismatch,High,Indexed title identifies Payment Receipt Generator.
+/upi-qr-generator,Legacy/alternate,Legacy URLs,Search-indexed,Indexed title/path mismatch,High,Indexed title identifies GST Invoice Generator.
+/msme-calculator,Legacy/alternate,Legacy URLs,Search-indexed,Indexed title/path mismatch,High,Indexed title identifies Fuel Expense & Mileage Splitter.
+/google-review-qr-generator,Legacy/standalone tool,Legacy URLs,Search-indexed,Indexed,High,Canonical replacement/redirect not confirmed.
+/letterhead-generator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/letterhead.
+/url-qr-generator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/url-qr.
+/vcard-qr-generator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/vcard-qr.
+/4x6-shipping-label-generator,Legacy/standalone tool,Legacy URLs,Search-indexed,Indexed,High,Canonical /tools route not surfaced.
+/ai-social-media-post-generator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/social-post-generator.
+/delivery-challan-generator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/logistics-documents.
+/menu-card-creator,Legacy/alternate,Legacy URLs,Search-indexed,Possible duplicate,High,Appears to overlap /tools/menu-creator.
+/gst-margin-calculator,Legacy/standalone tool,Legacy URLs,Search-indexed,Indexed,High,Current canonical route not confirmed.
+/fuel-expense-calculator,Legacy/standalone tool,Legacy URLs,Search-indexed,Indexed,High,Current canonical route not confirmed.
+/price-tag-barcode-generator,Legacy/alternate,Legacy URLs,Search-indexed,Indexed title/path mismatch,High,Indexed title identifies WhatsApp Direct Chat & Link.

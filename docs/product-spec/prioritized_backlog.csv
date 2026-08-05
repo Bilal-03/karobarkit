@@ -1,0 +1,29 @@
+﻿Epic,Area,Backlog item,Acceptance criteria,Priority,Dependencies
+EPIC-01,Research governance,Create formula and regulatory source register,"Every deterministic or compliance tool must link to a named source, effective date, owner and review cadence.",P0,None
+EPIC-01,Research governance,Version GST rules by effective date,Users can select transaction date; only rates valid on that date are shown; special/legacy cases are clearly labeled.,P0,Formula register
+EPIC-02,Information architecture,Consolidate canonical tool URLs,One canonical /tools/{slug} URL per tool; all legacy URLs 301 redirect; sitemap and internal links use canonical URLs.,P0,Route inventory
+EPIC-02,Information architecture,Fix route-title mismatches,"Automated test fails when page title, H1, canonical and route metadata identify different tools.",P0,Canonical URL model
+EPIC-02,Information architecture,Create searchable all-tools directory,"Search by tool name, task and business use case; no-result state suggests categories; keyboard accessible.",P0,Tool metadata schema
+EPIC-03,Shared tool engine,Implement schema-driven tool definition,"Inputs, validation, calculation, results, references, FAQs, SEO and analytics are declared in one typed definition.",P0,Technical foundation
+EPIC-03,Shared tool engine,Pure calculation functions,"No DOM/network dependencies; unit tests cover normal, boundary, invalid and historical-policy cases.",P0,Formula register
+EPIC-03,Shared tool engine,Indian formatting library,"INR, Indian grouping, dates, percentages and locale-safe decimal parsing are consistent across tools.",P0,None
+EPIC-04,Core tools,Build GST calculator,"Inclusive/exclusive, intra/inter-state, effective-date rates, custom rate where legally appropriate, breakdown, worked example and export.",P0,Policy engine
+EPIC-04,Core tools,Build GST invoice generator,"Validated invoice particulars, line-item taxes, tax summary, A4/thermal print, local-only draft by default.",P0,GST calculator; document engine
+EPIC-04,Core tools,Build receipt generator,"Clear receipt—not proof-of-bank-payment—watermark/wording, A4/thermal formats, local-only data.",P0,Document engine
+EPIC-04,Core tools,Build letterhead generator,"Logo upload, print preview, accessible controls, local-only image processing, PDF/print.",P0,Document engine
+EPIC-04,Core tools,Build UPI standee generator,"Validate UPI URI encoding, render scannable QR, warn user to test with ₹1/preview payment, no sensitive analytics.",P0,QR engine
+EPIC-04,Core tools,Build CAGR and ROI calculators,"Formula explanation, examples, zero/negative input handling and deterministic unit tests.",P0,Shared tool engine
+EPIC-05,Trust & safety,Remove or redesign mock utility bills,Do not produce realistic documents that can be mistaken for official bills; use clearly fictional watermarked demos only for UI prototyping.,P0,Product decision
+EPIC-05,Trust & safety,Add source and last-reviewed blocks,"Every regulated tool displays official source, effective date, last review, limitations and report-an-error action.",P0,Content model
+EPIC-05,Trust & safety,Add malicious QR safeguards,"Scanner does not auto-open decoded URLs; shows domain, scheme and warning for suspicious links.",P1,QR scanner
+EPIC-06,Privacy,Local-first processing contract,Each tool states whether data stays in browser; network tools list provider and transmitted fields; analytics excludes financial values.,P0,Architecture
+EPIC-06,Privacy,Favorites and recents controls,Local storage only for anonymous users; clear-history control; no hidden sync.,P1,Local storage service
+EPIC-07,Accessibility,WCAG 2.2 AA component baseline,"Keyboard, visible focus, labels, error summaries, 44px targets, contrast, reduced motion and accessible tables/charts.",P0,Design system
+EPIC-08,SEO,Tool-page content template,"Unique title/H1, intent-aligned introduction, formula, example, FAQ, sources, last-reviewed date and related tools.",P1,Tool metadata
+EPIC-08,SEO,Automated technical SEO tests,"Canonical, robots, sitemap, structured data, Open Graph and no duplicate metadata are checked in CI.",P1,Routing
+EPIC-09,Quality,Cross-browser and print test matrix,"Chrome, Safari, Edge, Firefox, Android Chrome, iOS Safari; A4, 58mm and 80mm print snapshots.",P0,Core tools
+EPIC-09,Quality,Calculation golden tests,Independent expected values and historical policy fixtures are signed off before release.,P0,Formula register
+EPIC-10,Operations,Admin-managed regulatory content,"Authorized editors can update rates/references with audit trail, staged preview and rollback.",P1,Backend
+EPIC-11,AI,Add grounded plain-language explanations,AI explains deterministic results but never computes them; citations and non-AI fallback required.,P2,Stable calculators; source register
+EPIC-11,AI,Natural-language tool search,Map user intent to tool metadata; no compliance advice in search suggestions.,P2,Search index
+EPIC-12,Monetization,Premium export/template experiment,"Keep calculations free; test paid brand kits, saved profiles and team templates without degrading trust.",P2,Accounts

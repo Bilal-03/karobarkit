@@ -1,0 +1,38 @@
+import type { MetadataRoute } from 'next';
+
+import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { absoluteUrl } from '@/lib/site';
+
+const staticPaths = [
+  '/',
+  '/tools',
+  '/search',
+  '/methodology',
+  '/sources',
+  '/about',
+  '/contact',
+  '/faq',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+  '/report-an-error',
+];
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    ...staticPaths.map((path) => ({
+      url: absoluteUrl(path),
+      lastModified: new Date('2026-08-06T00:00:00Z'),
+    })),
+    ...categoryRegistry.map((category) => ({
+      url: absoluteUrl(`/categories/${category.slug}`),
+      lastModified: new Date('2026-08-06T00:00:00Z'),
+    })),
+    ...toolRegistry.map((tool) => ({
+      url: absoluteUrl(`/tools/${tool.slug}`),
+      lastModified: new Date(tool.lastReviewed),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
+  ];
+}
