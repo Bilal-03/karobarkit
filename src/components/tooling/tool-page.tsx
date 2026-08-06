@@ -11,6 +11,7 @@ import { DisclaimerBlock, LastReviewedBlock, PrivacyBlock } from '@/components/u
 import { SourceReferenceBlock } from '@/components/ui/source-reference';
 
 import { CalculatorForm } from './calculator-form';
+import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GeneratorForm } from './generator-form';
 
@@ -35,6 +36,7 @@ interface SupportedTool {
   lastReviewed: string;
   sources: SourceReference[];
   faqs: { question: string; answer: string }[];
+  disclaimer?: string;
 }
 
 function calculatorKind(slug: string) {
@@ -73,7 +75,17 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
         </Container>
       </section>
       <Container>
-        {tool.kind === 'calculator' ? (
+        {tool.slug === 'gst-calculator' ? (
+          <GstCalculatorForm
+            tool={{
+              id: tool.id,
+              category: tool.category,
+              defaultValues: tool.defaultValues,
+              privacyNote: tool.privacyNote,
+              sources: tool.sources,
+            }}
+          />
+        ) : tool.kind === 'calculator' ? (
           <CalculatorForm
             kind={kind}
             tool={{
@@ -147,8 +159,8 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
 
         <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
         <DisclaimerBlock>
-          KarobarKit provides educational calculations, not accounting, investment, tax or legal advice. Check
-          decisions against your own records and a qualified professional where appropriate.
+          {tool.disclaimer ??
+            'KarobarKit provides educational calculations, not accounting, investment, tax or legal advice. Check decisions against your own records and a qualified professional where appropriate.'}
         </DisclaimerBlock>
         <LastReviewedBlock date={tool.lastReviewed} />
         <SourceReferenceBlock sources={tool.sources} />

@@ -7,6 +7,7 @@ const overflowRoutes = [
   '/categories/financial-calculators',
   '/tools/cagr-calculator',
   '/tools/roi-calculator',
+  '/tools/gst-calculator',
   '/tools/url-qr',
   '/tools/upi-standee',
   '/tools/letterhead-generator',
@@ -30,6 +31,7 @@ const metadataRoutes = [
     h1: 'CAGR Calculator',
   },
   { path: '/tools/roi-calculator', title: 'ROI Calculator for Indian Businesses', h1: 'ROI Calculator' },
+  { path: '/tools/gst-calculator', title: 'GST Calculator for Indian Businesses', h1: 'GST Calculator' },
   { path: '/tools/url-qr', title: 'URL QR Generator for Indian Businesses', h1: 'URL QR Generator' },
   {
     path: '/tools/upi-standee',
@@ -61,12 +63,20 @@ const metadataRoutes = [
     title: 'Business documents tools',
     h1: 'Business documents',
   },
+  {
+    path: '/categories/billing-taxes',
+    title: 'Billing & taxes tools',
+    h1: 'Billing & taxes',
+  },
   { path: '/search', title: 'Search business tools', h1: 'Find the right tool for the job' },
   {
     path: '/methodology',
     title: 'Methodology and review process',
     h1: 'A result should come with its working',
   },
+  { path: '/gst-methodology', title: 'GST Calculator methodology', h1: 'GST methodology and limits' },
+  { path: '/gst-policy-version', title: 'GST policy version', h1: 'GST policy version' },
+  { path: '/gst-source-verification', title: 'GST source verification', h1: 'GST source verification' },
   { path: '/sources', title: 'Sources and formula register', h1: 'Sources we can point to' },
   { path: '/about', title: 'About KarobarKit', h1: 'Useful business tools, with fewer surprises' },
   { path: '/contact', title: 'Contact KarobarKit', h1: 'Tell us what would make this useful' },
@@ -119,6 +129,7 @@ test.describe('foundation routes', () => {
   });
 
   test('mobile pages do not create horizontal overflow', async ({ page }) => {
+    test.setTimeout(120_000);
     for (const route of overflowRoutes) {
       await page.goto(route);
       const widths = await page.evaluate(() => ({
@@ -229,6 +240,7 @@ test.describe('accessibility', () => {
     test.setTimeout(120_000);
     for (const route of [
       '/tools/roi-calculator',
+      '/tools/gst-calculator',
       '/tools/url-qr',
       '/tools/upi-standee',
       '/tools/letterhead-generator',

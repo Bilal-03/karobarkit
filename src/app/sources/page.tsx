@@ -8,7 +8,7 @@ import { pageMetadata } from '@/lib/seo';
 export const metadata = pageMetadata({
   title: 'Sources and formula register',
   description:
-    'Browse the references used by the current KarobarKit calculator set and see when they were checked.',
+    'Browse the references used by the current KarobarKit calculator set, including the verified GST policy sources and review dates.',
   path: '/sources',
 });
 
@@ -18,7 +18,7 @@ export default function SourcesPage() {
     <InfoPage
       eyebrow="Evidence"
       title="Sources we can point to"
-      intro="The current release combines standard financial formulas with the URL and UPI standards used by its local QR generators. Regulated tools will add versioned official rules before they ship."
+      intro="Every current tool points to the method or official material it relies on. The GST Calculator additionally shows controlled policy versions, effective dates, authorities and the last verification date."
     >
       <div className="prose">
         <section>
@@ -30,7 +30,8 @@ export default function SourcesPage() {
                 <tr>
                   <th scope="col">Tool</th>
                   <th scope="col">Reference</th>
-                  <th scope="col">Checked</th>
+                  <th scope="col">Authority and dates</th>
+                  <th scope="col">Supports</th>
                 </tr>
               </thead>
               <tbody>
@@ -48,7 +49,30 @@ export default function SourcesPage() {
                         {source.publisher} · {source.evidenceLevel}
                       </span>
                     </td>
-                    <td>{formatIndianDate(source.lastChecked)}</td>
+                    <td>
+                      <span>{source.authority ?? source.publisher}</span>
+                      {source.referenceNumber ? (
+                        <>
+                          <br />
+                          <span>{source.referenceNumber}</span>
+                        </>
+                      ) : null}
+                      {source.publishedOn ? (
+                        <>
+                          <br />
+                          <span>Published {formatIndianDate(source.publishedOn)}</span>
+                        </>
+                      ) : null}
+                      {source.effectiveFrom ? (
+                        <>
+                          <br />
+                          <span>Effective {formatIndianDate(source.effectiveFrom)}</span>
+                        </>
+                      ) : null}
+                      <br />
+                      <span>Checked {formatIndianDate(source.lastChecked)}</span>
+                    </td>
+                    <td>{source.supports?.join(' · ') ?? 'Formula or standard reference'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -64,10 +88,11 @@ export default function SourcesPage() {
           </p>
         </section>
         <section>
-          <h2>Coming later</h2>
+          <h2>GST policy note</h2>
           <p>
-            GST, payroll, HSN/SAC and other regulated tools will not ship until their rules have named
-            official sources, effective dates, policy versions and independent examples.
+            The GST Calculator uses only the current, source-backed headline presets documented in its policy
+            bundle. It does not claim that a rate applies to a product or service, and it excludes
+            classification, exemption, place-of-supply and filing decisions.
           </p>
         </section>
       </div>

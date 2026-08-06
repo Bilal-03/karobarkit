@@ -4,10 +4,11 @@ import { categoryRegistry, getRelatedTools, getToolBySlug, toolRegistry } from '
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the completed calculators, QR generators and document generators', () => {
+  it('contains the completed calculators, GST calculator, QR generators and document generators', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
+      'gst-calculator',
       'url-qr',
       'upi-standee',
       'letterhead-generator',
@@ -16,6 +17,7 @@ describe('tool registry contract', () => {
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'financial-calculators',
       'marketing-barcodes',
+      'billing-taxes',
       'business-documents',
     ]);
   });

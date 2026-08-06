@@ -20,8 +20,9 @@ export default function DisclaimerPage() {
           <h2>Calculator limitations</h2>
           <p>
             CAGR is a smoothed annual rate and does not represent actual year-by-year performance. Basic ROI
-            does not account for time, taxes, fees, inflation or interim cash flows. The tool-specific pages
-            list their own boundaries.
+            does not account for time, taxes, fees, inflation or interim cash flows. GST arithmetic does not
+            determine taxability, classification, place of supply, exemptions, filing or applicable legal
+            rate. The tool-specific pages list their own boundaries.
           </p>
         </section>
         <section>

@@ -20,13 +20,18 @@ export default function ReportErrorPage() {
       intro="A good report tells us what tool and version you used, what seemed wrong and what you expected. Please leave out amounts, names, tax IDs and document contents."
     >
       <form className="contact-form" action="/report-an-error" method="post">
-        <SelectField id="error-tool" name="tool" label="Tool" defaultValue="cagr-calculator">
+        <SelectField id="error-tool" name="tool" label="Tool" defaultValue="gst-calculator">
+          <option value="gst-calculator">GST Calculator</option>
           <option value="cagr-calculator">CAGR Calculator</option>
           <option value="roi-calculator">ROI Calculator</option>
           <option value="other">Other / route issue</option>
         </SelectField>
         <SelectField id="error-type" name="type" label="Issue type" defaultValue="calculation">
           <option value="calculation">Calculation or validation</option>
+          <option value="outdated-rate">Outdated rate</option>
+          <option value="broken-source">Broken official source</option>
+          <option value="misleading-explanation">Misleading explanation</option>
+          <option value="rounding">Rounding issue</option>
           <option value="source">Source or explanation</option>
           <option value="accessibility">Accessibility</option>
           <option value="layout">Mobile or layout</option>

@@ -23,8 +23,21 @@ export function SourceReferenceBlock({ sources }: { sources: SourceReference[] }
                 {source.publisher} · {source.evidenceLevel} reference · Checked{' '}
                 {formatIndianDate(source.lastChecked)}
               </p>
+              {source.authority ? (
+                <p>
+                  Authority: {source.authority}
+                  {source.referenceNumber ? ` · ${source.referenceNumber}` : ''}
+                  {source.publishedOn ? ` · Published ${formatIndianDate(source.publishedOn)}` : ''}
+                </p>
+              ) : null}
+              {source.supports?.length ? <p>Supports: {source.supports.join(' · ')}</p> : null}
             </div>
-            {source.effectiveFrom ? <span>Effective {formatIndianDate(source.effectiveFrom)}</span> : null}
+            {source.effectiveFrom ? (
+              <span>
+                Effective {formatIndianDate(source.effectiveFrom)}
+                {source.effectiveTo ? ` to ${formatIndianDate(source.effectiveTo)}` : ''}
+              </span>
+            ) : null}
           </li>
         ))}
       </ul>

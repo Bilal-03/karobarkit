@@ -5,6 +5,7 @@ import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
 import {
   cagrTool,
+  gstTool,
   letterheadTool,
   paymentReceiptTool,
   roiTool,
@@ -62,8 +63,8 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Six tools, one clear promise"
-          description="Start with transparent calculations, local QR outputs and original documents before the platform grows into more complex business workflows."
+          title="Seven tools, one clear promise"
+          description="Start with transparent calculations, source-backed GST arithmetic, local QR outputs and original documents before the platform grows into more complex business workflows."
         >
           <div className="tool-grid">
             <ToolCard
@@ -78,6 +79,13 @@ export default function HomePage() {
               name={roiTool.name}
               summary={roiTool.summary}
               categoryLabel={roiTool.categoryLabel}
+              featured
+            />
+            <ToolCard
+              href={`/tools/${gstTool.slug}`}
+              name={gstTool.name}
+              summary={gstTool.summary}
+              categoryLabel={gstTool.categoryLabel}
               featured
             />
             <ToolCard

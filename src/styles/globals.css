@@ -777,6 +777,34 @@ p {
   display: grid;
   gap: var(--space-5);
 }
+.gst-policy-summary {
+  display: grid;
+  gap: 3px;
+  margin: calc(var(--space-4) * -1) 0 var(--space-5);
+  padding: 12px 14px;
+  border: 1px solid rgba(16, 118, 109, 0.2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-050);
+  color: var(--ink-800);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.gst-policy-summary span {
+  color: var(--ink-500);
+}
+.gst-policy-warning {
+  margin: 0 0 var(--space-5);
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+}
+.gst-policy-warning p {
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.gst-form-actions {
+  display: grid;
+  gap: var(--space-3);
+}
 .generator-form__actions {
   display: grid;
   gap: var(--space-3);
@@ -1291,6 +1319,11 @@ p {
   gap: 8px 16px;
   margin-top: 6px;
 }
+.radio-group--error {
+  padding: 10px;
+  border: 1px solid var(--negative);
+  border-radius: var(--radius-sm);
+}
 .error-summary {
   padding: 14px 16px;
   border: 1px solid #e4a3a0;
@@ -1379,6 +1412,93 @@ p {
 }
 .result-panel__content .privacy-note {
   margin-top: var(--space-5);
+}
+.gst-breakdown {
+  width: 100%;
+  margin: var(--space-5) 0 0;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  table-layout: fixed;
+}
+.gst-breakdown caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.gst-breakdown th,
+.gst-breakdown td {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.gst-breakdown thead th {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  text-align: left;
+}
+.gst-breakdown tbody th {
+  width: 48%;
+  color: var(--ink-500);
+  font-weight: 600;
+  text-align: left;
+}
+.gst-breakdown td {
+  color: var(--ink-800);
+  font-weight: 750;
+  text-align: right;
+}
+.gst-result-explanation,
+.gst-result-policy,
+.gst-result-sources {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+.gst-result-explanation h3,
+.gst-result-policy h3,
+.gst-result-sources h3 {
+  margin-bottom: var(--space-3);
+  font-size: 1rem;
+}
+.gst-result-explanation p,
+.gst-result-policy p {
+  margin-bottom: var(--space-3);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.gst-custom-warning {
+  margin: var(--space-5) 0 0;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+}
+.gst-custom-warning p {
+  margin-bottom: 0;
+  font-size: 0.82rem;
+}
+.gst-result-sources ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gst-result-sources li {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.gst-result-sources a {
+  overflow-wrap: anywhere;
+  font-weight: 750;
+}
+.gst-result-sources span {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  line-height: 1.4;
 }
 .privacy-note {
   display: flex;

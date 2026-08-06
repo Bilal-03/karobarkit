@@ -22,7 +22,11 @@ const faqs = [
   ],
   [
     'Why is the tool set small?',
-    'This release is proving a shared, tested engine. Tax, payroll and document tools need stronger source and privacy governance before they are added.',
+    'This release is proving a shared, tested engine. The GST Calculator is limited to transparent arithmetic; tax classification, payroll and filing workflows need stronger source governance before they are added.',
+  ],
+  [
+    'Does the GST Calculator tell me the correct rate?',
+    'No. It exposes only two source-backed headline presets plus a clearly labelled custom option. It does not classify a product or service, infer place of supply or give tax advice.',
   ],
   [
     'How do I report a wrong result?',

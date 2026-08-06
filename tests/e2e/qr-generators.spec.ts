@@ -72,8 +72,10 @@ test.describe('QR generators', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('qr-preview')).toBeVisible();
 
-    page.once('dialog', (dialog) => dialog.accept());
-    await page.getByRole('button', { name: 'Reset' }).click();
+    const dialogPromise = page.waitForEvent('dialog');
+    const resetClickPromise = page.getByRole('button', { name: 'Reset' }).click();
+    await (await dialogPromise).accept();
+    await resetClickPromise;
     await expect(page.getByLabel('Payee name')).toHaveValue('');
     await expect(page.getByTestId('qr-preview')).toHaveCount(0);
   });

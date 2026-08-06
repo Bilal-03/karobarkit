@@ -137,19 +137,33 @@ interface RadioOption {
 }
 
 interface RadioGroupProps {
+  id?: string;
   name: string;
   label: string;
   options: RadioOption[];
   value: string;
   onChange: (value: string) => void;
   help?: ReactNode;
+  error?: string;
 }
 
-export function RadioGroup({ name, label, options, value, onChange, help }: RadioGroupProps) {
+export function RadioGroup({ id, name, label, options, value, onChange, help, error }: RadioGroupProps) {
+  const describedBy =
+    [help ? `${id ?? name}-help` : '', error ? `${id ?? name}-error` : ''].filter(Boolean).join(' ') ||
+    undefined;
   return (
-    <fieldset className="radio-group">
+    <fieldset
+      id={id}
+      className={`radio-group${error ? ' radio-group--error' : ''}`}
+      aria-invalid={Boolean(error)}
+      aria-describedby={describedBy}
+    >
       <legend className="field__label">{label}</legend>
-      {help ? <div className="field__help">{help}</div> : null}
+      {help ? (
+        <div className="field__help" id={`${id ?? name}-help`}>
+          {help}
+        </div>
+      ) : null}
       <div className="radio-group__options">
         {options.map((option) => (
           <label className="radio-option" key={option.value}>
@@ -164,6 +178,11 @@ export function RadioGroup({ name, label, options, value, onChange, help }: Radi
           </label>
         ))}
       </div>
+      {error ? (
+        <div className="field__error" id={`${id ?? name}-error`} role="alert">
+          {error}
+        </div>
+      ) : null}
     </fieldset>
   );
 }

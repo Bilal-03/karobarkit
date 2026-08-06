@@ -6,6 +6,10 @@ import type { ValidationResult } from '@/domain/calculations/types';
 
 export type EvidenceLevel = 'official' | 'authoritative' | 'editorial';
 
+export type SourceAuthority = 'CBIC' | 'GST_COUNCIL' | 'GST_PORTAL' | 'OTHER_GOVERNMENT';
+
+export type SourceDocumentType = 'notification' | 'rule' | 'circular' | 'press-release' | 'rate-schedule';
+
 export interface SourceReference {
   id: string;
   title: string;
@@ -15,6 +19,13 @@ export interface SourceReference {
   effectiveTo?: string;
   lastChecked: string;
   evidenceLevel: EvidenceLevel;
+  authority?: SourceAuthority;
+  documentType?: SourceDocumentType;
+  referenceNumber?: string;
+  publishedOn?: string;
+  accessedOn?: string;
+  notes?: string;
+  supports?: string[];
 }
 
 export interface FaqItem {
@@ -58,6 +69,7 @@ export interface ToolDefinition<TInput, TResult> {
   edgeCases: string[];
   faqs: FaqItem[];
   privacyNote: string;
+  disclaimer?: string;
 }
 
 export type AnyToolDefinition = ToolDefinition<never, never>;

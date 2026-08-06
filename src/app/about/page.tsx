@@ -36,8 +36,9 @@ export default function AboutPage() {
           <h2>What we are not building yet</h2>
           <p>
             No accounts, bank connections, GST filing, payroll engine, payment gateway or realistic mock bills
-            are part of this foundation milestone. Regulated tools will need stronger source governance before
-            they are added.
+            are part of this release. The GST Calculator is intentionally limited to source-backed arithmetic;
+            classification, filing and compliance workflows require stronger source governance before they are
+            added.
           </p>
         </section>
       </div>

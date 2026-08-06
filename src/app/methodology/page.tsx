@@ -41,6 +41,26 @@ export default function MethodologyPage() {
             or business details in a report.
           </p>
         </section>
+        <section>
+          <h2>GST Calculator policy</h2>
+          <p>
+            GST is treated as controlled policy data, not a timeless rate constant. The GST Calculator
+            displays policy version <code>gst-general-rates-2025-09-22-v1</code>, its effective date, last
+            verification date and official source links. Only the 5% and 18% headline presets are exposed;
+            they are choices for arithmetic, not product or service classification.
+          </p>
+          <p>
+            Exclusive mode calculates GST on the entered taxable value. Inclusive mode extracts the GST
+            component from the entered total. Currency values use decimal arithmetic and half-up rounding at
+            two decimal places. Intra-state components reconcile as CGST plus SGST/UTGST; inter-state tax is
+            shown as IGST; the tool never infers place of supply.
+          </p>
+          <p>
+            Review the detailed <a href="/gst-methodology">GST methodology</a>,{' '}
+            <a href="/gst-policy-version">policy-version model</a> and{' '}
+            <a href="/gst-source-verification">source-verification summary</a> before relying on a result.
+          </p>
+        </section>
         <Section eyebrow="Quality gates" title="The foundation we are building">
           <div className="stats-grid">
             <div className="stat">

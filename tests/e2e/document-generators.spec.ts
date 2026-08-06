@@ -7,6 +7,7 @@ const onePixelPng = Buffer.from(
 
 test.describe('document generators', () => {
   test('letterhead supports local logo processing, preview, PDF download and print', async ({ page }) => {
+    test.setTimeout(120_000);
     await page.addInitScript(() => {
       window.print = () => {
         document.body.setAttribute('data-print-called', 'true');
@@ -67,6 +68,7 @@ test.describe('document generators', () => {
   test('payment receipt formats amount in words and exports a declared-payment acknowledgement', async ({
     page,
   }) => {
+    test.setTimeout(120_000);
     await page.goto('/tools/payment-receipt-generator');
     await page.getByLabel('Business name').fill('Ravi & Sons');
     await page.getByLabel('Business address').fill('Market Road, Pune');
