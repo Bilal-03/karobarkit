@@ -11,12 +11,14 @@ import { DisclaimerBlock, LastReviewedBlock, PrivacyBlock } from '@/components/u
 import { SourceReferenceBlock } from '@/components/ui/source-reference';
 
 import { CalculatorForm } from './calculator-form';
+import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GeneratorForm } from './generator-form';
 
 interface SupportedTool {
   id: string;
   slug: string;
   kind: 'calculator' | 'generator';
+  generatorKind?: 'qr' | 'document';
   name: string;
   category: string;
   categoryLabel: string;
@@ -80,6 +82,11 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
               defaultValues: tool.defaultValues,
               privacyNote: tool.privacyNote,
             }}
+          />
+        ) : tool.generatorKind === 'document' ? (
+          <DocumentGeneratorForm
+            kind={tool.slug === 'letterhead-generator' ? 'letterhead' : 'payment-receipt'}
+            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
           />
         ) : (
           <GeneratorForm

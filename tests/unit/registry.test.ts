@@ -4,16 +4,19 @@ import { categoryRegistry, getRelatedTools, getToolBySlug, toolRegistry } from '
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the tested calculator and QR generator milestone', () => {
+  it('contains the completed calculators, QR generators and document generators', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
       'url-qr',
       'upi-standee',
+      'letterhead-generator',
+      'payment-receipt-generator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'financial-calculators',
       'marketing-barcodes',
+      'business-documents',
     ]);
   });
 
@@ -27,6 +30,7 @@ describe('tool registry contract', () => {
       expect(tool.privacyNote).toContain('browser');
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
       expect(['calculator', 'generator']).toContain(tool.kind);
+      if (tool.kind === 'generator') expect(tool.generatorKind).toBeDefined();
     }
   });
 

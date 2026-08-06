@@ -140,7 +140,10 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
     }
 
     try {
-      downloadDataUrl(qrImage.dataUrl, safeFilename(isUrl ? 'karobarkit-url-qr' : 'karobarkit-upi-standee'));
+      downloadDataUrl(
+        qrImage.dataUrl,
+        safeFilename(isUrl ? 'karobarkit-url-qr' : 'karobarkit-upi-standee', 'karobarkit-qr', 'png'),
+      );
       trackEvent('result_downloaded', { toolId: tool.id, format: 'png' });
       setExportError(null);
     } catch (error) {

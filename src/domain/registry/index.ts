@@ -14,6 +14,23 @@ import {
   validateUrlQrInput,
 } from '@/domain/qr/url';
 import { QR_LOCAL_PRIVACY_NOTE, UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
+import {
+  calculateLetterhead,
+  letterheadInputSchema,
+  letterheadDefaultValues,
+  type LetterheadDocument,
+  type LetterheadInput,
+  validateLetterheadInput,
+} from '@/domain/documents/letterhead';
+import {
+  calculatePaymentReceipt,
+  paymentReceiptInputSchema,
+  paymentReceiptDefaultValues,
+  type PaymentReceiptDocument,
+  type PaymentReceiptInput,
+  validatePaymentReceiptInput,
+} from '@/domain/documents/payment-receipt';
+import { DOCUMENT_LAST_REVIEWED } from '@/domain/documents/constants';
 
 import {
   calculateCagr,
@@ -111,6 +128,33 @@ const sharedAnalyticsPolicy = {
     'upiId',
     'payeeName',
     'note',
+    'businessName',
+    'businessAddress',
+    'phone',
+    'email',
+    'website',
+    'tagline',
+    'gstin',
+    'cin',
+    'registrationNumber',
+    'additionalContact',
+    'socialHandle',
+    'recipientName',
+    'recipientAddress',
+    'body',
+    'receiptNumber',
+    'receiptDate',
+    'receivedFrom',
+    'paymentPurpose',
+    'paymentMethod',
+    'transactionReference',
+    'paymentNote',
+    'invoiceReference',
+    'customerAddress',
+    'signatoryName',
+    'signatoryDesignation',
+    'documentContents',
+    'logo',
   ],
 };
 
@@ -229,6 +273,7 @@ export const urlQrTool: ToolDefinition<UrlQrInput, UrlQrResult> = {
   id: 'url-qr-generator',
   slug: 'url-qr',
   kind: 'generator',
+  generatorKind: 'qr',
   name: 'URL QR Generator',
   category: 'marketing-barcodes',
   categoryLabel: 'Marketing & QR codes',
@@ -285,6 +330,7 @@ export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
   id: 'upi-standee-generator',
   slug: 'upi-standee',
   kind: 'generator',
+  generatorKind: 'qr',
   name: 'UPI Standee Generator',
   category: 'marketing-barcodes',
   categoryLabel: 'Marketing & QR codes',
@@ -338,7 +384,141 @@ export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
   privacyNote: `${QR_LOCAL_PRIVACY_NOTE} ${UPI_OWNERSHIP_DISCLAIMER}`,
 };
 
-export const toolRegistry = [cagrTool, roiTool, urlQrTool, upiStandeeTool] as const;
+const documentSource: SourceReference = {
+  id: 'css-paged-media-a4-printing',
+  title: 'CSS Paged Media Module Level 3',
+  publisher: 'World Wide Web Consortium',
+  url: 'https://www.w3.org/TR/css-page-3/',
+  lastChecked: DOCUMENT_LAST_REVIEWED,
+  evidenceLevel: 'authoritative',
+};
+
+const documentPrivacyNote =
+  'Business details, document text and logos are processed locally in this browser. They are not sent to a server, saved by default or included in analytics.';
+
+export const letterheadTool: ToolDefinition<LetterheadInput, LetterheadDocument> = {
+  id: 'letterhead-generator',
+  slug: 'letterhead-generator',
+  kind: 'generator',
+  generatorKind: 'document',
+  name: 'Letterhead Generator',
+  category: 'business-documents',
+  categoryLabel: 'Business documents',
+  summary: 'Create an original, print-ready A4 letterhead with local logo processing and simple layouts.',
+  inputSchema: letterheadInputSchema,
+  defaultValues: letterheadDefaultValues,
+  validate: validateLetterheadInput,
+  calculate: calculateLetterhead,
+  renderResult: (result) => result.metadata.title,
+  sources: [documentSource],
+  limitations: [
+    'The generator creates a business document layout; it does not verify business names, registrations, logos or recipient details.',
+    'Plain text is supported. Longer letters are split across A4 pages; review page breaks before sharing.',
+    'PDF text supports Latin and Devanagari through a bundled Noto Sans font. Use browser Print → Save as PDF for other scripts or full system-font coverage.',
+  ],
+  lastReviewed: DOCUMENT_LAST_REVIEWED,
+  seo: {
+    title: 'Letterhead Generator for Indian Businesses | KarobarKit',
+    description:
+      'Create a private, original A4 letterhead with business details, optional logo, controlled layouts, print preview and PDF download.',
+    keywords: ['letterhead generator', 'business letterhead', 'letterhead maker'],
+  },
+  relatedToolIds: ['payment-receipt-generator'],
+  analyticsPolicy: sharedAnalyticsPolicy,
+  howToUse: [
+    'Enter the business name and address, then add contact details or identifiers you want displayed.',
+    'Choose one of the controlled layouts, an accessible accent and an optional local logo.',
+    'Add recipient and letter text if needed, review the A4 preview, then download the PDF or print.',
+  ],
+  formula: 'No calculation. The tool maps the entered text into a deterministic A4 document template.',
+  workedExample:
+    'A business name, multiline address and optional recipient/body text are placed into the selected A4 template without a server upload.',
+  resultInterpretation:
+    'The preview is a printable business communication layout. Optional registration details are displayed as entered and are not verified.',
+  edgeCases: [
+    'Whitespace-only required fields are rejected while Unicode and multiline text are preserved.',
+    'Only safe raster logos are accepted; SVG and arbitrary markup are rejected.',
+    'Long letter bodies continue onto additional A4 pages instead of being silently clipped.',
+  ],
+  faqs: [
+    {
+      question: 'Is my logo uploaded anywhere?',
+      answer: 'No. PNG, JPEG and WebP logos are decoded and resized in your browser only.',
+    },
+    {
+      question: 'Are GSTIN, CIN or registration details verified?',
+      answer: 'No. They are optional display fields and should be checked against your own records.',
+    },
+  ],
+  privacyNote: documentPrivacyNote,
+};
+
+export const paymentReceiptTool: ToolDefinition<PaymentReceiptInput, PaymentReceiptDocument> = {
+  id: 'payment-receipt-generator',
+  slug: 'payment-receipt-generator',
+  kind: 'generator',
+  generatorKind: 'document',
+  name: 'Payment Receipt Generator',
+  category: 'business-documents',
+  categoryLabel: 'Business documents',
+  summary: 'Create a clear A4 acknowledgement of a declared payment without an account or server storage.',
+  inputSchema: paymentReceiptInputSchema,
+  defaultValues: paymentReceiptDefaultValues,
+  validate: validatePaymentReceiptInput,
+  calculate: calculatePaymentReceipt,
+  renderResult: (result) => result.monetaryValue.formatted,
+  sources: [documentSource],
+  limitations: [
+    'This is an acknowledgement created from information you enter. It is not bank confirmation, proof of settlement, a government receipt or a GST tax invoice.',
+    'The tool never contacts a bank, UPI app, card network or payment gateway. Independently verify settlement.',
+    'Amount-to-words supports positive INR values up to ₹99,99,99,99,99,99,999.99 with a maximum of two decimal places.',
+  ],
+  lastReviewed: DOCUMENT_LAST_REVIEWED,
+  seo: {
+    title: 'Payment Receipt Generator for Indian Businesses | KarobarKit',
+    description:
+      'Create a private A4 payment acknowledgement with amount in Indian words, optional payment details, print preview and local PDF download.',
+    keywords: ['payment receipt generator', 'receipt maker', 'payment acknowledgement'],
+  },
+  relatedToolIds: ['letterhead-generator'],
+  analyticsPolicy: sharedAnalyticsPolicy,
+  howToUse: [
+    'Enter a receipt number, local receipt date, payer name, positive amount and payment purpose.',
+    'Optionally add issuer identity, payment method, references, a logo and signature placeholder.',
+    'Review the amount in figures and words, then download the A4 PDF or print after checking settlement independently.',
+  ],
+  formula: 'Amount in words = deterministic Indian numbering conversion of the entered rupees and paise.',
+  workedExample:
+    '₹1,250.50 is displayed as ₹1,250.50 and “One Thousand Two Hundred Fifty Rupees and Fifty Paise Only.”',
+  resultInterpretation:
+    'The receipt records what the issuer declares was received. It does not prove that a financial transaction settled.',
+  edgeCases: [
+    'Receipt numbers allow letters, numbers, spaces, hyphens and slashes; global uniqueness is not claimed.',
+    'Dates are validated as local calendar dates and formatted without timezone shifting.',
+    'NaN, infinity, zero, negative values, excessive precision and unsupported large values are rejected.',
+  ],
+  faqs: [
+    {
+      question: 'Can this receipt be used as bank confirmation?',
+      answer: 'No. It is a user-created acknowledgement. Check the relevant bank or payment app separately.',
+    },
+    {
+      question: 'Does it create a GST tax invoice?',
+      answer:
+        'No. GST invoicing is outside this milestone and the receipt is explicitly not a GST tax invoice.',
+    },
+  ],
+  privacyNote: documentPrivacyNote,
+};
+
+export const toolRegistry = [
+  cagrTool,
+  roiTool,
+  urlQrTool,
+  upiStandeeTool,
+  letterheadTool,
+  paymentReceiptTool,
+] as const;
 
 export const categoryRegistry = [
   {
@@ -352,6 +532,12 @@ export const categoryRegistry = [
     slug: 'marketing-barcodes',
     name: 'Marketing & QR codes',
     description: 'Create local QR outputs for URLs and UPI payment displays.',
+  },
+  {
+    id: 'business-documents',
+    slug: 'business-documents',
+    name: 'Business documents',
+    description: 'Prepare original, local-first A4 documents for everyday business communication.',
   },
 ] as const;
 

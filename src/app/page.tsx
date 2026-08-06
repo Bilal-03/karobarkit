@@ -3,7 +3,14 @@ import Link from 'next/link';
 import { Container, Section } from '@/components/ui/container';
 import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
-import { cagrTool, roiTool, upiStandeeTool, urlQrTool } from '@/domain/registry';
+import {
+  cagrTool,
+  letterheadTool,
+  paymentReceiptTool,
+  roiTool,
+  upiStandeeTool,
+  urlQrTool,
+} from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -55,8 +62,8 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Four tools, one clear promise"
-          description="Start with transparent calculations and local QR outputs before the platform grows into more complex business workflows."
+          title="Six tools, one clear promise"
+          description="Start with transparent calculations, local QR outputs and original documents before the platform grows into more complex business workflows."
         >
           <div className="tool-grid">
             <ToolCard
@@ -87,6 +94,20 @@ export default function HomePage() {
               categoryLabel={upiStandeeTool.categoryLabel}
               featured
             />
+            <ToolCard
+              href={`/tools/${letterheadTool.slug}`}
+              name={letterheadTool.name}
+              summary={letterheadTool.summary}
+              categoryLabel={letterheadTool.categoryLabel}
+              featured
+            />
+            <ToolCard
+              href={`/tools/${paymentReceiptTool.slug}`}
+              name={paymentReceiptTool.name}
+              summary={paymentReceiptTool.summary}
+              categoryLabel={paymentReceiptTool.categoryLabel}
+              featured
+            />
           </div>
         </Section>
         <Section eyebrow="Find your next step" title="What would you like to do?">
@@ -99,6 +120,26 @@ export default function HomePage() {
               </p>
               <Link className="text-link" href="/tools/cagr-calculator">
                 Calculate CAGR <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+            <article className="content-card">
+              <h3>Prepare a business document</h3>
+              <p>
+                Build a local-first letterhead or payment acknowledgement, review the A4 preview and export
+                it.
+              </p>
+              <Link className="text-link" href={`/tools/${letterheadTool.slug}`}>
+                Create a letterhead <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+            <article className="content-card">
+              <h3>Acknowledge a payment</h3>
+              <p>
+                Record a declared payment with Indian amount-to-words formatting and a clear verification
+                limitation.
+              </p>
+              <Link className="text-link" href={`/tools/${paymentReceiptTool.slug}`}>
+                Create a payment receipt <span aria-hidden="true">→</span>
               </Link>
             </article>
             <article className="content-card">
@@ -141,14 +182,14 @@ export default function HomePage() {
               <div>
                 <h3>Keep data close</h3>
                 <p>
-                  These tools run locally. We do not put financial values, URLs or UPI details into analytics,
-                  URLs or error logs.
+                  These tools run locally. We do not put financial values, URLs, UPI details, logos or
+                  document text into analytics, URLs or error logs.
                 </p>
               </div>
             </div>
             <PrivacyBlock>
-              Calculations, QR payloads and generated images stay in your browser. Later tools will show their
-              data flow before you enter anything.
+              Calculations, QR payloads, document previews and generated images stay in your browser. Later
+              tools will show their data flow before you enter anything.
             </PrivacyBlock>
           </div>
         </Section>

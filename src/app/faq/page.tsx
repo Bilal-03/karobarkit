@@ -14,7 +14,7 @@ const faqs = [
   ],
   [
     'Are my numbers uploaded?',
-    'No. CAGR and ROI calculate in the browser. Financial values are not sent to analytics or error logs.',
+    'No. CAGR, ROI, QR payloads and document previews calculate in the browser. Financial values, entered URLs, UPI details, logos and document text are not sent to analytics or error logs.',
   ],
   [
     'Is the result financial advice?',

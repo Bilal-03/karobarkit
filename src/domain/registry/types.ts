@@ -31,6 +31,7 @@ export interface ToolDefinition<TInput, TResult> {
   id: string;
   slug: string;
   kind: 'calculator' | 'generator';
+  generatorKind?: 'qr' | 'document';
   name: string;
   category: string;
   categoryLabel: string;

@@ -1,15 +1,6 @@
 import { QrExportError } from './types';
 
-export function safeFilename(value: string, fallback = 'karobarkit-qr', extension = 'png') {
-  const safeBase = value
-    .normalize('NFKC')
-    .replace(/[^A-Za-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-    .toLowerCase();
-  const normalizedExtension = extension.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'bin';
-  return `${safeBase || fallback}.${normalizedExtension}`;
-}
+export { safeFilename } from '@/lib/security/safe-filename';
 
 export function dataUrlToBlob(dataUrl: string): Blob {
   const match = /^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(dataUrl);

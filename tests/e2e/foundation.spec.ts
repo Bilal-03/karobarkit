@@ -9,6 +9,9 @@ const overflowRoutes = [
   '/tools/roi-calculator',
   '/tools/url-qr',
   '/tools/upi-standee',
+  '/tools/letterhead-generator',
+  '/tools/payment-receipt-generator',
+  '/categories/business-documents',
   '/sources',
   '/contact',
   '/report-an-error',
@@ -34,6 +37,16 @@ const metadataRoutes = [
     h1: 'UPI Standee Generator',
   },
   {
+    path: '/tools/letterhead-generator',
+    title: 'Letterhead Generator for Indian Businesses',
+    h1: 'Letterhead Generator',
+  },
+  {
+    path: '/tools/payment-receipt-generator',
+    title: 'Payment Receipt Generator for Indian Businesses',
+    h1: 'Payment Receipt Generator',
+  },
+  {
     path: '/categories/financial-calculators',
     title: 'Financial calculations tools',
     h1: 'Financial calculations',
@@ -42,6 +55,11 @@ const metadataRoutes = [
     path: '/categories/marketing-barcodes',
     title: 'Marketing & QR codes tools',
     h1: 'Marketing & QR codes',
+  },
+  {
+    path: '/categories/business-documents',
+    title: 'Business documents tools',
+    h1: 'Business documents',
   },
   { path: '/search', title: 'Search business tools', h1: 'Find the right tool for the job' },
   {
@@ -209,7 +227,13 @@ test.describe('accessibility', () => {
 
   test('calculator page has no serious or critical axe violations', async ({ page }) => {
     test.setTimeout(120_000);
-    for (const route of ['/tools/roi-calculator', '/tools/url-qr', '/tools/upi-standee']) {
+    for (const route of [
+      '/tools/roi-calculator',
+      '/tools/url-qr',
+      '/tools/upi-standee',
+      '/tools/letterhead-generator',
+      '/tools/payment-receipt-generator',
+    ]) {
       await page.goto(route);
       const results = await new AxeBuilder({ page }).analyze();
       const seriousOrCritical = results.violations.filter((violation) =>
