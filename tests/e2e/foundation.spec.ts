@@ -7,6 +7,8 @@ const overflowRoutes = [
   '/categories/financial-calculators',
   '/tools/cagr-calculator',
   '/tools/roi-calculator',
+  '/tools/url-qr',
+  '/tools/upi-standee',
   '/sources',
   '/contact',
   '/report-an-error',
@@ -25,10 +27,21 @@ const metadataRoutes = [
     h1: 'CAGR Calculator',
   },
   { path: '/tools/roi-calculator', title: 'ROI Calculator for Indian Businesses', h1: 'ROI Calculator' },
+  { path: '/tools/url-qr', title: 'URL QR Generator for Indian Businesses', h1: 'URL QR Generator' },
+  {
+    path: '/tools/upi-standee',
+    title: 'UPI Standee Generator for Indian Businesses',
+    h1: 'UPI Standee Generator',
+  },
   {
     path: '/categories/financial-calculators',
     title: 'Financial calculations tools',
     h1: 'Financial calculations',
+  },
+  {
+    path: '/categories/marketing-barcodes',
+    title: 'Marketing & QR codes tools',
+    h1: 'Marketing & QR codes',
   },
   { path: '/search', title: 'Search business tools', h1: 'Find the right tool for the job' },
   {
@@ -147,10 +160,12 @@ test.describe('foundation routes', () => {
       !testInfo.project.name.startsWith('mobile-'),
       'Touch target audit is scoped to mobile layouts.',
     );
-    await page.goto('/tools/roi-calculator');
+    await page.goto('/tools/upi-standee');
 
     const heights = await page
-      .locator('.calculator-card button, .calculator-card input')
+      .locator(
+        '.calculator-card button, .calculator-card input, .calculator-card textarea, .calculator-card select',
+      )
       .evaluateAll((elements) =>
         elements.map((element) => Math.round(element.getBoundingClientRect().height)),
       );
@@ -193,11 +208,14 @@ test.describe('accessibility', () => {
   });
 
   test('calculator page has no serious or critical axe violations', async ({ page }) => {
-    await page.goto('/tools/roi-calculator');
-    const results = await new AxeBuilder({ page }).analyze();
-    const seriousOrCritical = results.violations.filter((violation) =>
-      ['serious', 'critical'].includes(violation.impact ?? ''),
-    );
-    expect(seriousOrCritical).toEqual([]);
+    test.setTimeout(120_000);
+    for (const route of ['/tools/roi-calculator', '/tools/url-qr', '/tools/upi-standee']) {
+      await page.goto(route);
+      const results = await new AxeBuilder({ page }).analyze();
+      const seriousOrCritical = results.violations.filter((violation) =>
+        ['serious', 'critical'].includes(violation.impact ?? ''),
+      );
+      expect(seriousOrCritical, route).toEqual([]);
+    }
   });
 });

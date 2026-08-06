@@ -18,14 +18,14 @@ export default function SourcesPage() {
     <InfoPage
       eyebrow="Evidence"
       title="Sources we can point to"
-      intro="The first release focuses on standard financial formulas. As tax and document tools arrive, this register will include official rules, effective dates and policy versions."
+      intro="The current release combines standard financial formulas with the URL and UPI standards used by its local QR generators. Regulated tools will add versioned official rules before they ship."
     >
       <div className="prose">
         <section>
-          <h2>Current calculator references</h2>
+          <h2>Current tool references</h2>
           <div className="source-table-wrap">
             <table className="source-table">
-              <caption>Source references for the two proof-of-concept calculators.</caption>
+              <caption>Source references for calculations and QR payload generation.</caption>
               <thead>
                 <tr>
                   <th scope="col">Tool</th>

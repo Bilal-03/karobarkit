@@ -30,6 +30,7 @@ export interface AnalyticsPolicy {
 export interface ToolDefinition<TInput, TResult> {
   id: string;
   slug: string;
+  kind: 'calculator' | 'generator';
   name: string;
   category: string;
   categoryLabel: string;

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Container, Section } from '@/components/ui/container';
 import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
-import { cagrTool, roiTool } from '@/domain/registry';
+import { cagrTool, roiTool, upiStandeeTool, urlQrTool } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -55,8 +55,8 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Two tools, one clear promise"
-          description="We are proving the shared engine with low-risk financial calculations before adding tax and document workflows."
+          title="Four tools, one clear promise"
+          description="Start with transparent calculations and local QR outputs before the platform grows into more complex business workflows."
         >
           <div className="tool-grid">
             <ToolCard
@@ -73,9 +73,23 @@ export default function HomePage() {
               categoryLabel={roiTool.categoryLabel}
               featured
             />
+            <ToolCard
+              href={`/tools/${urlQrTool.slug}`}
+              name={urlQrTool.name}
+              summary={urlQrTool.summary}
+              categoryLabel={urlQrTool.categoryLabel}
+              featured
+            />
+            <ToolCard
+              href={`/tools/${upiStandeeTool.slug}`}
+              name={upiStandeeTool.name}
+              summary={upiStandeeTool.summary}
+              categoryLabel={upiStandeeTool.categoryLabel}
+              featured
+            />
           </div>
         </Section>
-        <Section eyebrow="Find your next step" title="What would you like to understand?">
+        <Section eyebrow="Find your next step" title="What would you like to do?">
           <div className="content-grid content-grid--two">
             <article className="content-card">
               <h3>Growth over time</h3>
@@ -85,6 +99,23 @@ export default function HomePage() {
               </p>
               <Link className="text-link" href="/tools/cagr-calculator">
                 Calculate CAGR <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+            <article className="content-card">
+              <h3>Share a destination</h3>
+              <p>Turn a safe website URL into a QR code that is ready to download, scan-test and print.</p>
+              <Link className="text-link" href={`/tools/${urlQrTool.slug}`}>
+                Generate a URL QR <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+            <article className="content-card">
+              <h3>Display a payment address</h3>
+              <p>
+                Create a UPI standee locally, with an optional amount and a clear reminder to verify the
+                payee.
+              </p>
+              <Link className="text-link" href={`/tools/${upiStandeeTool.slug}`}>
+                Create a UPI standee <span aria-hidden="true">→</span>
               </Link>
             </article>
             <article className="content-card">
@@ -110,14 +141,14 @@ export default function HomePage() {
               <div>
                 <h3>Keep data close</h3>
                 <p>
-                  These calculators run locally. We do not put financial values into analytics, URLs or error
-                  logs.
+                  These tools run locally. We do not put financial values, URLs or UPI details into analytics,
+                  URLs or error logs.
                 </p>
               </div>
             </div>
             <PrivacyBlock>
-              For the first calculators, nothing leaves your browser. Later tools will show their data flow
-              before you enter anything.
+              Calculations, QR payloads and generated images stay in your browser. Later tools will show their
+              data flow before you enter anything.
             </PrivacyBlock>
           </div>
         </Section>

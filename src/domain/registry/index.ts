@@ -1,4 +1,19 @@
 import { formatPercentage } from '@/domain/formatting/indian';
+import {
+  calculateUpi,
+  upiInputSchema,
+  type UpiInput,
+  type UpiResult,
+  validateUpiInput,
+} from '@/domain/qr/upi';
+import {
+  calculateUrlQr,
+  type UrlQrInput,
+  type UrlQrResult,
+  urlQrInputSchema,
+  validateUrlQrInput,
+} from '@/domain/qr/url';
+import { QR_LOCAL_PRIVACY_NOTE, UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
 
 import {
   calculateCagr,
@@ -39,6 +54,33 @@ const roiSource: SourceReference = {
   evidenceLevel: 'editorial',
 };
 
+const qrStandardSource: SourceReference = {
+  id: 'qr-code-standard-overview',
+  title: 'QR Code two-dimensional symbol overview',
+  publisher: 'DENSO WAVE',
+  url: 'https://www.qrcode.com/en/about/',
+  lastChecked: TOOL_LAST_REVIEWED,
+  evidenceLevel: 'authoritative',
+};
+
+const urlStandardSource: SourceReference = {
+  id: 'whatwg-url-standard',
+  title: 'URL Standard',
+  publisher: 'WHATWG',
+  url: 'https://url.spec.whatwg.org/',
+  lastChecked: TOOL_LAST_REVIEWED,
+  evidenceLevel: 'authoritative',
+};
+
+const upiSource: SourceReference = {
+  id: 'npci-upi-deep-linking-parameters',
+  title: 'UPI QR key deep-linking parameters',
+  publisher: 'National Payments Corporation of India',
+  url: 'https://www.npci.org.in/PDF/npci/upi/circular/2017/Circular18_BankCompliances_to_enbaleUPIMerchantecosystem_0.pdf',
+  lastChecked: TOOL_LAST_REVIEWED,
+  evidenceLevel: 'official',
+};
+
 const sharedAnalyticsPolicy = {
   allowedEvents: [
     'tool_viewed',
@@ -46,6 +88,10 @@ const sharedAnalyticsPolicy = {
     'tool_completed',
     'tool_validation_failed',
     'result_generated',
+    'result_printed',
+    'result_downloaded',
+    'result_copied',
+    'result_shared',
     'related_tool_opened',
   ],
   forbiddenProperties: [
@@ -59,12 +105,19 @@ const sharedAnalyticsPolicy = {
     'amount',
     'result',
     'rawInput',
+    'url',
+    'normalizedUrl',
+    'payload',
+    'upiId',
+    'payeeName',
+    'note',
   ],
 };
 
 export const cagrTool: ToolDefinition<CagrInput, CagrResult> = {
   id: 'cagr-calculator',
   slug: 'cagr-calculator',
+  kind: 'calculator',
   name: 'CAGR Calculator',
   category: 'financial-calculators',
   categoryLabel: 'Financial calculations',
@@ -119,6 +172,7 @@ export const cagrTool: ToolDefinition<CagrInput, CagrResult> = {
 export const roiTool: ToolDefinition<RoiInput, RoiResult> = {
   id: 'roi-calculator',
   slug: 'roi-calculator',
+  kind: 'calculator',
   name: 'ROI Calculator',
   category: 'financial-calculators',
   categoryLabel: 'Financial calculations',
@@ -171,7 +225,120 @@ export const roiTool: ToolDefinition<RoiInput, RoiResult> = {
     'Inputs stay in this browser. Financial values are not sent to analytics or stored on a server.',
 };
 
-export const toolRegistry = [cagrTool, roiTool] as const;
+export const urlQrTool: ToolDefinition<UrlQrInput, UrlQrResult> = {
+  id: 'url-qr-generator',
+  slug: 'url-qr',
+  kind: 'generator',
+  name: 'URL QR Generator',
+  category: 'marketing-barcodes',
+  categoryLabel: 'Marketing & QR codes',
+  summary: 'Turn a safe HTTP or HTTPS URL into a downloadable, print-ready QR code.',
+  inputSchema: urlQrInputSchema,
+  defaultValues: { url: '', size: '512' },
+  validate: validateUrlQrInput,
+  calculate: calculateUrlQr,
+  renderResult: (result) => result.normalizedUrl,
+  sources: [qrStandardSource, urlStandardSource],
+  limitations: [
+    'The generator encodes the URL; it does not check whether the site exists, is trustworthy or will remain online.',
+    'Only HTTP and HTTPS URLs are supported. Unsupported protocols are rejected instead of being silently changed.',
+  ],
+  lastReviewed: TOOL_LAST_REVIEWED,
+  seo: {
+    title: 'URL QR Generator for Indian Businesses | KarobarKit',
+    description:
+      'Create a private, client-side QR code from an HTTP or HTTPS URL with configurable size, PNG download and print support.',
+    keywords: ['url qr generator', 'website qr code', 'qr code generator'],
+  },
+  relatedToolIds: ['upi-standee-generator'],
+  analyticsPolicy: sharedAnalyticsPolicy,
+  howToUse: [
+    'Enter an HTTP or HTTPS URL. A bare domain is normalized to HTTPS; unsafe protocols are rejected.',
+    'Choose the output size that suits your screen, print or sign.',
+    'Generate the preview, scan-test it with a trusted app, then download PNG or print.',
+  ],
+  formula: 'QR payload = normalized HTTP(S) URL',
+  workedExample:
+    'Entering example.com/pricing is normalized to https://example.com/pricing before it is encoded.',
+  resultInterpretation:
+    'The QR code stores the displayed normalized URL. Scanning it may open that URL in the scanning app or browser.',
+  edgeCases: [
+    'javascript:, data:, file: and other non-HTTP(S) protocols are rejected and never encoded.',
+    'URLs with embedded usernames or passwords are rejected to reduce accidental credential sharing.',
+    'A 2,048-character limit keeps the QR payload practical to scan and export.',
+  ],
+  faqs: [
+    {
+      question: 'Does KarobarKit visit or check the URL?',
+      answer: 'No. The URL is normalized and encoded locally; the tool does not request the destination.',
+    },
+    {
+      question: 'Why did my URL become HTTPS?',
+      answer:
+        'A bare domain has no protocol, so the tool uses HTTPS as the safe default. URLs that explicitly use another protocol are rejected.',
+    },
+  ],
+  privacyNote: QR_LOCAL_PRIVACY_NOTE,
+};
+
+export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
+  id: 'upi-standee-generator',
+  slug: 'upi-standee',
+  kind: 'generator',
+  name: 'UPI Standee Generator',
+  category: 'marketing-barcodes',
+  categoryLabel: 'Marketing & QR codes',
+  summary: 'Create a local, print-ready UPI payment QR standee with an optional fixed amount and note.',
+  inputSchema: upiInputSchema,
+  defaultValues: { payeeName: '', upiId: '', amount: '', note: '' },
+  validate: validateUpiInput,
+  calculate: calculateUpi,
+  renderResult: (result) => result.payload,
+  sources: [qrStandardSource, upiSource],
+  limitations: [
+    'The tool constructs a standard UPI payment URI but does not verify ownership, activity, bank support or settlement.',
+    'A UPI app and compatible bank account are required to complete a payment. Always verify the payee in the app before authorizing.',
+    'The fixed amount limit is a QR payload safety guard, not a claim about UPI transaction limits.',
+  ],
+  lastReviewed: TOOL_LAST_REVIEWED,
+  seo: {
+    title: 'UPI Standee Generator for Indian Businesses | KarobarKit',
+    description:
+      'Generate a private, client-side UPI payment QR standee with safe URI encoding, optional amount, print layout and PNG download.',
+    keywords: ['upi standee generator', 'upi qr code', 'payment qr standee'],
+  },
+  relatedToolIds: ['url-qr-generator'],
+  analyticsPolicy: sharedAnalyticsPolicy,
+  howToUse: [
+    'Enter the payee name and UPI ID exactly as you want users to see them.',
+    'Optionally add a fixed INR amount and a short payment note.',
+    'Generate the standee, scan-test it in a trusted UPI app, then download or print it.',
+  ],
+  formula: 'upi://pay?pa={UPI ID}&pn={payee name}&am={optional amount}&cu=INR&tn={optional note}',
+  workedExample:
+    'A payee name of Ravi & Sons and UPI ID ravi@bank become safely percent-encoded URI parameters before QR rendering.',
+  resultInterpretation:
+    'The QR code contains payment details for a UPI app to interpret. It does not initiate or confirm a payment by itself.',
+  edgeCases: [
+    'Payee name is required; UPI ID must use an ASCII name@handle format with supported punctuation.',
+    'Fixed amounts must be greater than zero, use no more than two decimal places and stay within the QR safety bound.',
+    `Payment notes are limited to ${80} characters and cannot contain line breaks or control characters.`,
+  ],
+  faqs: [
+    {
+      question: 'Does a valid-looking UPI ID guarantee that payments will work?',
+      answer:
+        'No. Syntax validation cannot verify account ownership, activity or bank support. Confirm the payee inside your UPI app.',
+    },
+    {
+      question: 'Can I leave the amount blank?',
+      answer: 'Yes. A blank amount lets the payer enter the amount in their UPI app if the app supports it.',
+    },
+  ],
+  privacyNote: `${QR_LOCAL_PRIVACY_NOTE} ${UPI_OWNERSHIP_DISCLAIMER}`,
+};
+
+export const toolRegistry = [cagrTool, roiTool, urlQrTool, upiStandeeTool] as const;
 
 export const categoryRegistry = [
   {
@@ -179,6 +346,12 @@ export const categoryRegistry = [
     slug: 'financial-calculators',
     name: 'Financial calculations',
     description: 'Understand growth and returns with formulas that show their work.',
+  },
+  {
+    id: 'marketing-barcodes',
+    slug: 'marketing-barcodes',
+    name: 'Marketing & QR codes',
+    description: 'Create local QR outputs for URLs and UPI payment displays.',
   },
 ] as const;
 

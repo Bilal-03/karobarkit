@@ -14,6 +14,11 @@ describe('privacy-safe analytics boundary', () => {
       finalValue: '125000',
       profit: '25000',
       percentage: '25',
+      url: 'https://private.example.com',
+      upiId: 'private@bank',
+      payeeName: 'Private Shop',
+      note: 'private note',
+      payload: 'upi://pay?pa=private%40bank',
       rawInput: 'private input',
     });
 

@@ -11,10 +11,12 @@ import { DisclaimerBlock, LastReviewedBlock, PrivacyBlock } from '@/components/u
 import { SourceReferenceBlock } from '@/components/ui/source-reference';
 
 import { CalculatorForm } from './calculator-form';
+import { GeneratorForm } from './generator-form';
 
 interface SupportedTool {
   id: string;
   slug: string;
+  kind: 'calculator' | 'generator';
   name: string;
   category: string;
   categoryLabel: string;
@@ -35,6 +37,10 @@ interface SupportedTool {
 
 function calculatorKind(slug: string) {
   return slug === 'cagr-calculator' ? 'cagr' : 'roi';
+}
+
+function generatorKind(slug: string) {
+  return slug === 'url-qr' ? 'url-qr' : 'upi-standee';
 }
 
 export function ToolPage({ tool }: { tool: SupportedTool }) {
@@ -65,15 +71,22 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
         </Container>
       </section>
       <Container>
-        <CalculatorForm
-          kind={kind}
-          tool={{
-            id: tool.id,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
+        {tool.kind === 'calculator' ? (
+          <CalculatorForm
+            kind={kind}
+            tool={{
+              id: tool.id,
+              category: tool.category,
+              defaultValues: tool.defaultValues,
+              privacyNote: tool.privacyNote,
+            }}
+          />
+        ) : (
+          <GeneratorForm
+            kind={generatorKind(tool.slug)}
+            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+          />
+        )}
       </Container>
       <Container narrow>
         <Section
@@ -148,7 +161,7 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
           <Section
             eyebrow="Keep going"
             title="Related tools"
-            description="Use CAGR when timing matters; use ROI for a quick cost-to-value comparison."
+            description="A related local-first tool for the next step."
           >
             <div className="tool-grid">
               {relatedTools.map((related) => (

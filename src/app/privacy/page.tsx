@@ -12,23 +12,24 @@ export default function PrivacyPage() {
     <InfoPage
       eyebrow="Your data"
       title="Private by default, clear by design"
-      intro="The first KarobarKit calculators run locally in your browser. This page describes the current foundation—not a promise about tools that do not exist yet."
+      intro="KarobarKit's current calculators and QR generators run locally in your browser. This page describes the current tool set and its data boundary."
     >
       <div className="prose">
         <section>
           <h2>What happens to calculator inputs</h2>
           <p>
-            CAGR and ROI values are held in the page while you use the calculator. They are not sent to a
-            server, written into a URL, stored in an account or included in analytics. Reloading the page
-            clears the current form state.
+            CAGR, ROI, URL and UPI values are held in the page while you use a tool. QR payloads, payment URIs
+            and rendered images are generated in the browser. They are not sent to a server, written into a
+            URL, stored in an account or included in analytics. Reloading the page clears the current form
+            state.
           </p>
         </section>
         <section>
           <h2>Analytics boundary</h2>
           <p>
             The app has a privacy-safe event seam for future aggregate product measurement. Allowed events
-            include tool views, validation codes and completion metadata. Financial values, names, addresses,
-            tax IDs, passwords, QR payloads and document contents are forbidden properties.
+            include tool views, validation codes and completion metadata. Financial values, URLs, names, UPI
+            IDs, amounts, payment notes, QR payloads and document contents are forbidden properties.
           </p>
         </section>
         <section>

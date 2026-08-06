@@ -4,9 +4,17 @@ import { categoryRegistry, getRelatedTools, getToolBySlug, toolRegistry } from '
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains exactly the two foundation calculators', () => {
-    expect(toolRegistry.map((tool) => tool.slug)).toEqual(['cagr-calculator', 'roi-calculator']);
-    expect(categoryRegistry.map((category) => category.slug)).toEqual(['financial-calculators']);
+  it('contains the tested calculator and QR generator milestone', () => {
+    expect(toolRegistry.map((tool) => tool.slug)).toEqual([
+      'cagr-calculator',
+      'roi-calculator',
+      'url-qr',
+      'upi-standee',
+    ]);
+    expect(categoryRegistry.map((category) => category.slug)).toEqual([
+      'financial-calculators',
+      'marketing-barcodes',
+    ]);
   });
 
   it('declares sources, review dates, calculations and privacy policy for every tool', () => {
@@ -18,6 +26,7 @@ describe('tool registry contract', () => {
       expect(tool.lastReviewed).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(tool.privacyNote).toContain('browser');
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
+      expect(['calculator', 'generator']).toContain(tool.kind);
     }
   });
 
@@ -32,7 +41,7 @@ describe('tool registry contract', () => {
     }
   });
 
-  it('links each calculator to the other without dangling relationships', () => {
+  it('has no dangling related-tool relationships', () => {
     for (const tool of toolRegistry) {
       expect(getRelatedTools(tool).map((related) => related.id)).toEqual(
         expect.arrayContaining(tool.relatedToolIds),
