@@ -13,6 +13,7 @@ import { SourceReferenceBlock } from '@/components/ui/source-reference';
 import { CalculatorForm } from './calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
+import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
 import { GeneratorForm } from './generator-form';
 
 interface SupportedTool {
@@ -84,6 +85,10 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
               privacyNote: tool.privacyNote,
               sources: tool.sources,
             }}
+          />
+        ) : tool.slug === 'gst-invoice-generator' ? (
+          <GstInvoiceGeneratorForm
+            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
           />
         ) : tool.kind === 'calculator' ? (
           <CalculatorForm

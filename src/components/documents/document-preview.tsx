@@ -1,6 +1,8 @@
 import Image from 'next/image';
 
+import { formatIndianCurrency, formatIndianNumber } from '@/domain/formatting/indian';
 import type { BusinessDocument, LetterheadDocument, PaymentReceiptDocument } from '@/domain/documents/types';
+import type { GstInvoiceDocument, GstInvoiceLine } from '@/domain/invoices/types';
 
 function Logo({ document }: { document: BusinessDocument }) {
   if (!document.logo) return null;
@@ -53,8 +55,17 @@ function IdentityHeader({ document }: { document: BusinessDocument }) {
 function DocumentFooter({ document }: { document: BusinessDocument }) {
   return (
     <footer className="document-footer">
-      <p>{document.footerText || 'Prepared for local business use. Review details before sharing.'}</p>
-      <span>Created locally with KarobarKit</span>
+      <p>
+        {document.footerText ||
+          (document.type === 'gst-invoice'
+            ? 'Review all invoice particulars and applicable GST rules before issue.'
+            : 'Prepared for local business use. Review details before sharing.')}
+      </p>
+      <span>
+        {document.type === 'gst-invoice'
+          ? 'Local draft · review before issue'
+          : 'Created locally with KarobarKit'}
+      </span>
     </footer>
   );
 }
@@ -231,13 +242,313 @@ function PaymentReceiptPage({ document }: { document: PaymentReceiptDocument }) 
   );
 }
 
+function InvoicePartyBlock({ label, party }: { label: string; party: GstInvoiceDocument['supplier'] }) {
+  return (
+    <div className="invoice-party-block">
+      <span className="invoice-label">{label}</span>
+      <strong>{party.legalName}</strong>
+      {party.tradeName ? <span>Trade name: {party.tradeName}</span> : null}
+      <p className="preserve-lines">
+        {[
+          party.address.line1,
+          party.address.line2,
+          [party.address.city, party.address.district].filter(Boolean).join(', '),
+          [party.address.state, party.address.stateCode ? `(${party.address.stateCode})` : '']
+            .filter(Boolean)
+            .join(' '),
+          party.address.postalCode,
+          party.address.country,
+        ]
+          .filter(Boolean)
+          .join('\n')}
+      </p>
+      {party.gstin ? <span>GSTIN: {party.gstin}</span> : null}
+      {[party.phone, party.email].filter(Boolean).length ? (
+        <span>{[party.phone, party.email].filter(Boolean).join(' · ')}</span>
+      ) : null}
+    </div>
+  );
+}
+
+function InvoiceLineDetails({ line, index }: { line: GstInvoiceLine; index: number }) {
+  return (
+    <details className="invoice-mobile-line">
+      <summary>
+        <span>
+          {index + 1}. {line.description}
+        </span>
+        <strong>{formatIndianCurrency(line.lineTotal)}</strong>
+      </summary>
+      <dl>
+        <div>
+          <dt>HSN/SAC</dt>
+          <dd>{line.hsnOrSac || 'Not supplied'}</dd>
+        </div>
+        <div>
+          <dt>Quantity</dt>
+          <dd>
+            {formatIndianNumber(line.quantity)} {line.unit}
+          </dd>
+        </div>
+        <div>
+          <dt>Unit price</dt>
+          <dd>{formatIndianCurrency(line.unitPrice)}</dd>
+        </div>
+        <div>
+          <dt>Taxable value</dt>
+          <dd>{formatIndianCurrency(line.taxableValue)}</dd>
+        </div>
+        <div>
+          <dt>GST</dt>
+          <dd>
+            {formatIndianCurrency(line.gstAmount)} at {line.gstRatePercent}%
+          </dd>
+        </div>
+        <div>
+          <dt>Line total</dt>
+          <dd>{formatIndianCurrency(line.lineTotal)}</dd>
+        </div>
+      </dl>
+    </details>
+  );
+}
+
+function GstInvoicePage({
+  document,
+  items,
+  pageIndex,
+}: {
+  document: GstInvoiceDocument;
+  items: GstInvoiceLine[];
+  pageIndex: number;
+}) {
+  const isLastPage = pageIndex === document.pageChunks.length - 1;
+  const firstItemIndex = document.items.findIndex((item) => item.id === items[0]?.id);
+  return (
+    <TemplatePage document={document} pageNumber={pageIndex + 1}>
+      <div className="invoice-content">
+        <div className="invoice-heading">
+          <div>
+            <p className="document-kicker">Standard workflow · local draft</p>
+            <h1>Tax Invoice</h1>
+          </div>
+          <dl>
+            <div>
+              <dt>Invoice no.</dt>
+              <dd>{document.invoiceNumber}</dd>
+            </div>
+            <div>
+              <dt>Invoice date</dt>
+              <dd>
+                <time dateTime={document.invoiceDate}>{document.displayInvoiceDate}</time>
+              </dd>
+            </div>
+            {document.displayDueDate ? (
+              <div>
+                <dt>Due date</dt>
+                <dd>{document.displayDueDate}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
+        {pageIndex === 0 ? (
+          <>
+            <div className="invoice-parties">
+              <InvoicePartyBlock label="Supplier" party={document.supplier} />
+              <InvoicePartyBlock
+                label={`Recipient · ${document.recipientRegistrationStatus}`}
+                party={document.recipient}
+              />
+            </div>
+            <div className="invoice-facts">
+              <span>
+                <strong>Supply:</strong>{' '}
+                {document.supplyType === 'intra-state'
+                  ? 'Intra-State · CGST + SGST/UTGST'
+                  : 'Inter-State · IGST'}
+              </span>
+              {document.placeOfSupply ? (
+                <span>
+                  <strong>Place of supply:</strong> {document.placeOfSupply.state} (
+                  {document.placeOfSupply.stateCode})
+                </span>
+              ) : null}
+              <span>
+                <strong>Reverse charge:</strong>{' '}
+                {document.reverseCharge ? 'Yes · user marked' : 'No · user marked'}
+              </span>
+            </div>
+          </>
+        ) : (
+          <p className="document-continuation">Tax Invoice · continued</p>
+        )}
+        <div className="invoice-table-wrap">
+          <table className="invoice-table">
+            <caption>Invoice items, page {pageIndex + 1}</caption>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Description</th>
+                <th scope="col">HSN/SAC</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Rate</th>
+                <th scope="col">Taxable</th>
+                <th scope="col">GST</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((line, index) => (
+                <tr key={line.id}>
+                  <td>{(firstItemIndex < 0 ? index : firstItemIndex + index) + 1}</td>
+                  <td className="break-anywhere">{line.description}</td>
+                  <td>{line.hsnOrSac || '—'}</td>
+                  <td>
+                    {formatIndianNumber(line.quantity)} {line.unit}
+                  </td>
+                  <td>{formatIndianCurrency(line.unitPrice)}</td>
+                  <td>{formatIndianCurrency(line.taxableValue)}</td>
+                  <td>
+                    {formatIndianCurrency(line.gstAmount)}
+                    <small>{line.gstRatePercent}%</small>
+                  </td>
+                  <td>
+                    <strong>{formatIndianCurrency(line.lineTotal)}</strong>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="invoice-mobile-lines" aria-label="Invoice items in mobile layout">
+          {items.map((line, index) => (
+            <InvoiceLineDetails key={line.id} line={line} index={firstItemIndex + index} />
+          ))}
+        </div>
+        {!isLastPage ? (
+          <p className="invoice-continuation-note">More invoice items continue on the next A4 page.</p>
+        ) : null}
+        {isLastPage ? (
+          <>
+            <div className="invoice-result-grid">
+              <div>
+                <section className="invoice-words" aria-label="Amount in words">
+                  <span className="invoice-label">Amount in words</span>
+                  <strong>{document.totals.amountInWords}</strong>
+                </section>
+                <section className="invoice-tax-summary" aria-labelledby="invoice-tax-summary-title">
+                  <h2 id="invoice-tax-summary-title">Tax summary by rate</h2>
+                  <table>
+                    <caption>GST grouped by selected rate</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Rate</th>
+                        <th scope="col">Taxable</th>
+                        <th scope="col">GST</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {document.taxGroups.map((group) => (
+                        <tr key={group.key}>
+                          <td>{group.label}</td>
+                          <td>{formatIndianCurrency(group.taxableValue)}</td>
+                          <td>{formatIndianCurrency(group.gstAmount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+              <section className="invoice-totals" aria-label="Invoice totals">
+                <div>
+                  <span>Gross value</span>
+                  <strong>{formatIndianCurrency(document.totals.grossValue)}</strong>
+                </div>
+                <div>
+                  <span>Discounts</span>
+                  <strong>{formatIndianCurrency(document.totals.discountAmount)}</strong>
+                </div>
+                <div>
+                  <span>Taxable value</span>
+                  <strong>{formatIndianCurrency(document.totals.taxableValue)}</strong>
+                </div>
+                {document.supplyType === 'intra-state' ? (
+                  <>
+                    <div>
+                      <span>CGST</span>
+                      <strong>{formatIndianCurrency(document.totals.cgstAmount)}</strong>
+                    </div>
+                    <div>
+                      <span>SGST/UTGST</span>
+                      <strong>{formatIndianCurrency(document.totals.sgstOrUtgstAmount)}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <span>IGST</span>
+                    <strong>{formatIndianCurrency(document.totals.igstAmount)}</strong>
+                  </div>
+                )}
+                <div>
+                  <span>GST total</span>
+                  <strong>{formatIndianCurrency(document.totals.gstAmount)}</strong>
+                </div>
+                <div className="invoice-grand-total">
+                  <span>Grand total</span>
+                  <strong>{formatIndianCurrency(document.totals.grandTotal)}</strong>
+                </div>
+              </section>
+            </div>
+            <div className="invoice-extra-grid">
+              <div>
+                {document.notes ? (
+                  <p>
+                    <strong>Notes:</strong> {document.notes}
+                  </p>
+                ) : null}
+                {document.terms ? (
+                  <p>
+                    <strong>Terms:</strong> {document.terms}
+                  </p>
+                ) : null}
+                {document.paymentDetails ? (
+                  <p>
+                    <strong>Payment details:</strong> {document.paymentDetails}
+                  </p>
+                ) : null}
+              </div>
+              <div className="invoice-signature">
+                <span>Authorised signatory</span>
+                <div aria-hidden="true" />
+              </div>
+            </div>
+            <aside className="invoice-disclaimer">
+              {document.hsnWarning
+                ? 'HSN/SAC is missing on one or more lines; verify the correct code and applicable digit requirement before issue. '
+                : ''}
+              {document.customRateWarning
+                ? 'Custom rates are user supplied and not classified or verified here. '
+                : ''}
+              This local draft is not an e-invoice, IRN, filing record or proof of GST registration/ownership.
+            </aside>
+          </>
+        ) : null}
+      </div>
+    </TemplatePage>
+  );
+}
+
 export function DocumentPreview({ document, targetId }: { document: BusinessDocument; targetId: string }) {
   const pages =
     document.type === 'letterhead'
       ? document.bodyPages.map((body, index) => (
           <LetterheadPage document={document} body={body} pageIndex={index} key={`letter-${index}`} />
         ))
-      : [<PaymentReceiptPage document={document} key="receipt" />];
+      : document.type === 'gst-invoice'
+        ? document.pageChunks.map((items, index) => (
+            <GstInvoicePage document={document} items={items} pageIndex={index} key={`invoice-${index}`} />
+          ))
+        : [<PaymentReceiptPage document={document} key="receipt" />];
 
   return (
     <div className="document-preview" data-testid="document-preview" aria-label="Document preview">

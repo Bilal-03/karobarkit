@@ -13,6 +13,7 @@ describe('tool registry contract', () => {
       'upi-standee',
       'letterhead-generator',
       'payment-receipt-generator',
+      'gst-invoice-generator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'financial-calculators',

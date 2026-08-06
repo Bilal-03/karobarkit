@@ -8,7 +8,9 @@ import latinBoldUrl from '@fontsource/noto-sans-devanagari/files/noto-sans-devan
 import latinRegularUrl from '@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-latin-400-normal.woff2';
 
 import { DocumentExportError } from '@/domain/documents/errors';
+import { addressToText } from '@/domain/invoices/calculation';
 import type { BusinessDocument, LetterheadDocument, PaymentReceiptDocument } from '@/domain/documents/types';
+import type { GstInvoiceDocument, GstInvoiceLine, InvoiceParty } from '@/domain/invoices/types';
 
 const A4_WIDTH = 595.28;
 const A4_HEIGHT = 841.89;
@@ -474,6 +476,305 @@ function drawReceiptPage(
   drawFooter(page, document, fonts);
 }
 
+function drawRightText(
+  page: PDFPage,
+  text: string,
+  right: number,
+  y: number,
+  fonts: PdfFonts,
+  options: PaintOptions,
+) {
+  drawText(page, text, right - measureText(text, fonts, options), y, fonts, options);
+}
+
+function drawInvoiceParty(
+  page: PDFPage,
+  label: string,
+  party: InvoiceParty,
+  x: number,
+  y: number,
+  width: number,
+  fonts: PdfFonts,
+) {
+  drawText(page, label, x, y, fonts, { size: 8, bold: true, color: MUTED });
+  drawText(page, party.legalName, x, y - 16, fonts, { size: 10, bold: true });
+  let cursor = y - 29;
+  if (party.tradeName)
+    cursor = drawWrapped(page, `Trade name: ${party.tradeName}`, x, cursor, width, fonts, { size: 8.2 });
+  cursor = drawWrapped(page, addressToText(party.address), x, cursor - 2, width, fonts, {
+    size: 8.2,
+    color: MUTED,
+  });
+  const contact = [party.gstin ? `GSTIN: ${party.gstin}` : '', party.phone, party.email]
+    .filter(Boolean)
+    .join(' · ');
+  if (contact) cursor = drawWrapped(page, contact, x, cursor - 2, width, fonts, { size: 8, color: MUTED });
+  return cursor;
+}
+
+function drawInvoiceTableHeader(page: PDFPage, x: number, y: number, widths: number[], fonts: PdfFonts) {
+  const labels = ['#', 'Description', 'HSN/SAC', 'Qty', 'Rate', 'Taxable', 'GST', 'Total'];
+  let cursorX = x;
+  labels.forEach((label, index) => {
+    drawText(page, label, cursorX + 3, y, fonts, { size: 7.3, bold: true, color: MUTED });
+    cursorX += widths[index] ?? 0;
+  });
+  drawRule(page, x, y - 6, x + widths.reduce((total, width) => total + width, 0), LINE, 0.8);
+}
+
+function drawInvoiceLine(
+  page: PDFPage,
+  line: GstInvoiceLine,
+  lineNumber: number,
+  x: number,
+  y: number,
+  widths: number[],
+  fonts: PdfFonts,
+) {
+  const rowWidth = widths.reduce((total, width) => total + width, 0);
+  const descriptionOptions = { size: 8.1, lineHeight: 10.3 };
+  const descriptionLines = wrapLine(line.description, (widths[1] ?? 0) - 8, fonts, descriptionOptions);
+  const rowHeight = Math.max(22, descriptionLines.length * 10.3 + 9);
+  let cursorX = x;
+  drawText(page, String(lineNumber), cursorX + 3, y - 13, fonts, { size: 7.5 });
+  cursorX += widths[0] ?? 0;
+  drawWrapped(page, line.description, cursorX + 3, y - 10, (widths[1] ?? 0) - 8, fonts, descriptionOptions);
+  cursorX += widths[1] ?? 0;
+  drawText(page, line.hsnOrSac || '—', cursorX + 3, y - 13, fonts, { size: 7.3, color: MUTED });
+  cursorX += widths[2] ?? 0;
+  drawRightText(
+    page,
+    `${line.quantity}${line.unit ? ` ${line.unit}` : ''}`,
+    cursorX + (widths[3] ?? 0) - 3,
+    y - 13,
+    fonts,
+    { size: 7.3 },
+  );
+  cursorX += widths[3] ?? 0;
+  drawRightText(page, formatPdfCurrency(line.unitPrice), cursorX + (widths[4] ?? 0) - 3, y - 13, fonts, {
+    size: 7.3,
+  });
+  cursorX += widths[4] ?? 0;
+  drawRightText(page, formatPdfCurrency(line.taxableValue), cursorX + (widths[5] ?? 0) - 3, y - 13, fonts, {
+    size: 7.3,
+  });
+  cursorX += widths[5] ?? 0;
+  drawRightText(page, formatPdfCurrency(line.gstAmount), cursorX + (widths[6] ?? 0) - 3, y - 10, fonts, {
+    size: 7.1,
+  });
+  drawRightText(page, `${line.gstRatePercent}%`, cursorX + (widths[6] ?? 0) - 3, y - 20, fonts, {
+    size: 6.7,
+    color: MUTED,
+  });
+  cursorX += widths[6] ?? 0;
+  drawRightText(page, formatPdfCurrency(line.lineTotal), cursorX + (widths[7] ?? 0) - 3, y - 13, fonts, {
+    size: 7.3,
+    bold: true,
+  });
+  drawRule(page, x, y - rowHeight, x + rowWidth, LINE, 0.45);
+  return y - rowHeight;
+}
+
+function formatPdfCurrency(value: string) {
+  return `₹${value}`;
+}
+
+function drawInvoiceTotals(
+  page: PDFPage,
+  document: GstInvoiceDocument,
+  x: number,
+  y: number,
+  width: number,
+  fonts: PdfFonts,
+) {
+  drawText(page, 'Tax summary by rate', x, y, fonts, { size: 8, bold: true, color: MUTED });
+  let summaryY = y - 15;
+  for (const group of document.taxGroups) {
+    const components =
+      document.supplyType === 'intra-state'
+        ? `CGST ${formatPdfCurrency(group.cgstAmount)} · SGST/UTGST ${formatPdfCurrency(group.sgstOrUtgstAmount)}`
+        : `IGST ${formatPdfCurrency(group.igstAmount)}`;
+    summaryY = drawWrapped(
+      page,
+      `${group.label}: taxable ${formatPdfCurrency(group.taxableValue)} · ${components}`,
+      x,
+      summaryY,
+      width,
+      fonts,
+      { size: 7.4, color: MUTED },
+    );
+  }
+  summaryY -= 4;
+  drawRule(page, x, summaryY, x + width, LINE, 0.7);
+  const totals = [
+    ['Gross value', document.totals.grossValue],
+    ['Discounts', document.totals.discountAmount],
+    ['Taxable value', document.totals.taxableValue],
+    [
+      document.supplyType === 'intra-state' ? 'CGST' : 'IGST',
+      document.supplyType === 'intra-state' ? document.totals.cgstAmount : document.totals.igstAmount,
+    ],
+    ...(document.supplyType === 'intra-state' ? [['SGST/UTGST', document.totals.sgstOrUtgstAmount]] : []),
+    ['GST total', document.totals.gstAmount],
+  ];
+  for (const [label, value] of totals) {
+    summaryY -= 14;
+    drawText(page, label, x, summaryY, fonts, { size: 8, color: MUTED });
+    drawRightText(page, formatPdfCurrency(value), x + width, summaryY, fonts, { size: 8 });
+  }
+  summaryY -= 9;
+  drawRule(page, x, summaryY, x + width, rgb(0.051, 0.404, 0.373), 1);
+  summaryY -= 20;
+  drawText(page, 'Grand total', x, summaryY, fonts, { size: 10, bold: true });
+  drawRightText(page, formatPdfCurrency(document.totals.grandTotal), x + width, summaryY, fonts, {
+    size: 12,
+    bold: true,
+    color: rgb(0.051, 0.404, 0.373),
+  });
+  return summaryY - 17;
+}
+
+function drawInvoicePage(
+  page: PDFPage,
+  document: GstInvoiceDocument,
+  fonts: PdfFonts,
+  logo: PdfImageSource | undefined,
+  items: GstInvoiceLine[],
+  pageIndex: number,
+) {
+  drawTemplateFrame(page, document);
+  const margin = document.layout.marginLeftMm * MM;
+  const contentWidth = A4_WIDTH - (document.layout.marginLeftMm + document.layout.marginRightMm) * MM;
+  const accent = accentColor(document.branding.accent);
+  let y = drawIdentityHeader(page, document, fonts, logo);
+  drawText(page, 'TAX INVOICE', margin, y, fonts, { size: 18, bold: true, color: accent });
+  drawRightText(page, `Invoice no. ${document.invoiceNumber}`, margin + contentWidth, y, fonts, {
+    size: 8.5,
+    bold: true,
+  });
+  y -= 14;
+  drawRightText(page, `Invoice date: ${document.displayInvoiceDate}`, margin + contentWidth, y, fonts, {
+    size: 8,
+    color: MUTED,
+  });
+  if (document.displayDueDate) {
+    y -= 12;
+    drawRightText(page, `Due date: ${document.displayDueDate}`, margin + contentWidth, y, fonts, {
+      size: 8,
+      color: MUTED,
+    });
+  }
+  y -= 20;
+  const partyGap = 18;
+  const partyWidth = (contentWidth - partyGap) / 2;
+  const supplierEnd = drawInvoiceParty(page, 'Supplier', document.supplier, margin, y, partyWidth, fonts);
+  const recipientEnd = drawInvoiceParty(
+    page,
+    `Recipient · ${document.recipientRegistrationStatus}`,
+    document.recipient,
+    margin + partyWidth + partyGap,
+    y,
+    partyWidth,
+    fonts,
+  );
+  y = Math.min(supplierEnd, recipientEnd) - 9;
+  drawRule(page, margin, y, margin + contentWidth, accent, 0.9);
+  y -= 17;
+  const supplyDetails = [
+    `Supply: ${document.supplyType === 'intra-state' ? 'Intra-State · CGST + SGST/UTGST' : 'Inter-State · IGST'}`,
+    document.placeOfSupply
+      ? `Place of supply: ${document.placeOfSupply.state} (${document.placeOfSupply.stateCode})`
+      : '',
+    `Reverse charge: ${document.reverseCharge ? 'Yes · user marked' : 'No · user marked'}`,
+    `Policy: ${document.policy.id} · verified ${document.policy.lastVerifiedOn}`,
+  ]
+    .filter(Boolean)
+    .join('  ·  ');
+  y = drawWrapped(page, supplyDetails, margin, y, contentWidth, fonts, { size: 7.6, color: MUTED });
+  y -= 7;
+  const widths = [18, 124, 52, 48, 54, 62, 59, 70];
+  drawInvoiceTableHeader(page, margin, y, widths, fonts);
+  y -= 8;
+  items.forEach((line, index) => {
+    const globalIndex = document.items.findIndex((candidate) => candidate.id === line.id);
+    y = drawInvoiceLine(page, line, (globalIndex < 0 ? index : globalIndex) + 1, margin, y, widths, fonts);
+  });
+  if (pageIndex < document.pageChunks.length - 1) {
+    drawText(page, 'Invoice items continue on the next page.', margin, y - 18, fonts, {
+      size: 8,
+      color: MUTED,
+    });
+  } else {
+    y -= 18;
+    const summaryWidth = contentWidth * 0.47;
+    y = drawInvoiceTotals(page, document, margin + contentWidth - summaryWidth, y, summaryWidth, fonts);
+    y -= 4;
+    drawText(page, 'Amount in words', margin, y, fonts, { size: 8, bold: true, color: MUTED });
+    y = drawWrapped(page, document.totals.amountInWords, margin, y - 15, contentWidth * 0.46, fonts, {
+      size: 8.5,
+      bold: true,
+    });
+    const warnings = [
+      document.hsnWarning
+        ? 'HSN/SAC is missing on one or more lines; verify the correct code and applicable digit requirement before issue.'
+        : '',
+      document.customRateWarning
+        ? 'One or more GST rates are user supplied and are not classified or verified by this tool.'
+        : '',
+      'This is a locally generated draft. It is not an e-invoice, IRN, filing record or proof of GST registration/ownership.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    drawWrapped(
+      page,
+      warnings,
+      margin,
+      Math.min(y, document.layout.marginBottomMm * MM + 100),
+      contentWidth,
+      fonts,
+      { size: 7.2, color: MUTED },
+    );
+    const notes = [
+      document.notes ? `Notes: ${document.notes}` : '',
+      document.terms ? `Terms: ${document.terms}` : '',
+      document.paymentDetails ? `Payment details: ${document.paymentDetails}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    if (notes)
+      drawWrapped(page, notes, margin, document.layout.marginBottomMm * MM + 86, contentWidth * 0.55, fonts, {
+        size: 7.3,
+        color: MUTED,
+      });
+    drawRule(
+      page,
+      margin + contentWidth - 130,
+      document.layout.marginBottomMm * MM + 74,
+      margin + contentWidth,
+      INK,
+      0.7,
+    );
+    drawText(
+      page,
+      document.signature.name,
+      margin + contentWidth - 130,
+      document.layout.marginBottomMm * MM + 58,
+      fonts,
+      { size: 8, bold: true },
+    );
+  }
+  drawFooter(page, document, fonts);
+  if (pageIndex > 0)
+    drawRightText(
+      page,
+      `Page ${pageIndex + 1}`,
+      margin + contentWidth,
+      document.layout.marginBottomMm * MM + 34,
+      fonts,
+      { size: 7.5, color: MUTED },
+    );
+}
+
 export async function createDocumentPdf(document: BusinessDocument): Promise<Blob> {
   if (typeof window === 'undefined') {
     throw new DocumentExportError('pdf_failed', 'PDF downloads are available in your browser.');
@@ -487,6 +788,11 @@ export async function createDocumentPdf(document: BusinessDocument): Promise<Blo
       document.bodyPages.forEach((body, index) => {
         const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
         drawLetterheadPage(page, document, fonts, logo, body, index);
+      });
+    } else if (document.type === 'gst-invoice') {
+      document.pageChunks.forEach((items, index) => {
+        const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
+        drawInvoicePage(page, document, fonts, logo, items, index);
       });
     } else {
       const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);

@@ -1,4 +1,5 @@
 import type { ValidationResult } from '@/domain/calculations/types';
+import type { GstInvoiceDocument } from '@/domain/invoices/types';
 
 export type DocumentTemplateId = 'editorial' | 'formal';
 export type DocumentAccent = 'teal' | 'navy' | 'ochre';
@@ -166,6 +167,6 @@ export interface PaymentReceiptDocument {
   exportSettings: ExportSettings;
 }
 
-export type BusinessDocument = LetterheadDocument | PaymentReceiptDocument;
+export type BusinessDocument = LetterheadDocument | PaymentReceiptDocument | GstInvoiceDocument;
 
 export type DocumentValidationResult<T> = ValidationResult<T>;

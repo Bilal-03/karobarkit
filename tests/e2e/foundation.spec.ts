@@ -12,6 +12,7 @@ const overflowRoutes = [
   '/tools/upi-standee',
   '/tools/letterhead-generator',
   '/tools/payment-receipt-generator',
+  '/tools/gst-invoice-generator',
   '/categories/business-documents',
   '/sources',
   '/contact',
@@ -47,6 +48,11 @@ const metadataRoutes = [
     path: '/tools/payment-receipt-generator',
     title: 'Payment Receipt Generator for Indian Businesses',
     h1: 'Payment Receipt Generator',
+  },
+  {
+    path: '/tools/gst-invoice-generator',
+    title: 'GST Invoice Generator for Indian Businesses',
+    h1: 'GST Invoice Generator',
   },
   {
     path: '/categories/financial-calculators',
@@ -245,6 +251,7 @@ test.describe('accessibility', () => {
       '/tools/upi-standee',
       '/tools/letterhead-generator',
       '/tools/payment-receipt-generator',
+      '/tools/gst-invoice-generator',
     ]) {
       await page.goto(route);
       const results = await new AxeBuilder({ page }).analyze();

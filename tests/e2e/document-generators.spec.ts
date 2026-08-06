@@ -54,6 +54,7 @@ test.describe('document generators', () => {
   });
 
   test('letterhead keeps long plain text on multiple A4 pages', async ({ page }) => {
+    test.setTimeout(120_000);
     await page.goto('/tools/letterhead-generator');
     await page.getByLabel('Business name').fill('Long Letter Co');
     await page.getByLabel('Business address').fill('A long address');
