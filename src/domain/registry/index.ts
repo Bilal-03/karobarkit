@@ -68,7 +68,7 @@ import type { AnyToolDefinition, SourceReference, ToolDefinition } from './types
 
 export type { AnyToolDefinition, SourceReference, ToolDefinition } from './types';
 
-export const TOOL_LAST_REVIEWED = '2026-08-06';
+export const TOOL_LAST_REVIEWED = '2026-08-08';
 
 const gstUiPolicyValidation = validateGstUiPresetIds(GST_UI_RATE_PRESET_IDS, GST_POLICY_AS_OF);
 if (!gstUiPolicyValidation.success) {

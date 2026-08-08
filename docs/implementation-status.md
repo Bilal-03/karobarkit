@@ -70,4 +70,14 @@ The discovery analytics allowlist includes search, zero-result, category, featur
 
 ### Audit notes and known limitations
 
-The pre-implementation audit found a clean worktree, eight active registry tools, four populated categories, the approved core routes, and a passing baseline production build. Existing canonical slugs intentionally differ from the benchmark inventory and no benchmark legacy aliases were added because this is an original product with no verified legacy traffic. The previous homepage said seven tools despite eight active entries; discovery is now registry-driven. The existing `/contact` form still has no submission backend and should be connected or converted to an equally explicit fallback before public launch. Search uses a normal GET navigation rather than instant client-side filtering, which keeps the bundle small and remains keyboard accessible.
+The pre-implementation audit found a clean worktree, eight active registry tools, four populated categories, the approved core routes, and a passing baseline production build. Existing canonical slugs intentionally differ from the benchmark inventory and no benchmark legacy aliases were added because this is an original product with no verified legacy traffic. The previous homepage said seven tools despite eight active entries; discovery is now registry-driven. The `/contact` form has no submission backend and was converted to an equally explicit local-only fallback during this milestone. Search uses a normal GET navigation rather than instant client-side filtering, which keeps the bundle small and remains keyboard accessible.
+
+## Milestone 7 — Production readiness
+
+Status: conditional go for controlled launch preparation; see [`docs/launch/final-readiness-report.md`](launch/final-readiness-report.md).
+
+The production-readiness pass recorded a clean baseline at commit `60bd76836b5e5f58d343fe895647d97da3b830ad`, reverified all deterministic calculation paths and current GST source URLs on 8 August 2026, and added a complete launch evidence set under `docs/launch/`. The reviewed GST policy date and tool/document review dates are now 8 August 2026.
+
+The contact page no longer posts to a nonexistent endpoint: it prepares a local copyable message and states that no delivery occurred, matching the existing error-report fallback. Security headers, URL/image/filename validation, safe logging and privacy boundaries were reviewed. No browser storage writes, production analytics transport, external error-monitoring provider or production domain are configured.
+
+Verification: 155 unit/integration tests passed; the Chromium responsive/accessibility matrix passed 226 tests with 34 intentional skips. One desktop-1280 letterhead download timeout in the long serial run passed on focused rerun. The production build generated 33 routes, and `npm audit --omit=dev --audit-level=moderate` reported zero vulnerabilities. Safari, Firefox, Edge, physical devices, Lighthouse/Core Web Vitals, production domain redirects, contact delivery, monitoring and rollback execution remain explicit pre-launch actions rather than unverified claims.

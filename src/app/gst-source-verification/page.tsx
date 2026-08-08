@@ -17,7 +17,7 @@ export default function GstSourceVerificationPage() {
     <InfoPage
       eyebrow="Evidence register"
       title="GST source verification"
-      intro="The current GST Calculator policy was reviewed against official Government material on 6 August 2026."
+      intro="The current GST Calculator policy was reviewed against official Government material on 8 August 2026."
     >
       <div className="prose">
         <section>

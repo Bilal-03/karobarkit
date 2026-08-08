@@ -65,7 +65,7 @@ export function ErrorReportForm({ tools, defaultTool }: ErrorReportFormProps) {
         </div>
         <div className="field">
           <label htmlFor="error-version">Version or review date</label>
-          <input className="input" id="error-version" name="version" defaultValue="Reviewed 6 August 2026" />
+          <input className="input" id="error-version" name="version" defaultValue="Reviewed 8 August 2026" />
         </div>
         <div className="field">
           <label htmlFor="error-description">What happened?</label>

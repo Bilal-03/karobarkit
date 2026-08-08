@@ -1,6 +1,5 @@
 import { InfoPage } from '@/components/layout/info-page';
-import { Button } from '@/components/ui/button';
-import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
+import { ContactForm } from '@/components/feedback/contact-form';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -27,31 +26,7 @@ export default function ContactPage() {
             <li>An accessibility issue, including keyboard or contrast problems.</li>
           </ul>
         </div>
-        <form className="contact-form" action="/contact" method="post">
-          <InputField id="contact-name" name="name" label="Your name" autoComplete="name" />
-          <InputField
-            id="contact-email"
-            name="email"
-            label="Email address"
-            type="email"
-            autoComplete="email"
-            help="Used only to reply. Do not include account numbers or sensitive documents."
-          />
-          <SelectField id="contact-topic" name="topic" label="What is this about?" defaultValue="feedback">
-            <option value="feedback">Product feedback</option>
-            <option value="accessibility">Accessibility</option>
-            <option value="source">Source suggestion</option>
-            <option value="other">Something else</option>
-          </SelectField>
-          <TextareaField
-            id="contact-message"
-            name="message"
-            label="Message"
-            rows={6}
-            help="Please leave out private amounts, tax IDs, passwords and document contents."
-          />
-          <Button type="submit">Send message</Button>
-        </form>
+        <ContactForm />
       </div>
     </InfoPage>
   );

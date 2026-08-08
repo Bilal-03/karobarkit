@@ -43,7 +43,7 @@ test.describe('GST invoice generator', () => {
     const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
     await page.getByRole('button', { name: 'Download PDF' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('gst-invoice-inv-001-2026-08-06.pdf');
+    expect(download.suggestedFilename()).toBe('gst-invoice-inv-001-2026-08-08.pdf');
 
     await page.getByRole('button', { name: 'Print' }).click();
     await expect(page.locator('body')).toHaveAttribute('data-print-called', 'true');

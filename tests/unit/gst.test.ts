@@ -158,6 +158,11 @@ describe('GST input validation', () => {
 });
 
 describe('GST policy validation and freshness', () => {
+  it('records the current source-review date and active source access dates', () => {
+    expect(GST_POLICY_AS_OF).toBe('2026-08-08');
+    for (const source of GST_POLICY_BUNDLE.sources) expect(source.accessedOn).toBe(GST_POLICY_AS_OF);
+  });
+
   it('has a single current policy and source-backed UI presets', () => {
     expect(validateGstPolicyBundle(GST_POLICY_BUNDLE)).toEqual({ success: true });
     expect(getActiveGstPolicy().id).toBe('gst-general-rates-2025-09-22-v1');

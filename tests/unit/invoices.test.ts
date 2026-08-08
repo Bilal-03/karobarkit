@@ -153,7 +153,7 @@ describe('GST invoice calculation', () => {
       }),
     );
     expect(result.totals.amountInWords).toContain('Rupees');
-    expect(result.exportSettings.baseFilename).toBe('gst-invoice-inv-2026-001-2026-08-06');
+    expect(result.exportSettings.baseFilename).toBe('gst-invoice-inv-2026-001-2026-08-08');
     expect(gstInvoiceFilename('INV/2026-001', '2026-08-06')).toBe('gst-invoice-inv-2026-001-2026-08-06.pdf');
     expect(result.exportSettings.baseFilename).not.toContain('27ABCDE');
   });

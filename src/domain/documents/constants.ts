@@ -1,6 +1,6 @@
 import type { DocumentAccent, PageLayout } from './types';
 
-export const DOCUMENT_LAST_REVIEWED = '2026-08-06';
+export const DOCUMENT_LAST_REVIEWED = '2026-08-08';
 export const DOCUMENT_PAGE_LAYOUT: PageLayout = {
   pageSize: 'a4',
   marginTopMm: 15,

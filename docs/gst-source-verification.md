@@ -1,6 +1,6 @@
 # GST source-verification summary
 
-Status: reviewed for Milestone 4 on 6 August 2026.
+Status: reviewed for Milestone 7 on 8 August 2026.
 
 This summary records the official material used to define the GST Calculator's deliberately narrow policy. It is a source register, not tax advice and not a complete GST rate database.
 
@@ -14,7 +14,7 @@ This summary records the official material used to define the GST Calculator's d
 | Government of India / PIB | [Nine Years of GST: Simplifying Taxation, Strengthening India](https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/jul/doc202671908001.pdf)  | 30 June 2026                                                                                                      | The current Government summary still describes the structure primarily as 5% and 18%, with a 40% luxury / sin category. It also describes the CGST/SGST and IGST dual structure. |
 | GST Council               | [April 2026 GST Council newsletter](https://gstcouncil.gov.in/sites/default/files/2026-05/newsletter_april_issue.pdf)                                        | Published May 2026; reports Notification No. 01/2026-Central Tax (Rate) dated 30 April 2026                       | Subsequent updates changed classification entries for beverages. They reinforce that a generic calculator cannot decide a product's rate from the percentage alone.              |
 
-All links were accessed on 6 August 2026. The source links are controlled application data; they are never accepted from calculator input and are not scraped at runtime.
+All links were checked on 8 August 2026. The source links are controlled application data; they are never accepted from calculator input and are not scraped at runtime.
 
 ## Confidently implemented
 

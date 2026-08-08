@@ -1,0 +1,16 @@
+# Security review
+
+Non-destructive review completed 8 August 2026.
+
+| Finding                                                                                                             | Severity | Location                                    | Impact                                                 | Fix/status                                                                     |
+| ------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Production headers include CSP, HSTS, frame protections, nosniff, Referrer-Policy and Permissions-Policy            | —        | `next.config.mjs`                           | Reduces browser attack surface                         | PASS                                                                           |
+| CSP contains `unsafe-inline` for Next/React runtime compatibility and development `unsafe-eval` only in development | Medium   | `next.config.mjs`                           | Weaker CSP strictness than nonce-based policy          | Documented; production has no `unsafe-eval`; nonce migration is follow-up      |
+| Structured data uses `dangerouslySetInnerHTML`                                                                      | Low      | `src/components/seo/json-ld.tsx`            | JSON-LD injection risk if data becomes user-controlled | Data is registry/static and `<` is escaped; PASS                               |
+| URL inputs accept only HTTP/HTTPS                                                                                   | —        | `src/domain/qr/url.ts`, document validation | Blocks javascript/data/file protocols                  | PASS                                                                           |
+| Logo uploads are MIME/signature/size/dimension checked; SVG rejected                                                | —        | `src/domain/documents/logo.ts`              | Reduces image/SVG injection risk                       | PASS                                                                           |
+| Export filenames are normalized and bounded                                                                         | —        | `src/lib/security/safe-filename.ts`         | Prevents path and filename injection                   | PASS                                                                           |
+| Forms have no backend endpoint                                                                                      | —        | contact/error-report routes                 | No server-side spam or data-ingestion surface exists   | Both workflows are explicitly local-only; delivery remains a launch dependency |
+| No secrets or server credentials found in source/config                                                             | —        | repository scan                             | No known secret exposure                               | PASS                                                                           |
+
+No P0 security finding was identified. Dependency audit reported zero production vulnerabilities.

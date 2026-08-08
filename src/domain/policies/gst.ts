@@ -1,7 +1,7 @@
 import { parseDecimal } from '@/domain/formatting/decimal';
 import type { SourceAuthority, SourceDocumentType, SourceReference } from '@/domain/registry/types';
 
-export const GST_POLICY_AS_OF = '2026-08-06';
+export const GST_POLICY_AS_OF = '2026-08-08';
 export const GST_POLICY_REVIEW_INTERVAL_DAYS = 180;
 export const GST_CUSTOM_RATE_ID = 'custom';
 

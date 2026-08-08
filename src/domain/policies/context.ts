@@ -5,5 +5,5 @@ export interface PolicyContext {
 
 export const defaultPolicyContext: PolicyContext = {
   locale: 'en-IN',
-  asOf: '2026-08-06',
+  asOf: '2026-08-08',
 };
