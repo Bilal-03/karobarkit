@@ -34,10 +34,15 @@ describe('contact route', () => {
     vi.unstubAllGlobals();
   });
 
-  it('validates and sends a plain-text message through Resend', async () => {
+  it('validates and sends a branded HTML email with a plain-text fallback', async () => {
     const response = await POST(makeRequest(validPayload));
     const body = await response.json();
     const fetchMock = vi.mocked(fetch);
+    const call = fetchMock.mock.calls[0];
+    const emailRequest = JSON.parse(String((call?.[1] as RequestInit).body)) as {
+      html: string;
+      text: string;
+    };
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ ok: true });
@@ -49,6 +54,20 @@ describe('contact route', () => {
         body: expect.stringContaining('The contact flow works well.'),
       }),
     );
+    expect(emailRequest.html).toContain('New contact message');
+    expect(emailRequest.html).toContain('Product feedback');
+    expect(emailRequest.html).toContain('Reply to Test sender');
+    expect(emailRequest.text).toContain('Message:');
+  });
+
+  it('escapes message markup before placing it in the HTML email', async () => {
+    await POST(makeRequest({ ...validPayload, message: '<script>alert("x")</script>' }));
+    const fetchMock = vi.mocked(fetch);
+    const call = fetchMock.mock.calls[0];
+    const emailRequest = JSON.parse(String((call?.[1] as RequestInit).body)) as { html: string };
+
+    expect(emailRequest.html).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
+    expect(emailRequest.html).not.toContain('<script>alert');
   });
 
   it('rejects invalid input before calling the provider', async () => {

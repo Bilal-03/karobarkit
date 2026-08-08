@@ -8,7 +8,7 @@ Date: 8 August 2026
 
 ## Evidence
 
-- Unit/integration: 159 passed.
+- Unit/integration: 160 passed.
 - Chromium E2E/accessibility/responsive: 226 passed, 34 intentional skips across all nine required viewport sizes. One desktop-1280 letterhead download timeout in the long serial run passed on focused rerun.
 - Production build: passed; 34 routes generated, including `/api/contact`.
 - Production dependency audit: 0 vulnerabilities.

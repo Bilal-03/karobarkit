@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 const DEFAULT_FROM = 'KarobarKit <onboarding@resend.dev>';
+const DEFAULT_SITE_URL = 'https://karobarkit.vercel.app';
 
 const contactPayloadSchema = z.object({
   name: z.string().trim().max(120, 'Keep your name to 120 characters or fewer.').default(''),
@@ -30,14 +31,94 @@ function jsonError(message: string, status: number) {
 
 function formatMessage(input: z.infer<typeof contactPayloadSchema>) {
   return [
-    'New KarobarKit contact message',
+    'KarobarKit contact message',
+    `Topic: ${topicLabels[input.topic]}`,
     '',
     `Name: ${input.name || 'Not provided'}`,
     `Email: ${input.email || 'Not provided'}`,
-    `Topic: ${topicLabels[input.topic]}`,
     '',
+    'Message:',
     input.message,
+    '',
+    `Sent from: ${process.env.NEXT_PUBLIC_SITE_URL?.trim() || DEFAULT_SITE_URL}/contact`,
   ].join('\n');
+}
+
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        character as '&' | '<' | '>' | '"' | "'"
+      ] ?? character,
+  );
+}
+
+function buildHtmlMessage(input: z.infer<typeof contactPayloadSchema>) {
+  const name = escapeHtml(input.name || 'Not provided');
+  const email = escapeHtml(input.email || 'Not provided');
+  const topic = escapeHtml(topicLabels[input.topic]);
+  const message = escapeHtml(input.message).replace(/\n/g, '<br />');
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || DEFAULT_SITE_URL;
+  const safeSiteUrl = escapeHtml(siteUrl);
+  const replyButton = input.email
+    ? `<a href="mailto:${encodeURIComponent(input.email)}" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;line-height:20px;padding:12px 18px;border-radius:8px;">Reply to ${name}</a>`
+    : '';
+
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;background:#eef4f1;color:#183331;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef4f1;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #d9e5df;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="padding:24px 28px;background:#0f766e;color:#ffffff;">
+                <table role="presentation" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td style="width:42px;height:42px;background:#ffffff;color:#0f766e;border-radius:10px;text-align:center;vertical-align:middle;font-size:22px;font-weight:800;">K</td>
+                    <td style="padding-left:12px;vertical-align:middle;">
+                      <div style="font-size:20px;line-height:24px;font-weight:800;">KarobarKit</div>
+                      <div style="font-size:12px;line-height:18px;color:#d8f4ed;">Business tools for Indian small businesses</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 28px 20px;">
+                <div style="color:#0f766e;font-size:12px;line-height:18px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;">New contact message</div>
+                <h1 style="margin:8px 0 10px;color:#183331;font-size:26px;line-height:34px;">${topic}</h1>
+                <p style="margin:0;color:#56706b;font-size:15px;line-height:24px;">Someone sent a message through your KarobarKit contact form.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 28px 8px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #d9e5df;border-radius:10px;">
+                  <tr><td style="padding:12px 14px;border-bottom:1px solid #e7efeb;color:#6a817d;font-size:12px;font-weight:700;width:28%;">From</td><td style="padding:12px 14px;border-bottom:1px solid #e7efeb;color:#183331;font-size:14px;">${name}</td></tr>
+                  <tr><td style="padding:12px 14px;border-bottom:1px solid #e7efeb;color:#6a817d;font-size:12px;font-weight:700;">Email</td><td style="padding:12px 14px;border-bottom:1px solid #e7efeb;color:#183331;font-size:14px;">${input.email ? `<a href="mailto:${encodeURIComponent(input.email)}" style="color:#0f766e;">${email}</a>` : email}</td></tr>
+                  <tr><td style="padding:12px 14px;color:#6a817d;font-size:12px;font-weight:700;">Topic</td><td style="padding:12px 14px;color:#183331;font-size:14px;">${topic}</td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 28px;">
+                <div style="margin-bottom:8px;color:#6a817d;font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;">Message</div>
+                <div style="padding:18px;background:#f5faf8;border-left:3px solid #0f766e;color:#183331;font-size:15px;line-height:25px;word-break:break-word;">${message}</div>
+              </td>
+            </tr>
+            ${replyButton ? `<tr><td style="padding:0 28px 28px;">${replyButton}</td></tr>` : ''}
+            <tr>
+              <td style="padding:18px 28px;background:#f7faf9;border-top:1px solid #e7efeb;color:#6a817d;font-size:12px;line-height:20px;">
+                Sent from <a href="${safeSiteUrl}/contact" style="color:#0f766e;">KarobarKit</a>. Please keep replies free of passwords, tax IDs, bank details and other sensitive information.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }
 
 export const runtime = 'nodejs';
@@ -71,6 +152,7 @@ export async function POST(request: Request) {
     from: sender,
     to: [recipient],
     subject: `[KarobarKit] ${topicLabels[parsed.data.topic]}`,
+    html: buildHtmlMessage(parsed.data),
     text: formatMessage(parsed.data),
     ...(parsed.data.email ? { reply_to: parsed.data.email } : {}),
   };

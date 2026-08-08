@@ -1,6 +1,6 @@
 # Contact delivery setup
 
-The contact page submits to `/api/contact`, a Vercel serverless Route Handler. The route validates name, email, topic and message fields, ignores honeypot submissions, and sends a plain-text email through Resend. API credentials and the recipient are read only from server-side environment variables.
+The contact page submits to `/api/contact`, a Vercel serverless Route Handler. The route validates name, email, topic and message fields, ignores honeypot submissions, and sends a branded HTML email with a plain-text fallback through Resend. API credentials and the recipient are read only from server-side environment variables.
 
 ## Vercel setup
 
