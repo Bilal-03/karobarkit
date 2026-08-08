@@ -9,6 +9,8 @@ import { Container, Section } from '@/components/ui/container';
 import { ToolCard } from '@/components/ui/tool-card';
 import { DisclaimerBlock, LastReviewedBlock, PrivacyBlock } from '@/components/ui/trust-blocks';
 import { SourceReferenceBlock } from '@/components/ui/source-reference';
+import { JsonLd } from '@/components/seo/json-ld';
+import { faqStructuredData, toolStructuredData } from '@/lib/structured-data';
 
 import { CalculatorForm } from './calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
@@ -54,6 +56,8 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
 
   return (
     <>
+      <JsonLd data={toolStructuredData(tool)} />
+      <JsonLd data={faqStructuredData(tool.faqs)} />
       <div className="page-topline">
         <Container>
           <Breadcrumbs
@@ -113,6 +117,10 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
         )}
       </Container>
       <Container narrow>
+        <p className="section-link-row">
+          <Link href={`/categories/${tool.category}`}>Browse {tool.categoryLabel}</Link> ·{' '}
+          <Link href="/methodology">Methodology</Link> · <Link href="/sources">Sources</Link>
+        </p>
         <Section
           eyebrow="A quick guide"
           title="Use the number with context"

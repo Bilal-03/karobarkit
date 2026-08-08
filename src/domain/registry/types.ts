@@ -44,9 +44,17 @@ export interface ToolDefinition<TInput, TResult> {
   kind: 'calculator' | 'generator';
   generatorKind?: 'qr' | 'document';
   name: string;
+  shortName?: string;
   category: string;
   categoryLabel: string;
+  tags: string[];
+  searchTerms: string[];
   summary: string;
+  audience?: string[];
+  featured?: boolean;
+  launchPriority?: number;
+  regulatory?: boolean;
+  privacyClassification: 'local-only';
   inputSchema: ZodType<TInput>;
   defaultValues: TInput;
   validate: (input: TInput) => ValidationResult<TInput>;

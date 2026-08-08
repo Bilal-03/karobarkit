@@ -14,9 +14,9 @@ export function Header() {
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
           <Link href="/tools">Tools</Link>
+          <Link href="/categories">Categories</Link>
           <Link href="/methodology">Methodology</Link>
           <Link href="/sources">Sources</Link>
-          <Link href="/about">About</Link>
         </nav>
         <div className="site-header__actions">
           <Link className="header-action" href="/search" aria-label="Search tools">

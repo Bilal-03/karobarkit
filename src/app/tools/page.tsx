@@ -1,6 +1,9 @@
+import Link from 'next/link';
+
 import { Container } from '@/components/ui/container';
 import { ToolCard } from '@/components/ui/tool-card';
-import { toolRegistry } from '@/domain/registry';
+import { filterTools, searchTools } from '@/domain/discovery';
+import { categoryRegistry, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -9,7 +12,20 @@ export const metadata = pageMetadata({
   path: '/tools',
 });
 
-export default function ToolsPage() {
+interface ToolsPageProps {
+  searchParams?: Promise<{ category?: string; q?: string }>;
+}
+
+export default async function ToolsPage({ searchParams }: ToolsPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const query = typeof params.q === 'string' ? params.q : '';
+  const requestedCategory = typeof params.category === 'string' ? params.category : 'all';
+  const category = categoryRegistry.some((item) => item.slug === requestedCategory)
+    ? requestedCategory
+    : 'all';
+  const searched = query ? searchTools(query) : [...toolRegistry];
+  const categoryIds = new Set(filterTools(category).map((tool) => tool.id));
+  const tools = searched.filter((tool) => categoryIds.has(tool.id));
   return (
     <>
       <section className="info-hero">
@@ -29,34 +45,60 @@ export default function ToolsPage() {
       </section>
       <Container>
         <div className="search-section">
-          <form className="search-form" action="/search" method="get">
-            <label className="sr-only" htmlFor="directory-search">
-              Search tools
-            </label>
-            <input
-              className="input"
-              id="directory-search"
-              name="q"
-              type="search"
-              placeholder="Search by tool or job…"
-            />
+          <form className="directory-filters" action="/tools" method="get">
+            <div>
+              <label htmlFor="directory-search">Search tools</label>
+              <input
+                className="input"
+                id="directory-search"
+                name="q"
+                type="search"
+                defaultValue={query}
+                placeholder="Try GST bill or growth rate…"
+                maxLength={80}
+              />
+            </div>
+            <div>
+              <label htmlFor="directory-category">Category</label>
+              <select className="select" id="directory-category" name="category" defaultValue={category}>
+                <option value="all">All categories</option>
+                {categoryRegistry.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button className="button button--secondary" type="submit">
-              Search
+              Apply filters
             </button>
           </form>
         </div>
         <div className="section">
-          <div className="tool-grid">
-            {toolRegistry.map((tool) => (
-              <ToolCard
-                key={tool.id}
-                href={`/tools/${tool.slug}`}
-                name={tool.name}
-                summary={tool.summary}
-                categoryLabel={tool.categoryLabel}
-              />
-            ))}
-          </div>
+          <p className="result-count" aria-live="polite">
+            {tools.length} matching tool{tools.length === 1 ? '' : 's'}
+          </p>
+          {tools.length ? (
+            <div className="tool-grid">
+              {tools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  href={`/tools/${tool.slug}`}
+                  name={tool.name}
+                  summary={tool.summary}
+                  categoryLabel={tool.categoryLabel}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="state-block state-block--empty">
+              <strong>No tools match those filters</strong>
+              <p>Try another term or remove the category filter.</p>
+              <Link className="button button--secondary" href="/tools">
+                Clear filters
+              </Link>
+            </div>
+          )}
         </div>
       </Container>
     </>

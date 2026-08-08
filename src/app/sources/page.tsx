@@ -36,7 +36,7 @@ export default function SourcesPage() {
               </thead>
               <tbody>
                 {sources.map(({ tool, source }) => (
-                  <tr key={source.id}>
+                  <tr key={`${tool.id}-${source.id}`}>
                     <td>
                       <Link href={`/tools/${tool.slug}`}>{tool.name}</Link>
                     </td>

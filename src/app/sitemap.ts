@@ -6,7 +6,7 @@ import { absoluteUrl } from '@/lib/site';
 const staticPaths = [
   '/',
   '/tools',
-  '/search',
+  '/categories',
   '/methodology',
   '/gst-methodology',
   '/gst-policy-version',
@@ -20,6 +20,14 @@ const staticPaths = [
   '/disclaimer',
   '/report-an-error',
 ];
+
+export function getSitemapPaths() {
+  return [
+    ...staticPaths,
+    ...categoryRegistry.map((category) => `/categories/${category.slug}`),
+    ...toolRegistry.map((tool) => `/tools/${tool.slug}`),
+  ];
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

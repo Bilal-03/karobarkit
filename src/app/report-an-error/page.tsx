@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 import { InfoPage } from '@/components/layout/info-page';
-import { Button } from '@/components/ui/button';
-import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
+import { ErrorReportForm } from '@/components/feedback/error-report-form';
+import { toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -12,49 +12,29 @@ export const metadata = pageMetadata({
   path: '/report-an-error',
 });
 
-export default function ReportErrorPage() {
+interface ReportErrorPageProps {
+  searchParams?: Promise<{ tool?: string }>;
+}
+
+export default async function ReportErrorPage({ searchParams }: ReportErrorPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const requestedTool = typeof params.tool === 'string' ? params.tool : '';
+  const defaultTool = toolRegistry.some((tool) => tool.slug === requestedTool)
+    ? requestedTool
+    : toolRegistry[0].slug;
   return (
     <InfoPage
       eyebrow="Help us correct it"
       title="Report an error without sending your numbers"
       intro="A good report tells us what tool and version you used, what seemed wrong and what you expected. Please leave out amounts, names, tax IDs and document contents."
     >
-      <form className="contact-form" action="/report-an-error" method="post">
-        <SelectField id="error-tool" name="tool" label="Tool" defaultValue="gst-calculator">
-          <option value="gst-calculator">GST Calculator</option>
-          <option value="cagr-calculator">CAGR Calculator</option>
-          <option value="roi-calculator">ROI Calculator</option>
-          <option value="other">Other / route issue</option>
-        </SelectField>
-        <SelectField id="error-type" name="type" label="Issue type" defaultValue="calculation">
-          <option value="calculation">Calculation or validation</option>
-          <option value="outdated-rate">Outdated rate</option>
-          <option value="broken-source">Broken official source</option>
-          <option value="misleading-explanation">Misleading explanation</option>
-          <option value="rounding">Rounding issue</option>
-          <option value="source">Source or explanation</option>
-          <option value="accessibility">Accessibility</option>
-          <option value="layout">Mobile or layout</option>
-        </SelectField>
-        <InputField
-          id="error-version"
-          name="version"
-          label="Version or review date"
-          defaultValue="1.0 · 6 August 2026"
-        />
-        <TextareaField
-          id="error-description"
-          name="description"
-          label="What happened?"
-          rows={7}
-          help="Do not paste private inputs. You can describe the shape of the example instead."
-          required
-        />
-        <Button type="submit">Submit report</Button>
-        <p className="last-reviewed">
-          Need general feedback? <Link href="/contact">Contact us instead</Link>.
-        </p>
-      </form>
+      <ErrorReportForm
+        tools={toolRegistry.map(({ slug, name }) => ({ slug, name }))}
+        defaultTool={defaultTool}
+      />
+      <p className="last-reviewed">
+        Need general feedback? <Link href="/contact">Contact us instead</Link>.
+      </p>
     </InfoPage>
   );
 }

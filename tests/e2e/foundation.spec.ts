@@ -4,6 +4,8 @@ import AxeBuilder from '@axe-core/playwright';
 const overflowRoutes = [
   '/',
   '/tools',
+  '/categories',
+  '/search?q=no-such-tool',
   '/categories/financial-calculators',
   '/tools/cagr-calculator',
   '/tools/roi-calculator',
@@ -26,6 +28,7 @@ const metadataRoutes = [
     h1: 'Numbers you can explain. Tools you can trust.',
   },
   { path: '/tools', title: 'All business tools', h1: 'Tools for the numbers behind your business' },
+  { path: '/categories', title: 'Business tool categories', h1: 'Browse tools by business task' },
   {
     path: '/tools/cagr-calculator',
     title: 'CAGR Calculator for Indian Businesses',
@@ -103,6 +106,26 @@ function escapeRegExp(value: string) {
 }
 
 test.describe('foundation routes', () => {
+  test('supports homepage, search, category and related-tool discovery', async ({ page }) => {
+    await page.goto('/');
+    await page.getByLabel('What do you need to do?').fill('gst bill');
+    await page.getByRole('button', { name: 'Search tools' }).click();
+    await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toBeVisible();
+    await page.getByRole('link', { name: 'GST Invoice Generator' }).click();
+    await page.getByRole('link', { name: 'GST Calculator' }).last().click();
+    await expect(page).toHaveURL(/\/tools\/gst-calculator$/);
+    await Promise.all([
+      page.waitForURL(/\/categories\/billing-taxes$/, { timeout: 30_000 }),
+      page.getByRole('link', { name: 'Browse Billing & taxes' }).click(),
+    ]);
+  });
+
+  test('shows useful zero results and a noindex search policy', async ({ page }) => {
+    await page.goto('/search?q=spaceship-telemetry');
+    await expect(page.getByText('No matching tools yet')).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+  });
+
   test('calculator metadata and canonical identify the same tool', async ({ page }) => {
     await page.goto('/tools/cagr-calculator');
 

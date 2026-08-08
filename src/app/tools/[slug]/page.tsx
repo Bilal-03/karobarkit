@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { ToolPage } from '@/components/tooling/tool-page';
 import { getToolBySlug, toolRegistry } from '@/domain/registry';
-import { absoluteUrl } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 interface ToolRouteProps {
@@ -23,16 +23,12 @@ export async function generateMetadata({ params }: ToolRouteProps): Promise<Meta
   const contract = getToolPageRouteContract(tool);
 
   return {
-    title: contract.title,
-    description: tool.seo.description,
-    keywords: tool.seo.keywords,
-    alternates: { canonical: absoluteUrl(contract.canonicalPath) },
-    openGraph: {
-      title: tool.seo.title,
+    ...pageMetadata({
+      title: contract.title,
       description: tool.seo.description,
-      url: absoluteUrl(contract.canonicalPath),
-      type: 'website',
-    },
+      path: contract.canonicalPath,
+    }),
+    keywords: tool.seo.keywords,
   };
 }
 

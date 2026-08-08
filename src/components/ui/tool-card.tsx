@@ -19,9 +19,9 @@ export function ToolCard({ href, name, summary, categoryLabel, featured = false 
         <Link href={href}>{name}</Link>
       </h3>
       <p>{summary}</p>
-      <Link className="text-link" href={href}>
+      <span className="text-link" aria-hidden="true">
         Open tool <span aria-hidden="true">→</span>
-      </Link>
+      </span>
     </article>
   );
 }

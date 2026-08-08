@@ -1,18 +1,19 @@
 import Link from 'next/link';
 
 import { Container, Section } from '@/components/ui/container';
+import { JsonLd } from '@/components/seo/json-ld';
 import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
+import { getFeaturedTools } from '@/domain/discovery';
 import {
-  cagrTool,
-  gstTool,
+  categoryRegistry,
   letterheadTool,
   paymentReceiptTool,
-  roiTool,
   upiStandeeTool,
   urlQrTool,
 } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
+import { websiteStructuredData } from '@/lib/structured-data';
 
 export const metadata = pageMetadata({
   title: 'Private business tools for India',
@@ -22,8 +23,10 @@ export const metadata = pageMetadata({
 });
 
 export default function HomePage() {
+  const featuredTools = getFeaturedTools();
   return (
     <>
+      <JsonLd data={websiteStructuredData()} />
       <section className="hero">
         <Container>
           <div className="hero__layout">
@@ -35,8 +38,8 @@ export default function HomePage() {
                 retailers and small teams.
               </p>
               <div className="hero__actions">
-                <Link className="button button--primary" href="/tools/cagr-calculator">
-                  Try a calculator <span aria-hidden="true">→</span>
+                <Link className="button button--primary" href="/search">
+                  Find a tool <span aria-hidden="true">→</span>
                 </Link>
                 <Link className="button button--secondary" href="/tools">
                   Explore the directory
@@ -54,6 +57,24 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+      <div className="container home-search">
+        <form className="search-form" action="/search" method="get">
+          <label htmlFor="home-search">What do you need to do?</label>
+          <div className="search-form__row">
+            <input
+              className="input"
+              id="home-search"
+              name="q"
+              type="search"
+              maxLength={80}
+              placeholder="Try GST bill, payment QR or growth rate…"
+            />
+            <button className="button button--primary" type="submit">
+              Search tools
+            </button>
+          </div>
+        </form>
+      </div>
       <div className="container proof-bar" aria-label="Product promises">
         <span>No account required</span>
         <span>Indian number formatting</span>
@@ -63,59 +84,35 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Seven tools, one clear promise"
+          title="Eight tools, one clear promise"
           description="Start with transparent calculations, source-backed GST arithmetic, local QR outputs and original documents before the platform grows into more complex business workflows."
         >
           <div className="tool-grid">
-            <ToolCard
-              href={`/tools/${cagrTool.slug}`}
-              name={cagrTool.name}
-              summary={cagrTool.summary}
-              categoryLabel={cagrTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${roiTool.slug}`}
-              name={roiTool.name}
-              summary={roiTool.summary}
-              categoryLabel={roiTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${gstTool.slug}`}
-              name={gstTool.name}
-              summary={gstTool.summary}
-              categoryLabel={gstTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${urlQrTool.slug}`}
-              name={urlQrTool.name}
-              summary={urlQrTool.summary}
-              categoryLabel={urlQrTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${upiStandeeTool.slug}`}
-              name={upiStandeeTool.name}
-              summary={upiStandeeTool.summary}
-              categoryLabel={upiStandeeTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${letterheadTool.slug}`}
-              name={letterheadTool.name}
-              summary={letterheadTool.summary}
-              categoryLabel={letterheadTool.categoryLabel}
-              featured
-            />
-            <ToolCard
-              href={`/tools/${paymentReceiptTool.slug}`}
-              name={paymentReceiptTool.name}
-              summary={paymentReceiptTool.summary}
-              categoryLabel={paymentReceiptTool.categoryLabel}
-              featured
-            />
+            {featuredTools.map((tool) => (
+              <ToolCard
+                key={tool.id}
+                href={`/tools/${tool.slug}`}
+                name={tool.name}
+                summary={tool.summary}
+                categoryLabel={tool.categoryLabel}
+                featured
+              />
+            ))}
+          </div>
+        </Section>
+        <Section eyebrow="Browse by category" title="Start with the kind of work in front of you">
+          <div className="category-grid">
+            {categoryRegistry.map((category) => (
+              <article className="content-card" key={category.id}>
+                <h3>
+                  <Link href={`/categories/${category.slug}`}>{category.name}</Link>
+                </h3>
+                <p>{category.description}</p>
+                <Link className="text-link" href={`/categories/${category.slug}`}>
+                  Browse category <span aria-hidden="true">→</span>
+                </Link>
+              </article>
+            ))}
           </div>
         </Section>
         <Section eyebrow="Find your next step" title="What would you like to do?">

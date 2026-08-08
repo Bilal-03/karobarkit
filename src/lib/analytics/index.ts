@@ -11,6 +11,9 @@ export const allowedEventNames = [
   'related_tool_opened',
   'search_performed',
   'search_zero_results',
+  'category_viewed',
+  'featured_tool_opened',
+  'report_error_opened',
   'feedback_submitted',
 ] as const;
 

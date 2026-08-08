@@ -34,6 +34,24 @@ export default function MethodologyPage() {
           </ul>
         </section>
         <section>
+          <h2>Rounding and testing</h2>
+          <p>
+            Money calculations use decimal-safe arithmetic and document their rounding boundary. Unit tests
+            cover normal, invalid and boundary cases; integration tests cover forms; browser checks cover
+            discovery, accessibility and mobile layouts. Static worked examples use independently expected
+            values so a live calculation cannot silently validate itself.
+          </p>
+        </section>
+        <section>
+          <h2>Privacy and update process</h2>
+          <p>
+            Current calculations, QR payloads and documents stay in the browser. Analytics accepts only a
+            small event allowlist and excludes entered values, identities and document contents. Regulatory
+            material is stored as effective-dated policy data, reviewed against named sources and updated
+            through code review rather than scraped into a result at runtime.
+          </p>
+        </section>
+        <section>
           <h2>Review and corrections</h2>
           <p>
             Formula changes are intended to be reviewed as code and content together. If you find a result

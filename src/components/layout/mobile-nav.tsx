@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 const links = [
+  { href: '/', label: 'Home' },
   { href: '/tools', label: 'All tools' },
+  { href: '/categories', label: 'Categories' },
+  { href: '/search', label: 'Search' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/sources', label: 'Sources' },
   { href: '/about', label: 'About' },

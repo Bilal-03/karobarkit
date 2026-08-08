@@ -2,14 +2,18 @@ import Link from 'next/link';
 
 import { Container } from '@/components/ui/container';
 import { ToolCard } from '@/components/ui/tool-card';
-import { toolRegistry } from '@/domain/registry';
+import { normalizeSearchQuery, searchTools } from '@/domain/discovery';
+import { categoryRegistry, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
-export const metadata = pageMetadata({
-  title: 'Search business tools',
-  description: 'Search KarobarKit by tool name, calculation or business task.',
-  path: '/search',
-});
+export const metadata = {
+  ...pageMetadata({
+    title: 'Search business tools',
+    description: 'Search KarobarKit by tool name, calculation or business task.',
+    path: '/search',
+  }),
+  robots: { index: false, follow: true },
+};
 
 interface SearchPageProps {
   searchParams?: Promise<{ q?: string }>;
@@ -17,16 +21,9 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = searchParams ? await searchParams : {};
-  const query = typeof params.q === 'string' ? params.q.trim() : '';
-  const normalized = query.toLowerCase();
-  const results = normalized
-    ? toolRegistry.filter((tool) =>
-        [tool.name, tool.summary, tool.categoryLabel, ...(tool.seo.keywords ?? [])]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalized),
-      )
-    : toolRegistry;
+  const query = typeof params.q === 'string' ? params.q.slice(0, 80).trim() : '';
+  const normalized = normalizeSearchQuery(query);
+  const results = normalized ? searchTools(normalized) : [...toolRegistry];
 
   return (
     <>
@@ -45,6 +42,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               name="q"
               type="search"
               defaultValue={query}
+              maxLength={80}
               placeholder="Try “return”, “growth” or “profit”…"
             />
             <button className="button button--primary" type="submit">
@@ -75,10 +73,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           ) : (
             <div className="state-block state-block--empty">
               <strong>No matching tools yet</strong>
-              <p>Try a shorter phrase, or browse the financial calculations category.</p>
-              <Link className="button button--secondary" href="/categories/financial-calculators">
-                Browse category
-              </Link>
+              <p>Try a shorter phrase such as “invoice”, “receipt”, “QR” or “growth rate”.</p>
+              <div className="inline-actions">
+                <Link className="button button--secondary" href="/tools">
+                  View all tools
+                </Link>
+                <Link className="button button--ghost" href="/categories">
+                  Browse categories
+                </Link>
+              </div>
+              <ul className="category-link-list" aria-label="Available categories">
+                {categoryRegistry.map((category) => (
+                  <li key={category.id}>
+                    <Link href={`/categories/${category.slug}`}>{category.name}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
