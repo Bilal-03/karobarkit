@@ -1,8 +1,5 @@
-import Link from 'next/link';
-
+import { LiveToolSearch } from '@/components/search/live-tool-search';
 import { Container } from '@/components/ui/container';
-import { ToolCard } from '@/components/ui/tool-card';
-import { filterTools, searchTools } from '@/domain/discovery';
 import { categoryRegistry, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
@@ -23,9 +20,6 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const category = categoryRegistry.some((item) => item.slug === requestedCategory)
     ? requestedCategory
     : 'all';
-  const searched = query ? searchTools(query) : [...toolRegistry];
-  const categoryIds = new Set(filterTools(category).map((tool) => tool.id));
-  const tools = searched.filter((tool) => categoryIds.has(tool.id));
   return (
     <>
       <section className="info-hero">
@@ -45,60 +39,13 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
       </section>
       <Container>
         <div className="search-section">
-          <form className="directory-filters" action="/tools" method="get">
-            <div>
-              <label htmlFor="directory-search">Search tools</label>
-              <input
-                className="input"
-                id="directory-search"
-                name="q"
-                type="search"
-                defaultValue={query}
-                placeholder="Try GST bill or growth rate…"
-                maxLength={80}
-              />
-            </div>
-            <div>
-              <label htmlFor="directory-category">Category</label>
-              <select className="select" id="directory-category" name="category" defaultValue={category}>
-                <option value="all">All categories</option>
-                {categoryRegistry.map((item) => (
-                  <option key={item.id} value={item.slug}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button className="button button--secondary" type="submit">
-              Apply filters
-            </button>
-          </form>
-        </div>
-        <div className="section">
-          <p className="result-count" aria-live="polite">
-            {tools.length} matching tool{tools.length === 1 ? '' : 's'}
-          </p>
-          {tools.length ? (
-            <div className="tool-grid">
-              {tools.map((tool) => (
-                <ToolCard
-                  key={tool.id}
-                  href={`/tools/${tool.slug}`}
-                  name={tool.name}
-                  summary={tool.summary}
-                  categoryLabel={tool.categoryLabel}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="state-block state-block--empty">
-              <strong>No tools match those filters</strong>
-              <p>Try another term or remove the category filter.</p>
-              <Link className="button button--secondary" href="/tools">
-                Clear filters
-              </Link>
-            </div>
-          )}
+          <LiveToolSearch
+            key={`${query}:${category}`}
+            id="directory-search"
+            initialQuery={query}
+            initialCategory={category}
+            variant="directory"
+          />
         </div>
       </Container>
     </>

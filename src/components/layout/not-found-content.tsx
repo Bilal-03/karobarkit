@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { LiveToolSearch } from '@/components/search/live-tool-search';
 import { Container } from '@/components/ui/container';
 
 export function NotFoundContent() {
@@ -11,22 +12,7 @@ export function NotFoundContent() {
         <p className="lede">
           The link may be old, or the tool may have moved to the canonical tools directory.
         </p>
-        <form className="search-form" action="/search" method="get">
-          <label htmlFor="not-found-search">Search tools</label>
-          <div className="search-form__row">
-            <input
-              className="input"
-              id="not-found-search"
-              name="q"
-              type="search"
-              maxLength={80}
-              placeholder="Try GST, invoice or QR…"
-            />
-            <button className="button button--secondary" type="submit">
-              Search
-            </button>
-          </div>
-        </form>
+        <LiveToolSearch id="not-found-search" variant="not-found" />
         <div className="inline-actions">
           <Link className="button button--primary" href="/tools">
             Browse all tools

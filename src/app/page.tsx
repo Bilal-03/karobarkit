@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Container, Section } from '@/components/ui/container';
 import { BrandIcon } from '@/components/layout/brand-lockup';
 import { JsonLd } from '@/components/seo/json-ld';
+import { LiveToolSearch } from '@/components/search/live-tool-search';
 import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
 import { getFeaturedTools } from '@/domain/discovery';
@@ -81,22 +82,7 @@ export default function HomePage() {
         </Container>
       </section>
       <div className="container home-search">
-        <form className="search-form" action="/search" method="get">
-          <label htmlFor="home-search">What do you need to do?</label>
-          <div className="search-form__row">
-            <input
-              className="input"
-              id="home-search"
-              name="q"
-              type="search"
-              maxLength={80}
-              placeholder="Try GST bill, payment QR or growth rate…"
-            />
-            <button className="button button--primary" type="submit">
-              Search tools
-            </button>
-          </div>
-        </form>
+        <LiveToolSearch id="home-search" variant="home" />
       </div>
       <div className="container proof-bar" aria-label="Product promises">
         <span>No account required</span>

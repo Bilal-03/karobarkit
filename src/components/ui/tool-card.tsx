@@ -11,17 +11,17 @@ interface ToolCardProps {
 export function ToolCard({ href, name, summary, categoryLabel, featured = false }: ToolCardProps) {
   return (
     <article className={`tool-card${featured ? ' tool-card--featured' : ''}`}>
-      <div className="tool-card__topline">
-        <span className="tag">{categoryLabel}</span>
-        <span className="local-badge">Local-first</span>
-      </div>
-      <h3>
-        <Link href={href}>{name}</Link>
-      </h3>
-      <p>{summary}</p>
-      <span className="text-link" aria-hidden="true">
-        Open tool <span aria-hidden="true">→</span>
-      </span>
+      <Link className="tool-card__link" href={href} aria-label={name}>
+        <div className="tool-card__topline">
+          <span className="tag">{categoryLabel}</span>
+          <span className="local-badge">Local-first</span>
+        </div>
+        <h3>{name}</h3>
+        <p>{summary}</p>
+        <span className="text-link">
+          Open tool <span aria-hidden="true">→</span>
+        </span>
+      </Link>
     </article>
   );
 }
