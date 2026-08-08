@@ -59,7 +59,7 @@ export default function HomePage() {
                   <p className="hero__visual-kicker">KarobarKit toolkit</p>
                   <p className="hero__aside-heading">A calmer way to get a useful answer</p>
                 </div>
-                <BrandIcon className="hero__visual-icon" decorative />
+                <BrandIcon className="hero__visual-icon" decorative variant="badge" />
               </div>
               <div className="hero__signal" aria-hidden="true">
                 <span className="hero__signal-label">Clarity in, confidence out</span>

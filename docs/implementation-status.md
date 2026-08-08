@@ -84,4 +84,4 @@ Verification: 160 unit/integration tests passed; the Chromium responsive/accessi
 
 ## Brand identity alignment
 
-The current site shell follows the KarobarKit identity board: navy blue `#0D1B2A`, emerald teal `#0FA89A`, slate `#64748B`, saffron gold `#F6A623` and light gray `#F2F4F7`. Outfit is used for display headings and Plus Jakarta Sans for body copy. The reusable calculator-and-growth SVG mark is applied to the header, footer, homepage hero and favicon; the contact notification email and generated document accents use the same navy/teal system.
+The current site shell follows the KarobarKit identity board: navy blue `#0D1B2A`, emerald teal `#0FA89A`, slate `#64748B`, saffron gold `#F6A623` and light gray `#F2F4F7`. Outfit is used for display headings and Plus Jakarta Sans for body copy. The supplied transparent badge and standalone PNG marks are used consistently in the header, footer, homepage hero and favicon; accessible darker shades are reserved for text and action contrast. The contact notification email and generated document accents use the same navy/teal system.
