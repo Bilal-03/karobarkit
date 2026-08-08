@@ -3,6 +3,14 @@ import type { Metadata } from 'next';
 import { SiteShell } from '@/components/layout/site-shell';
 import { siteConfig } from '@/lib/site';
 
+import '@fontsource/outfit/latin-500.css';
+import '@fontsource/outfit/latin-600.css';
+import '@fontsource/outfit/latin-700.css';
+import '@fontsource/outfit/latin-800.css';
+import '@fontsource/plus-jakarta-sans/latin-400.css';
+import '@fontsource/plus-jakarta-sans/latin-500.css';
+import '@fontsource/plus-jakarta-sans/latin-600.css';
+import '@fontsource/plus-jakarta-sans/latin-700.css';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -15,6 +23,7 @@ export const metadata: Metadata = {
   applicationName: siteConfig.name,
   authors: [{ name: 'KarobarKit' }],
   creator: 'KarobarKit',
+  icons: { icon: '/brand-mark.svg', apple: '/brand-mark.svg' },
   robots: { index: true, follow: true },
 };
 

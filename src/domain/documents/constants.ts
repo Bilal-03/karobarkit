@@ -10,9 +10,9 @@ export const DOCUMENT_PAGE_LAYOUT: PageLayout = {
 };
 
 export const DOCUMENT_ACCENTS: Array<{ value: DocumentAccent; label: string; color: string }> = [
-  { value: 'teal', label: 'Teal', color: '#0d675f' },
-  { value: 'navy', label: 'Navy', color: '#27445a' },
-  { value: 'ochre', label: 'Ochre', color: '#8b5b0d' },
+  { value: 'teal', label: 'Emerald teal', color: '#0fa89a' },
+  { value: 'navy', label: 'Navy blue', color: '#0d1b2a' },
+  { value: 'ochre', label: 'Saffron gold', color: '#b66a00' },
 ];
 
 export const LETTERHEAD_BODY_MAX_LENGTH = 12000;

@@ -1,19 +1,16 @@
 import Link from 'next/link';
 
+import { BrandLockup } from './brand-lockup';
+
 export function Footer() {
   return (
     <footer className="site-footer">
       <div className="container site-footer__grid">
         <div>
           <Link className="wordmark wordmark--footer" href="/">
-            <span className="wordmark__mark" aria-hidden="true">
-              v
-            </span>
-            <span>KarobarKit</span>
+            <BrandLockup compact tone="light" />
           </Link>
-          <p className="site-footer__tagline">
-            Private, practical tools for the work behind every Indian business.
-          </p>
+          <p className="site-footer__tagline">Smart tools for smarter business.</p>
         </div>
         <div className="site-footer__links">
           <div>

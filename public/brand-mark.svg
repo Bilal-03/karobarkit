@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+  <title id="title">KarobarKit mark</title>
+  <desc id="desc">Calculator, business tools and upward growth mark</desc>
+  <rect width="100" height="100" rx="22" fill="#0d1b2a"/>
+  <rect x="9" y="7" width="24" height="32" rx="3" fill="#ffffff"/>
+  <rect x="9" y="43" width="24" height="16" rx="3" fill="#ffffff"/>
+  <rect x="9" y="63" width="24" height="16" rx="3" fill="#ffffff"/>
+  <rect x="37" y="43" width="24" height="16" rx="3" fill="#ffffff"/>
+  <rect x="37" y="63" width="24" height="16" rx="3" fill="#ffffff"/>
+  <path d="M21 47v8M17 51h8M45 51h8M17 67l8 8M25 67l-8 8M45 67l8 8M53 67l-8 8" stroke="#0d1b2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M42 35 73 6h22L67 35l18 18-13 13-18-18-10 10-9-9 10-10Z" fill="#0fa89a"/>
+  <path d="m52 35 13 13-13 13-10-10 10-10Z" fill="#0d1b2a"/>
+  <path d="M52 33c-3 1-6 4-7 8l7 7 7-7c-1-4-4-7-7-8Z" fill="#ffffff"/>
+  <path d="M61 89h31M67 89V78h7v11M77 89V69h7v20M87 89V58h7v31" fill="#0fa89a"/>
+  <path d="m58 85 15-13 9 3 14-20" fill="none" stroke="#0fa89a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m89 56 7-1-2 7" fill="none" stroke="#0fa89a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

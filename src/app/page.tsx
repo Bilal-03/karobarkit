@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { Container, Section } from '@/components/ui/container';
+import { BrandIcon } from '@/components/layout/brand-lockup';
 import { JsonLd } from '@/components/seo/json-ld';
 import { ToolCard } from '@/components/ui/tool-card';
 import { PrivacyBlock } from '@/components/ui/trust-blocks';
@@ -31,6 +32,12 @@ export default function HomePage() {
         <Container>
           <div className="hero__layout">
             <div>
+              <div className="hero__brandline">
+                <BrandIcon className="hero__brandline-icon" decorative />
+                <span>
+                  Smart tools for <strong>smarter business</strong>
+                </span>
+              </div>
               <p className="eyebrow">Built for the work behind the work</p>
               <h1>Numbers you can explain. Tools you can trust.</h1>
               <p className="hero__lede">
@@ -47,7 +54,23 @@ export default function HomePage() {
               </div>
             </div>
             <aside className="hero__aside" aria-label="KarobarKit principles">
-              <p className="hero__aside-heading">A calmer way to get a useful answer</p>
+              <div className="hero__visual-header">
+                <div>
+                  <p className="hero__visual-kicker">KarobarKit toolkit</p>
+                  <p className="hero__aside-heading">A calmer way to get a useful answer</p>
+                </div>
+                <BrandIcon className="hero__visual-icon" decorative />
+              </div>
+              <div className="hero__signal" aria-hidden="true">
+                <span className="hero__signal-label">Clarity in, confidence out</span>
+                <span className="hero__signal-bars">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </div>
               <ul className="trust-list">
                 <li>Inputs stay in your browser for these calculators.</li>
                 <li>Every result shows its formula, limits and review date.</li>
