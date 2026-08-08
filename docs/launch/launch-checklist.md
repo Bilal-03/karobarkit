@@ -18,6 +18,7 @@
 ## Security and privacy
 
 - [x] Security headers and upload/URL/filename validation reviewed.
+- [x] Contact delivery route validates inputs, blocks honeypot submissions and avoids content logging.
 - [x] No production dependency vulnerabilities reported.
 - [x] Sensitive inputs excluded from analytics, URLs, storage and safe logs.
 - [ ] Production contact delivery and monitoring provider configured.

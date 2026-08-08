@@ -2136,6 +2136,31 @@ p {
   border-radius: var(--radius-md);
   background: var(--surface);
 }
+.contact-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.contact-status {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+.contact-status--success {
+  border-color: rgba(16, 118, 109, 0.35);
+  background: var(--accent-050);
+  color: var(--accent-700);
+}
+.contact-status--error {
+  border-color: #e9b4b0;
+  background: var(--negative-soft);
+  color: var(--negative-700, #9e3028);
+}
 
 .state-block {
   display: grid;

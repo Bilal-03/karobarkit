@@ -3,35 +3,50 @@
 import { useState } from 'react';
 
 export function ContactForm() {
-  const [message, setMessage] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
-  function prepare(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    setMessage(
-      [
-        `Name: ${String(data.get('name') ?? '') || 'Not provided'}`,
-        `Email: ${String(data.get('email') ?? '') || 'Not provided'}`,
-        `Topic: ${String(data.get('topic') ?? '')}`,
-        `Message: ${String(data.get('message') ?? '') || 'Not provided'}`,
-      ].join('\n'),
-    );
-    setCopied(false);
-  }
+    const form = event.currentTarget;
+    setStatus(null);
+    setIsSending(true);
 
-  async function copy() {
-    await navigator.clipboard.writeText(message);
-    setCopied(true);
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(form).entries())),
+      });
+      const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        setStatus({
+          type: 'error',
+          message: result?.error ?? 'We could not send your message right now. Please try again shortly.',
+        });
+        return;
+      }
+
+      form.reset();
+      setStatus({ type: 'success', message: 'Thanks — your message has been sent.' });
+    } catch {
+      setStatus({
+        type: 'error',
+        message: 'We could not send your message right now. Please try again shortly.',
+      });
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
     <div className="contact-form-stack">
-      <div className="warning-block" role="note">
-        This early build has no message-delivery backend. Preparing a message does not send it; copy the
-        prepared text into the support channel provided by the site owner.
-      </div>
-      <form className="contact-form" onSubmit={prepare}>
+      <form className="contact-form" onSubmit={submit}>
+        <div className="contact-honeypot" aria-hidden="true">
+          <label htmlFor="contact-website">Website</label>
+          <input id="contact-website" name="website" tabIndex={-1} autoComplete="off" />
+        </div>
         <div className="field">
           <label className="field__label" htmlFor="contact-name">
             Your name
@@ -74,25 +89,26 @@ export function ContactForm() {
             id="contact-message"
             name="message"
             rows={6}
+            required
             aria-describedby="contact-message-help"
           />
           <div className="field__help" id="contact-message-help">
-            Leave out private amounts, tax IDs, passwords and document contents.
+            We will use your email only to reply. Please leave out private amounts, tax IDs, passwords and
+            document contents.
           </div>
         </div>
-        <button className="button button--primary" type="submit">
-          Prepare message
+        <button className="button button--primary" type="submit" disabled={isSending}>
+          {isSending ? 'Sending…' : 'Send message'}
         </button>
       </form>
-      {message ? (
-        <section className="prepared-report" aria-live="polite">
-          <h2>Message ready to share</h2>
-          <pre>{message}</pre>
-          <button className="button button--secondary" type="button" onClick={copy}>
-            {copied ? 'Copied' : 'Copy message'}
-          </button>
-          <p>Nothing has been transmitted by KarobarKit.</p>
-        </section>
+      {status ? (
+        <p
+          className={`contact-status contact-status--${status.type}`}
+          role={status.type === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {status.message}
+        </p>
       ) : null}
     </div>
   );
