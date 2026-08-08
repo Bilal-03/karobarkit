@@ -10,14 +10,17 @@ export function Footer() {
           <Link className="wordmark wordmark--footer" href="/">
             <BrandLockup compact tone="light" />
           </Link>
-          <p className="site-footer__tagline">Smart tools for smarter business.</p>
+          <p className="site-footer__tagline">The Business Toolkit for India.</p>
         </div>
         <div className="site-footer__links">
           <div>
             <p className="footer-heading">Explore</p>
             <Link href="/tools">All tools</Link>
             <Link href="/categories">Categories</Link>
-            <Link href="/categories/financial-calculators">Financial calculations</Link>
+            <Link href="/categories/business">Business</Link>
+            <Link href="/categories/gst-tax">GST & Tax</Link>
+            <Link href="/categories/finance">Finance</Link>
+            <Link href="/categories/generators">Generators</Link>
             <Link href="/faq">FAQ</Link>
           </div>
           <div>
@@ -35,7 +38,7 @@ export function Footer() {
         </div>
       </div>
       <div className="container site-footer__bottom">
-        <span>© 2026 KarobarKit. Working name for this early product build.</span>
+        <span>© 2026 KarobarKit. The Business Toolkit for India.</span>
         <span>
           <Link href="/terms">Terms</Link> · <Link href="/disclaimer">Disclaimer</Link>
         </span>

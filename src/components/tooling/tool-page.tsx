@@ -2,7 +2,15 @@ import Link from 'next/link';
 
 import { formatIndianDate } from '@/domain/formatting/indian';
 import { getRelatedTools } from '@/domain/registry';
-import type { SourceReference } from '@/domain/registry/types';
+import type {
+  SourceReference,
+  ToolExecutionMode,
+  ToolGovernance,
+  ToolKind,
+  ToolLifecycle,
+  ToolTrustMetadata,
+  ToolUiAdapter,
+} from '@/domain/registry/types';
 
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { Container, Section } from '@/components/ui/container';
@@ -11,6 +19,7 @@ import { DisclaimerBlock, LastReviewedBlock, PrivacyBlock } from '@/components/u
 import { SourceReferenceBlock } from '@/components/ui/source-reference';
 import { JsonLd } from '@/components/seo/json-ld';
 import { faqStructuredData, toolStructuredData } from '@/lib/structured-data';
+import { ToolTrustPanel } from '@/components/trust/tool-trust-panel';
 
 import { CalculatorForm } from './calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
@@ -21,8 +30,9 @@ import { GeneratorForm } from './generator-form';
 interface SupportedTool {
   id: string;
   slug: string;
-  kind: 'calculator' | 'generator';
+  kind: ToolKind;
   generatorKind?: 'qr' | 'document';
+  ui: ToolUiAdapter;
   name: string;
   category: string;
   categoryLabel: string;
@@ -40,19 +50,70 @@ interface SupportedTool {
   sources: SourceReference[];
   faqs: { question: string; answer: string }[];
   disclaimer?: string;
+  lifecycle: ToolLifecycle;
+  executionMode: ToolExecutionMode;
+  governance: ToolGovernance;
+  trust: ToolTrustMetadata;
 }
 
-function calculatorKind(slug: string) {
-  return slug === 'cagr-calculator' ? 'cagr' : 'roi';
-}
-
-function generatorKind(slug: string) {
-  return slug === 'url-qr' ? 'url-qr' : 'upi-standee';
+function ToolInteraction({ tool }: { tool: SupportedTool }) {
+  switch (tool.ui.adapter) {
+    case 'gst-calculator':
+      return (
+        <GstCalculatorForm
+          tool={{
+            id: tool.id,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+            sources: tool.sources,
+          }}
+        />
+      );
+    case 'gst-invoice-generator':
+      return (
+        <GstInvoiceGeneratorForm
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'calculator':
+      return (
+        <CalculatorForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    case 'document-generator':
+      return (
+        <DocumentGeneratorForm
+          kind={tool.ui.variant}
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'qr-generator':
+      return (
+        <GeneratorForm
+          kind={tool.ui.variant}
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'unavailable':
+      return (
+        <div className="state-block state-block--empty">
+          <strong>This interface is not available yet</strong>
+          <p>The tool remains unavailable until its task-specific interface passes release review.</p>
+        </div>
+      );
+  }
 }
 
 export function ToolPage({ tool }: { tool: SupportedTool }) {
   const relatedTools = getRelatedTools(tool);
-  const kind = calculatorKind(tool.slug);
 
   return (
     <>
@@ -67,7 +128,11 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
       </div>
       <section className="tool-hero">
         <Container narrow>
-          <p className="eyebrow">{tool.categoryLabel} · Local-first</p>
+          <p className="eyebrow">
+            {tool.categoryLabel} ·{' '}
+            {tool.executionMode === 'local-only' ? 'Local-first' : 'Data flow disclosed'}
+            {tool.lifecycle === 'beta' ? ' · Beta' : ''}
+          </p>
           <h1>{tool.name}</h1>
           <p className="tool-hero__summary">{tool.summary}</p>
           <div className="tool-hero__meta">
@@ -80,43 +145,19 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
         </Container>
       </section>
       <Container>
-        {tool.slug === 'gst-calculator' ? (
-          <GstCalculatorForm
-            tool={{
-              id: tool.id,
-              category: tool.category,
-              defaultValues: tool.defaultValues,
-              privacyNote: tool.privacyNote,
-              sources: tool.sources,
-            }}
-          />
-        ) : tool.slug === 'gst-invoice-generator' ? (
-          <GstInvoiceGeneratorForm
-            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-          />
-        ) : tool.kind === 'calculator' ? (
-          <CalculatorForm
-            kind={kind}
-            tool={{
-              id: tool.id,
-              category: tool.category,
-              defaultValues: tool.defaultValues,
-              privacyNote: tool.privacyNote,
-            }}
-          />
-        ) : tool.generatorKind === 'document' ? (
-          <DocumentGeneratorForm
-            kind={tool.slug === 'letterhead-generator' ? 'letterhead' : 'payment-receipt'}
-            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-          />
-        ) : (
-          <GeneratorForm
-            kind={generatorKind(tool.slug)}
-            tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-          />
-        )}
+        <ToolInteraction tool={tool} />
       </Container>
       <Container narrow>
+        <ToolTrustPanel
+          slug={tool.slug}
+          formula={tool.formula}
+          trust={tool.trust}
+          governance={tool.governance}
+          sources={tool.sources}
+          limitations={tool.limitations}
+          privacyNote={tool.privacyNote}
+          executionMode={tool.executionMode}
+        />
         <p className="section-link-row">
           <Link href={`/categories/${tool.category}`}>Browse {tool.categoryLabel}</Link> ·{' '}
           <Link href="/methodology">Methodology</Link> · <Link href="/sources">Sources</Link>
@@ -149,26 +190,28 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
           </div>
         </Section>
 
-        <Section eyebrow="Boundaries" title="What this tool does not assume">
-          <div className="content-grid content-grid--two">
-            <article className="content-card">
-              <h3>Limitations</h3>
-              <ul className="plain-list">
-                {tool.limitations.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-            <article className="content-card">
-              <h3>Edge cases</h3>
-              <ul className="plain-list">
-                {tool.edgeCases.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          </div>
-        </Section>
+        <div id="full-limitations">
+          <Section eyebrow="Boundaries" title="What this tool does not assume">
+            <div className="content-grid content-grid--two">
+              <article className="content-card">
+                <h3>Limitations</h3>
+                <ul className="plain-list">
+                  {tool.limitations.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </article>
+              <article className="content-card">
+                <h3>Edge cases</h3>
+                <ul className="plain-list">
+                  {tool.edgeCases.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+          </Section>
+        </div>
 
         <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
         <DisclaimerBlock>

@@ -13,7 +13,7 @@ export default function MethodologyPage() {
     <InfoPage
       eyebrow="How we work"
       title="A result should come with its working"
-      intro="KarobarKit starts with a deliberately small set of tools. We document the formula, show the assumptions and test the edge cases before adding more."
+      intro="KarobarKit publishes a tool only after its method, assumptions, data flow, lifecycle, review status and edge cases are explicit. Roadmap scope is not presented as a live result."
     >
       <div className="prose">
         <section>
@@ -30,7 +30,8 @@ export default function MethodologyPage() {
             <li>A plain-language explanation of the inputs.</li>
             <li>The formula used, without asking an AI model to do arithmetic.</li>
             <li>A worked example with independently expected values.</li>
-            <li>Limitations, edge cases, source references and a last-reviewed date.</li>
+            <li>Effective period, source references, last-verified date and reviewer status.</li>
+            <li>Limitations, privacy behavior and a direct correction route.</li>
           </ul>
         </section>
         <section>
@@ -47,8 +48,17 @@ export default function MethodologyPage() {
           <p>
             Current calculations, QR payloads and documents stay in the browser. Analytics accepts only a
             small event allowlist and excludes entered values, identities and document contents. Regulatory
-            material is stored as effective-dated policy data, reviewed against named sources and updated
-            through code review rather than scraped into a result at runtime.
+            material is stored in a reusable effective-dated policy package, reviewed against named sources
+            and updated through code review rather than scraped into a result at runtime.
+          </p>
+        </section>
+        <section>
+          <h2>Lifecycle and release controls</h2>
+          <p>
+            Tool definitions can be internal, beta, live, stale-disabled or retired. Internal and disabled
+            tools do not enter search or the sitemap. A feature flag can hold a route out of the public
+            directory, while a stale policy can replace the interface with a noindex explanation instead of
+            continuing to calculate from outdated rules.
           </p>
         </section>
         <section>

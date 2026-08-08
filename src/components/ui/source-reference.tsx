@@ -3,7 +3,7 @@ import { formatIndianDate } from '@/domain/formatting/indian';
 
 export function SourceReferenceBlock({ sources }: { sources: SourceReference[] }) {
   return (
-    <section className="source-block" aria-labelledby="source-title">
+    <section className="source-block" id="source-register" aria-labelledby="source-title">
       <div className="source-block__heading">
         <p className="eyebrow">Method & sources</p>
         <h2 id="source-title">How this result is grounded</h2>

@@ -6,7 +6,7 @@ const overflowRoutes = [
   '/tools',
   '/categories',
   '/search?q=no-such-tool',
-  '/categories/financial-calculators',
+  '/categories/finance',
   '/tools/cagr-calculator',
   '/tools/roi-calculator',
   '/tools/gst-calculator',
@@ -15,7 +15,8 @@ const overflowRoutes = [
   '/tools/letterhead-generator',
   '/tools/payment-receipt-generator',
   '/tools/gst-invoice-generator',
-  '/categories/business-documents',
+  '/categories/generators',
+  '/categories/startup',
   '/sources',
   '/contact',
   '/report-an-error',
@@ -24,11 +25,15 @@ const overflowRoutes = [
 const metadataRoutes = [
   {
     path: '/',
-    title: 'Private business tools for India',
-    h1: 'Numbers you can explain. Tools you can trust.',
+    title: 'The Business Toolkit for India',
+    h1: 'Run the numbers. Create the document. Make the next decision.',
   },
-  { path: '/tools', title: 'All business tools', h1: 'Tools for the numbers behind your business' },
-  { path: '/categories', title: 'Business tool categories', h1: 'Browse tools by business task' },
+  { path: '/tools', title: 'Business tools for India', h1: 'Find the right tool for the business task' },
+  {
+    path: '/categories',
+    title: 'Business toolkit categories for India',
+    h1: 'Browse tools by business task',
+  },
   {
     path: '/tools/cagr-calculator',
     title: 'CAGR Calculator for Indian Businesses',
@@ -58,24 +63,44 @@ const metadataRoutes = [
     h1: 'GST Invoice Generator',
   },
   {
-    path: '/categories/financial-calculators',
-    title: 'Financial calculations tools',
-    h1: 'Financial calculations',
+    path: '/categories/business',
+    title: 'Business tools',
+    h1: 'Business',
   },
   {
-    path: '/categories/marketing-barcodes',
-    title: 'Marketing & QR codes tools',
-    h1: 'Marketing & QR codes',
+    path: '/categories/gst-tax',
+    title: 'GST & Tax tools',
+    h1: 'GST & Tax',
   },
   {
-    path: '/categories/business-documents',
-    title: 'Business documents tools',
-    h1: 'Business documents',
+    path: '/categories/startup',
+    title: 'Startup tools',
+    h1: 'Startup',
   },
   {
-    path: '/categories/billing-taxes',
-    title: 'Billing & taxes tools',
-    h1: 'Billing & taxes',
+    path: '/categories/finance',
+    title: 'Finance tools',
+    h1: 'Finance',
+  },
+  {
+    path: '/categories/ecommerce',
+    title: 'E-commerce tools',
+    h1: 'E-commerce',
+  },
+  {
+    path: '/categories/hr-salary',
+    title: 'HR & Salary tools',
+    h1: 'HR & Salary',
+  },
+  {
+    path: '/categories/generators',
+    title: 'Generators tools',
+    h1: 'Generators',
+  },
+  {
+    path: '/categories/ai-tools',
+    title: 'AI Tools tools',
+    h1: 'AI Tools',
   },
   { path: '/search', title: 'Search business tools', h1: 'Find the right tool for the job' },
   {
@@ -115,8 +140,8 @@ test.describe('foundation routes', () => {
     await page.getByRole('link', { name: 'GST Calculator' }).last().click();
     await expect(page).toHaveURL(/\/tools\/gst-calculator$/);
     await Promise.all([
-      page.waitForURL(/\/categories\/billing-taxes$/, { timeout: 30_000 }),
-      page.getByRole('link', { name: 'Browse Billing & taxes' }).click(),
+      page.waitForURL(/\/categories\/gst-tax$/, { timeout: 30_000 }),
+      page.getByRole('link', { name: 'Browse GST & Tax' }).click(),
     ]);
   });
 
@@ -126,12 +151,33 @@ test.describe('foundation routes', () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
 
+  test('hydrates scalable directory filters from a canonical query URL', async ({ page }) => {
+    await page.goto('/tools?category=gst-tax&type=calculator&execution=local&regulated=regulated');
+    await expect(page.getByLabel('Category')).toHaveValue('gst-tax');
+    await expect(page.getByLabel('Tool type')).toHaveValue('calculator');
+    await expect(page.getByLabel('Data use')).toHaveValue('local');
+    await expect(page.getByLabel('Scope')).toHaveValue('regulated');
+    await expect(page.getByRole('heading', { name: 'GST Calculator' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toHaveCount(0);
+  });
+
+  test('keeps roadmap categories honest and out of the index', async ({ page }) => {
+    await page.goto('/categories/startup');
+    await expect(page.getByText('This category is on the roadmap')).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+    await expect(page.locator('.tool-card')).toHaveCount(0);
+  });
+
   test('calculator metadata and canonical identify the same tool', async ({ page }) => {
     await page.goto('/tools/cagr-calculator');
 
     await expect(page.locator('h1')).toHaveText('CAGR Calculator');
     await expect(page).toHaveTitle(/CAGR Calculator for Indian Businesses/);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/tools\/cagr-calculator$/);
+    await expect(
+      page.getByRole('heading', { name: 'Check the method before you rely on the result' }),
+    ).toBeVisible();
+    await expect(page.getByText('Reviewer status')).toBeVisible();
   });
 
   test('CAGR completes the required worked input', async ({ page }) => {

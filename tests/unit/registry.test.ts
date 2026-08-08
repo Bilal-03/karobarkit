@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { categoryRegistry, getRelatedTools, getToolBySlug, toolRegistry } from '@/domain/registry';
+import {
+  allToolDefinitions,
+  categoryRegistry,
+  getRelatedTools,
+  getToolBySlug,
+  toolMetadataIndex,
+  toolRegistry,
+} from '@/domain/registry';
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
@@ -16,10 +23,14 @@ describe('tool registry contract', () => {
       'gst-invoice-generator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
-      'financial-calculators',
-      'marketing-barcodes',
-      'billing-taxes',
-      'business-documents',
+      'business',
+      'gst-tax',
+      'startup',
+      'finance',
+      'ecommerce',
+      'hr-salary',
+      'generators',
+      'ai-tools',
     ]);
   });
 
@@ -31,9 +42,39 @@ describe('tool registry contract', () => {
       expect(tool.sources.length).toBeGreaterThan(0);
       expect(tool.lastReviewed).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(tool.privacyNote).toContain('browser');
+      expect(tool.executionMode).toBe('local-only');
+      expect(tool.lifecycle).toBe('live');
+      expect(tool.secondaryCategories).toBeInstanceOf(Array);
+      expect(tool.governance.owner).toBeTruthy();
+      expect(tool.governance.reviewCadenceDays).toBeGreaterThan(0);
+      expect(tool.trust.method).toBeTruthy();
+      expect(tool.trust.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
+      expect(['not-required', 'pending', 'approved']).toContain(tool.trust.reviewer.status);
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
       expect(['calculator', 'generator']).toContain(tool.kind);
+      expect(tool.ui.adapter).not.toBe('unavailable');
       if (tool.kind === 'generator') expect(tool.generatorKind).toBeDefined();
+    }
+  });
+
+  it('keeps public definitions and the metadata-only build index separate', () => {
+    expect(allToolDefinitions).toHaveLength(8);
+    expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
+    for (const metadata of toolMetadataIndex) {
+      expect(metadata).not.toHaveProperty('defaultValues');
+      expect(metadata).not.toHaveProperty('calculate');
+      expect(metadata).not.toHaveProperty('renderResult');
+      expect(metadata.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
+    }
+  });
+
+  it('does not imply external approval for regulated tools while review is pending', () => {
+    const regulated = toolRegistry.filter((tool) => tool.governance.riskTier === 'D');
+    expect(regulated.map((tool) => tool.id)).toEqual(['gst-calculator', 'gst-invoice-generator']);
+    for (const tool of regulated) {
+      expect(tool.trust.reviewer.status).toBe('pending');
+      expect(tool.sources.some((source) => source.evidenceLevel === 'official')).toBe(true);
+      expect(tool.governance.policyDependencies.length).toBeGreaterThan(0);
     }
   });
 

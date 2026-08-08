@@ -21,6 +21,12 @@ function includes(values: readonly string[], query: string) {
   return values.some((value) => normalizeSearchQuery(value).includes(query));
 }
 
+function categorySearchValues(tool: Tool) {
+  return categoryRegistry
+    .filter((category) => category.id === tool.category || tool.secondaryCategories.includes(category.id))
+    .flatMap((category) => [category.name, category.shortDescription, ...category.searchTerms]);
+}
+
 export function scoreTool(tool: Tool, rawQuery: string) {
   const query = normalizeSearchQuery(rawQuery);
   if (!query) return 0;
@@ -30,9 +36,10 @@ export function scoreTool(tool: Tool, rawQuery: string) {
   if (exact(tool.searchTerms, query)) return 90;
   if (names.some((name) => normalizeSearchQuery(name).startsWith(query))) return 80;
   if (exact(tool.tags, query)) return 70;
-  if (normalizeSearchQuery(tool.categoryLabel) === query) return 60;
+  const categoryValues = categorySearchValues(tool);
+  if (exact(categoryValues, query)) return 60;
   if (includes([...names, ...tool.searchTerms, ...tool.tags], query)) return 50;
-  if (normalizeSearchQuery(tool.categoryLabel).includes(query)) return 40;
+  if (includes(categoryValues, query)) return 40;
   if (normalizeSearchQuery(tool.summary).includes(query)) return 20;
   return 0;
 }
@@ -56,7 +63,41 @@ export function searchTools(rawQuery: string) {
 
 export function filterTools(categorySlug?: string) {
   if (!categorySlug || categorySlug === 'all') return [...toolRegistry];
-  return toolRegistry.filter((tool) => tool.category === categorySlug);
+  return toolRegistry.filter(
+    (tool) => tool.category === categorySlug || tool.secondaryCategories.includes(categorySlug),
+  );
+}
+
+export interface ToolDirectoryFilters {
+  category?: string;
+  kind?: string;
+  execution?: string;
+  regulated?: string;
+}
+
+export function filterToolDirectory(tools: readonly Tool[], filters: ToolDirectoryFilters) {
+  return tools.filter((tool) => {
+    if (
+      filters.category &&
+      filters.category !== 'all' &&
+      tool.category !== filters.category &&
+      !tool.secondaryCategories.includes(filters.category)
+    ) {
+      return false;
+    }
+    if (filters.kind && filters.kind !== 'all' && tool.kind !== filters.kind) return false;
+    if (filters.execution === 'local' && !tool.executionMode.startsWith('local')) return false;
+    if (
+      filters.execution === 'network' &&
+      tool.executionMode !== 'network-required' &&
+      tool.executionMode !== 'optional-cloud-sync'
+    ) {
+      return false;
+    }
+    if (filters.regulated === 'regulated' && !tool.regulatory) return false;
+    if (filters.regulated === 'general' && tool.regulatory) return false;
+    return true;
+  });
 }
 
 export function getFeaturedTools() {
@@ -74,6 +115,28 @@ export function validateDiscoveryRegistry() {
 
   for (const tool of toolRegistry) {
     if (!categoryIds.has(tool.category)) errors.push(`${tool.id}: missing category ${tool.category}`);
+    for (const secondaryCategory of tool.secondaryCategories) {
+      if (!categoryIds.has(secondaryCategory)) {
+        errors.push(`${tool.id}: missing secondary category ${secondaryCategory}`);
+      }
+      if (secondaryCategory === tool.category) {
+        errors.push(`${tool.id}: primary category repeated as secondary category`);
+      }
+    }
+    if (tool.lifecycle !== 'live' && tool.lifecycle !== 'beta') {
+      errors.push(`${tool.id}: non-public lifecycle leaked into public registry`);
+    }
+    if (tool.ui.adapter === 'unavailable') {
+      errors.push(`${tool.id}: public tool is missing a released UI adapter`);
+    }
+    if (!tool.trust.lastVerified) errors.push(`${tool.id}: missing last-verified date`);
+    if (!tool.governance.owner) errors.push(`${tool.id}: missing owner`);
+    if (
+      tool.governance.riskTier === 'D' &&
+      tool.sources.every((source) => source.evidenceLevel !== 'official')
+    ) {
+      errors.push(`${tool.id}: Tier D tool requires an official source`);
+    }
     if (new Set(tool.relatedToolIds).size !== tool.relatedToolIds.length)
       errors.push(`${tool.id}: duplicate related tool`);
     for (const relatedId of tool.relatedToolIds) {

@@ -21,6 +21,7 @@ export function websiteStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: siteConfig.name,
+    alternateName: siteConfig.positioning,
     url: absoluteUrl('/'),
     potentialAction: {
       '@type': 'SearchAction',
@@ -30,7 +31,13 @@ export function websiteStructuredData() {
   };
 }
 
-export function toolStructuredData(tool: { name: string; summary: string; slug: string }) {
+export function toolStructuredData(tool: {
+  name: string;
+  summary: string;
+  slug: string;
+  category?: string;
+  lastReviewed?: string;
+}) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -38,6 +45,8 @@ export function toolStructuredData(tool: { name: string; summary: string; slug: 
     description: tool.summary,
     url: absoluteUrl(`/tools/${tool.slug}`),
     applicationCategory: 'BusinessApplication',
+    ...(tool.category ? { applicationSubCategory: tool.category } : {}),
+    ...(tool.lastReviewed ? { dateModified: tool.lastReviewed } : {}),
     operatingSystem: 'Any modern web browser',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
   };

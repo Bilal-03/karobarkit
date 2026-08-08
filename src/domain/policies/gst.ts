@@ -1,13 +1,22 @@
 import { parseDecimal } from '@/domain/formatting/decimal';
 import type { SourceAuthority, SourceDocumentType, SourceReference } from '@/domain/registry/types';
 
+import {
+  addIsoDays,
+  compareIsoDates,
+  daysBetweenIsoDates,
+  effectiveDateRangesOverlap,
+  isEffectiveOn,
+  isIsoDate,
+  selectEffectiveVersion,
+  type EffectiveDatedStatus,
+} from './effective-dated';
+
 export const GST_POLICY_AS_OF = '2026-08-08';
 export const GST_POLICY_REVIEW_INTERVAL_DAYS = 180;
 export const GST_CUSTOM_RATE_ID = 'custom';
 
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
-
-export type GstPolicyStatus = 'active' | 'historical' | 'provisional';
+export type GstPolicyStatus = EffectiveDatedStatus;
 
 export interface RegulatorySource {
   id: string;
@@ -201,36 +210,6 @@ const AUTHORITY_HOSTS: Record<SourceAuthority, readonly string[]> = {
   OTHER_GOVERNMENT: ['pib.gov.in', 'www.pib.gov.in', 'static.pib.gov.in'],
 };
 
-function isDate(value: unknown): value is string {
-  if (typeof value !== 'string' || !ISO_DATE_PATTERN.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-
-function compareDates(left: string, right: string) {
-  return left.localeCompare(right);
-}
-
-function addDays(value: string, days: number) {
-  const date = new Date(`${value}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
-
-function daysBetween(left: string, right: string) {
-  const milliseconds = new Date(`${right}T00:00:00Z`).getTime() - new Date(`${left}T00:00:00Z`).getTime();
-  return Math.floor(milliseconds / 86_400_000);
-}
-
-function rangesOverlap(
-  left: { effectiveFrom: string; effectiveTo?: string },
-  right: { effectiveFrom: string; effectiveTo?: string },
-) {
-  const leftEnd = left.effectiveTo ?? '9999-12-31';
-  const rightEnd = right.effectiveTo ?? '9999-12-31';
-  return compareDates(left.effectiveFrom, rightEnd) <= 0 && compareDates(right.effectiveFrom, leftEnd) <= 0;
-}
-
 export function isSupportedOfficialUrl(url: unknown, authority: unknown): url is string {
   if (typeof url !== 'string' || typeof authority !== 'string') return false;
   try {
@@ -251,7 +230,7 @@ export function validateGstPolicyBundle(
   const policies = Array.isArray(bundle?.policies) ? bundle.policies : [];
   const sourceIds = new Set<string>();
 
-  if (!isDate(asOf)) {
+  if (!isIsoDate(asOf)) {
     errors.push({
       code: 'invalid_as_of',
       path: 'asOf',
@@ -294,7 +273,7 @@ export function validateGstPolicyBundle(
         message: 'A source URL must be HTTPS on a supported official Government domain for its authority.',
       });
     }
-    if (!isDate(source?.accessedOn)) {
+    if (!isIsoDate(source?.accessedOn)) {
       errors.push({
         code: 'missing_last_reviewed',
         path: `${path}.accessedOn`,
@@ -302,7 +281,7 @@ export function validateGstPolicyBundle(
       });
     }
     for (const field of ['publishedOn', 'effectiveFrom', 'effectiveTo'] as const) {
-      if (source?.[field] !== undefined && !isDate(source[field])) {
+      if (source?.[field] !== undefined && !isIsoDate(source[field])) {
         errors.push({
           code: 'invalid_source_date',
           path: `${path}.${field}`,
@@ -321,21 +300,21 @@ export function validateGstPolicyBundle(
       errors.push({ code: 'duplicate_policy_id', path: `${path}.id`, message: 'Policy IDs must be unique.' });
     }
     if (policy?.id) policyIds.add(policy.id);
-    if (!isDate(policy?.effectiveFrom)) {
+    if (!isIsoDate(policy?.effectiveFrom)) {
       errors.push({
         code: 'missing_policy_effective_from',
         path: `${path}.effectiveFrom`,
         message: 'A policy must have an effective start date.',
       });
     }
-    if (policy?.effectiveTo !== undefined && !isDate(policy.effectiveTo)) {
+    if (policy?.effectiveTo !== undefined && !isIsoDate(policy.effectiveTo)) {
       errors.push({
         code: 'invalid_policy_effective_to',
         path: `${path}.effectiveTo`,
         message: 'A policy end date must be valid.',
       });
     }
-    if (!isDate(policy?.lastVerifiedOn)) {
+    if (!isIsoDate(policy?.lastVerifiedOn)) {
       errors.push({
         code: 'missing_last_reviewed',
         path: `${path}.lastVerifiedOn`,
@@ -352,8 +331,8 @@ export function validateGstPolicyBundle(
     if (
       policy?.status === 'active' &&
       policy.effectiveTo &&
-      isDate(asOf) &&
-      compareDates(policy.effectiveTo, asOf) < 0
+      isIsoDate(asOf) &&
+      compareIsoDates(policy.effectiveTo, asOf) < 0
     ) {
       errors.push({
         code: 'expired_active_policy',
@@ -389,14 +368,14 @@ export function validateGstPolicyBundle(
         });
       }
       if (rate?.id) rateIds.add(rate.id);
-      if (!isDate(rate?.effectiveFrom)) {
+      if (!isIsoDate(rate?.effectiveFrom)) {
         errors.push({
           code: 'missing_rate_effective_from',
           path: `${ratePath}.effectiveFrom`,
           message: 'An active rate must have an effective start date.',
         });
       }
-      if (rate?.effectiveTo !== undefined && !isDate(rate.effectiveTo)) {
+      if (rate?.effectiveTo !== undefined && !isIsoDate(rate.effectiveTo)) {
         errors.push({
           code: 'invalid_rate_effective_to',
           path: `${ratePath}.effectiveTo`,
@@ -422,8 +401,8 @@ export function validateGstPolicyBundle(
       if (
         rate?.status === 'active' &&
         rate.effectiveTo &&
-        isDate(asOf) &&
-        compareDates(rate.effectiveTo, asOf) < 0
+        isIsoDate(asOf) &&
+        compareIsoDates(rate.effectiveTo, asOf) < 0
       ) {
         errors.push({
           code: 'expired_active_rate',
@@ -472,7 +451,7 @@ export function validateGstPolicyBundle(
     for (let rightIndex = leftIndex + 1; rightIndex < activePolicies.length; rightIndex += 1) {
       const left = activePolicies[leftIndex];
       const right = activePolicies[rightIndex];
-      if (left && right && rangesOverlap(left, right)) {
+      if (left && right && effectiveDateRangesOverlap(left, right)) {
         errors.push({
           code: 'overlapping_active_policies',
           path: 'policies',
@@ -482,12 +461,8 @@ export function validateGstPolicyBundle(
     }
   }
 
-  if (isDate(asOf)) {
-    const currentPolicies = activePolicies.filter(
-      (policy) =>
-        compareDates(policy.effectiveFrom, asOf) <= 0 &&
-        (!policy.effectiveTo || compareDates(asOf, policy.effectiveTo) <= 0),
-    );
+  if (isIsoDate(asOf)) {
+    const currentPolicies = activePolicies.filter((policy) => isEffectiveOn(policy, asOf));
     if (currentPolicies.length === 0) {
       errors.push({
         code: 'missing_active_policy',
@@ -497,10 +472,7 @@ export function validateGstPolicyBundle(
     }
     if (currentPolicies.length === 1) {
       const currentRates = currentPolicies[0]?.ratePresets.filter(
-        (rate) =>
-          rate.status === 'active' &&
-          compareDates(rate.effectiveFrom, asOf) <= 0 &&
-          (!rate.effectiveTo || compareDates(asOf, rate.effectiveTo) <= 0),
+        (rate) => rate.status === 'active' && isEffectiveOn(rate, asOf),
       );
       if (!currentRates?.length) {
         errors.push({
@@ -523,26 +495,16 @@ export function getActiveGstPolicy(asOf = GST_POLICY_AS_OF): GstPolicyVersion {
       validation.errors.map((error) => error.message).join(' '),
     );
   }
-  const matches = GST_POLICY_BUNDLE.policies.filter(
-    (policy) =>
-      policy.status === 'active' &&
-      compareDates(policy.effectiveFrom, asOf) <= 0 &&
-      (!policy.effectiveTo || compareDates(asOf, policy.effectiveTo) <= 0),
-  );
-  if (matches.length !== 1 || !matches[0]) {
+  const activePolicy = selectEffectiveVersion(GST_POLICY_BUNDLE, asOf);
+  if (!activePolicy) {
     throw new GstPolicyError('missing_active_policy', 'No single active GST policy covers this date.');
   }
-  return matches[0];
+  return activePolicy;
 }
 
 export function getActiveGstRatePresets(asOf = GST_POLICY_AS_OF) {
   const policy = getActiveGstPolicy(asOf);
-  return policy.ratePresets.filter(
-    (rate) =>
-      rate.status === 'active' &&
-      compareDates(rate.effectiveFrom, asOf) <= 0 &&
-      (!rate.effectiveTo || compareDates(asOf, rate.effectiveTo) <= 0),
-  );
+  return policy.ratePresets.filter((rate) => rate.status === 'active' && isEffectiveOn(rate, asOf));
 }
 
 export function getGstSourceById(sourceId: string) {
@@ -601,10 +563,10 @@ export function validateGstUiPresetIds(
 }
 
 export function getGstPolicyFreshness(policy: GstPolicyVersion, asOf = GST_POLICY_AS_OF): GstPolicyFreshness {
-  const reviewDueOn = addDays(policy.lastVerifiedOn, GST_POLICY_REVIEW_INTERVAL_DAYS);
+  const reviewDueOn = addIsoDays(policy.lastVerifiedOn, GST_POLICY_REVIEW_INTERVAL_DAYS);
   return {
-    isStale: compareDates(asOf, reviewDueOn) > 0,
+    isStale: compareIsoDates(asOf, reviewDueOn) > 0,
     reviewDueOn,
-    daysUntilReview: daysBetween(asOf, reviewDueOn),
+    daysUntilReview: daysBetweenIsoDates(asOf, reviewDueOn),
   };
 }

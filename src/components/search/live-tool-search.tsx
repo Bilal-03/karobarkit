@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-import { filterTools, normalizeSearchQuery, searchTools, type Tool } from '@/domain/discovery';
+import { filterToolDirectory, normalizeSearchQuery, searchTools, type Tool } from '@/domain/discovery';
 import { categoryRegistry, toolRegistry } from '@/domain/registry';
 
 import { ToolCard } from '@/components/ui/tool-card';
@@ -14,6 +15,9 @@ interface LiveToolSearchProps {
   id: string;
   initialQuery?: string;
   initialCategory?: string;
+  initialKind?: string;
+  initialExecution?: string;
+  initialRegulated?: string;
   variant: LiveToolSearchVariant;
 }
 
@@ -115,18 +119,22 @@ export function LiveToolSearch({
   id,
   initialQuery = '',
   initialCategory = 'all',
+  initialKind = 'all',
+  initialExecution = 'all',
+  initialRegulated = 'all',
   variant,
 }: LiveToolSearchProps) {
   const [query, setQuery] = useState(initialQuery.slice(0, 80));
   const [category, setCategory] = useState(initialCategory);
+  const [kind, setKind] = useState(initialKind);
+  const [execution, setExecution] = useState(initialExecution);
+  const [regulated, setRegulated] = useState(initialRegulated);
 
   const tools = useMemo(() => {
     const searched = normalizeSearchQuery(query) ? searchTools(query) : [...toolRegistry];
-    if (variant !== 'directory' || category === 'all') return searched;
-
-    const categoryIds = new Set(filterTools(category).map((tool) => tool.id));
-    return searched.filter((tool) => categoryIds.has(tool.id));
-  }, [category, query, variant]);
+    if (variant !== 'directory') return searched;
+    return filterToolDirectory(searched, { category, kind, execution, regulated });
+  }, [category, execution, kind, query, regulated, variant]);
 
   useEffect(() => {
     if (variant === 'home' || variant === 'not-found') return;
@@ -139,10 +147,16 @@ export function LiveToolSearch({
     if (variant === 'directory') {
       if (category !== 'all') url.searchParams.set('category', category);
       else url.searchParams.delete('category');
+      if (kind !== 'all') url.searchParams.set('type', kind);
+      else url.searchParams.delete('type');
+      if (execution !== 'all') url.searchParams.set('execution', execution);
+      else url.searchParams.delete('execution');
+      if (regulated !== 'all') url.searchParams.set('regulated', regulated);
+      else url.searchParams.delete('regulated');
     }
 
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [category, query, variant]);
+  }, [category, execution, kind, query, regulated, variant]);
 
   if (variant === 'directory') {
     return (
@@ -176,6 +190,52 @@ export function LiveToolSearch({
                   {item.name}
                 </option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="directory-type">Tool type</label>
+            <select
+              className="select"
+              id="directory-type"
+              name="type"
+              value={kind}
+              onChange={(event) => setKind(event.target.value)}
+            >
+              <option value="all">All types</option>
+              <option value="calculator">Calculators</option>
+              <option value="generator">Generators</option>
+              <option value="worksheet">Worksheets</option>
+              <option value="comparison">Comparisons</option>
+              <option value="data-backed">Data-backed</option>
+              <option value="ai-assisted">AI-assisted</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="directory-execution">Data use</label>
+            <select
+              className="select"
+              id="directory-execution"
+              name="execution"
+              value={execution}
+              onChange={(event) => setExecution(event.target.value)}
+            >
+              <option value="all">All data modes</option>
+              <option value="local">Runs locally</option>
+              <option value="network">Network or cloud</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="directory-regulated">Scope</label>
+            <select
+              className="select"
+              id="directory-regulated"
+              name="regulated"
+              value={regulated}
+              onChange={(event) => setRegulated(event.target.value)}
+            >
+              <option value="all">All scopes</option>
+              <option value="regulated">Tax or regulated</option>
+              <option value="general">General business</option>
             </select>
           </div>
           <button className="button button--secondary" type="submit">
@@ -223,5 +283,31 @@ export function LiveToolSearch({
       </form>
       <ToolResults tools={tools} query={query} variant={variant} />
     </>
+  );
+}
+
+const toolKinds = ['calculator', 'generator', 'worksheet', 'comparison', 'data-backed', 'ai-assisted'];
+
+function allowedSearchParam(value: string | null, allowed: readonly string[]) {
+  return value && allowed.includes(value) ? value : 'all';
+}
+
+export function DirectoryToolSearch({ id }: { id: string }) {
+  const searchParams = useSearchParams();
+  const requestedCategory = searchParams.get('category');
+  const initialCategory = categoryRegistry.some((item) => item.slug === requestedCategory)
+    ? (requestedCategory ?? 'all')
+    : 'all';
+
+  return (
+    <LiveToolSearch
+      id={id}
+      initialQuery={(searchParams.get('q') ?? '').slice(0, 80)}
+      initialCategory={initialCategory}
+      initialKind={allowedSearchParam(searchParams.get('type'), toolKinds)}
+      initialExecution={allowedSearchParam(searchParams.get('execution'), ['local', 'network'])}
+      initialRegulated={allowedSearchParam(searchParams.get('regulated'), ['regulated', 'general'])}
+      variant="directory"
+    />
   );
 }

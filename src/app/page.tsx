@@ -9,6 +9,7 @@ import { PrivacyBlock } from '@/components/ui/trust-blocks';
 import { getFeaturedTools } from '@/domain/discovery';
 import {
   categoryRegistry,
+  getToolsByCategory,
   letterheadTool,
   paymentReceiptTool,
   upiStandeeTool,
@@ -18,9 +19,9 @@ import { pageMetadata } from '@/lib/seo';
 import { websiteStructuredData } from '@/lib/structured-data';
 
 export const metadata = pageMetadata({
-  title: 'Private business tools for India',
+  title: 'The Business Toolkit for India',
   description:
-    'Calculate growth and returns with clear formulas, local-first processing and no account required.',
+    'Trusted calculators, generators and operational tools for Indian businesses, with visible methods, sources, limitations and privacy.',
   path: '/',
 });
 
@@ -39,11 +40,11 @@ export default function HomePage() {
                   Smart tools for <strong>smarter business</strong>
                 </span>
               </div>
-              <p className="eyebrow">Built for the work behind the work</p>
-              <h1>Numbers you can explain. Tools you can trust.</h1>
+              <p className="eyebrow">The Business Toolkit for India</p>
+              <h1>Run the numbers. Create the document. Make the next decision.</h1>
               <p className="hero__lede">
-                KarobarKit is a focused set of private, practical business tools for Indian freelancers,
-                retailers and small teams.
+                KarobarKit brings trustworthy calculators, generators and operational tools together for
+                Indian freelancers, sellers, founders and small teams.
               </p>
               <div className="hero__actions">
                 <Link className="button button--primary" href="/search">
@@ -57,8 +58,8 @@ export default function HomePage() {
             <aside className="hero__aside" aria-label="KarobarKit principles">
               <div className="hero__visual-header">
                 <div>
-                  <p className="hero__visual-kicker">KarobarKit toolkit</p>
-                  <p className="hero__aside-heading">A calmer way to get a useful answer</p>
+                  <p className="hero__visual-kicker">Trust before scale</p>
+                  <p className="hero__aside-heading">Know how every result was produced</p>
                 </div>
                 <BrandIcon className="hero__visual-icon" decorative variant="badge" />
               </div>
@@ -74,7 +75,7 @@ export default function HomePage() {
               </div>
               <ul className="trust-list">
                 <li>Inputs stay in your browser for these calculators.</li>
-                <li>Every result shows its formula, limits and review date.</li>
+                <li>Every result shows its method, sources, limits and review status.</li>
                 <li>Designed for a phone first, with readable print styles.</li>
               </ul>
             </aside>
@@ -93,8 +94,8 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Eight tools, one clear promise"
-          description="Start with transparent calculations, source-backed GST arithmetic, local QR outputs and original documents before the platform grows into more complex business workflows."
+          title="Eight live tools, one release standard"
+          description="The current tools keep their proven routes and calculations while the toolkit expands behind feature flags. Roadmap entries never appear as live tool pages."
         >
           <div className="tool-grid">
             {featuredTools.map((tool) => (
@@ -111,17 +112,23 @@ export default function HomePage() {
         </Section>
         <Section eyebrow="Browse by category" title="Start with the kind of work in front of you">
           <div className="category-grid">
-            {categoryRegistry.map((category) => (
-              <article className="content-card" key={category.id}>
-                <h3>
-                  <Link href={`/categories/${category.slug}`}>{category.name}</Link>
-                </h3>
-                <p>{category.description}</p>
-                <Link className="text-link" href={`/categories/${category.slug}`}>
-                  Browse category <span aria-hidden="true">→</span>
-                </Link>
-              </article>
-            ))}
+            {categoryRegistry.map((category) => {
+              const count = getToolsByCategory(category.slug).length;
+              return (
+                <article className="content-card category-card" key={category.id}>
+                  <span className="tag">
+                    {count > 0 ? `${count} live` : `Phase ${category.roadmapPhase}`}
+                  </span>
+                  <h3>
+                    <Link href={`/categories/${category.slug}`}>{category.name}</Link>
+                  </h3>
+                  <p>{category.shortDescription}</p>
+                  <Link className="text-link" href={`/categories/${category.slug}`}>
+                    {count > 0 ? 'Browse live tools' : 'View roadmap scope'} <span aria-hidden="true">→</span>
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </Section>
         <Section eyebrow="Find your next step" title="What would you like to do?">
@@ -184,7 +191,7 @@ export default function HomePage() {
             </article>
           </div>
         </Section>
-        <Section eyebrow="Why KarobarKit" title="Small details that make tools feel trustworthy">
+        <Section eyebrow="Why KarobarKit" title="Trust is part of the interface">
           <div className="content-grid content-grid--two">
             <div className="prose">
               <div>

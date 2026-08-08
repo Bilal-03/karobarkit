@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getSitemapPaths } from '@/app/sitemap';
-import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { categoryRegistry, getToolsByCategory, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 import {
   breadcrumbStructuredData,
@@ -20,12 +20,18 @@ describe('SEO discovery contracts', () => {
     expect(metadata.twitter).toMatchObject({ title: 'Example', description: 'Useful description' });
   });
 
-  it('includes every production tool and category once and excludes search', () => {
+  it('includes every live tool and populated category once, and excludes thin pages and search', () => {
     const paths = getSitemapPaths();
     expect(new Set(paths).size).toBe(paths.length);
     expect(paths).not.toContain('/search');
     for (const tool of toolRegistry) expect(paths).toContain(`/tools/${tool.slug}`);
-    for (const category of categoryRegistry) expect(paths).toContain(`/categories/${category.slug}`);
+    for (const category of categoryRegistry) {
+      if (getToolsByCategory(category.slug).length > 0) {
+        expect(paths).toContain(`/categories/${category.slug}`);
+      } else {
+        expect(paths).not.toContain(`/categories/${category.slug}`);
+      }
+    }
   });
 
   it('generates accurate breadcrumb, application and visible FAQ data', () => {

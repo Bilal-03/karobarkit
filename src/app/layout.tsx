@@ -16,7 +16,7 @@ import '@/styles/globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: 'KarobarKit · Private business tools for India',
+    default: 'KarobarKit · The Business Toolkit for India',
     template: '%s · KarobarKit',
   },
   description: siteConfig.description,

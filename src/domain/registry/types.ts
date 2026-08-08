@@ -38,15 +38,69 @@ export interface AnalyticsPolicy {
   forbiddenProperties: string[];
 }
 
+export type ToolKind =
+  'calculator' | 'generator' | 'worksheet' | 'comparison' | 'data-backed' | 'ai-assisted';
+
+export type ToolExecutionMode =
+  'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
+
+export type ToolLifecycle = 'internal' | 'beta' | 'live' | 'stale-disabled' | 'retired';
+
+export type ToolRiskTier = 'A' | 'B' | 'C' | 'D';
+
+export type ReviewerStatus = 'not-required' | 'pending' | 'approved';
+
+export interface ToolReviewer {
+  status: ReviewerStatus;
+  role: string;
+  name?: string;
+  reviewedOn?: string;
+}
+
+export interface ToolTrustMetadata {
+  method: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  lastVerified: string;
+  reviewer: ToolReviewer;
+}
+
+export interface ToolGovernance {
+  owner: string;
+  riskTier: ToolRiskTier;
+  reviewCadenceDays: number;
+  policyDependencies: string[];
+}
+
+export interface ToolCategoryDefinition {
+  id: string;
+  slug: string;
+  name: string;
+  shortDescription: string;
+  description: string;
+  searchTerms: string[];
+  roadmapPhase: number;
+}
+
+export type ToolUiAdapter =
+  | { adapter: 'calculator'; variant: 'cagr' | 'roi' }
+  | { adapter: 'gst-calculator' }
+  | { adapter: 'qr-generator'; variant: 'url-qr' | 'upi-standee' }
+  | { adapter: 'document-generator'; variant: 'letterhead' | 'payment-receipt' }
+  | { adapter: 'gst-invoice-generator' }
+  | { adapter: 'unavailable' };
+
 export interface ToolDefinition<TInput, TResult> {
   id: string;
   slug: string;
-  kind: 'calculator' | 'generator';
+  kind: ToolKind;
   generatorKind?: 'qr' | 'document';
+  ui: ToolUiAdapter;
   name: string;
   shortName?: string;
   category: string;
   categoryLabel: string;
+  secondaryCategories: string[];
   tags: string[];
   searchTerms: string[];
   summary: string;
@@ -54,7 +108,12 @@ export interface ToolDefinition<TInput, TResult> {
   featured?: boolean;
   launchPriority?: number;
   regulatory?: boolean;
-  privacyClassification: 'local-only';
+  privacyClassification: ToolExecutionMode;
+  executionMode: ToolExecutionMode;
+  lifecycle: ToolLifecycle;
+  featureFlag?: string;
+  governance: ToolGovernance;
+  trust: ToolTrustMetadata;
   inputSchema: ZodType<TInput>;
   defaultValues: TInput;
   validate: (input: TInput) => ValidationResult<TInput>;

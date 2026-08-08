@@ -2,7 +2,9 @@ import { env } from './env';
 
 export const siteConfig = {
   name: 'KarobarKit',
-  description: 'Private, practical business tools for Indian freelancers, retailers and small businesses.',
+  positioning: 'The Business Toolkit for India',
+  description:
+    'Trusted calculators, generators and operational tools for Indian freelancers, sellers, founders and small businesses.',
   url: env.NEXT_PUBLIC_SITE_URL,
 };
 

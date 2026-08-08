@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   filterTools,
+  filterToolDirectory,
   getFeaturedTools,
   normalizeSearchQuery,
   scoreTool,
@@ -35,11 +36,21 @@ describe('tool discovery', () => {
 
   it('returns no irrelevant tools and filters valid categories', () => {
     expect(searchTools('spaceship telemetry')).toEqual([]);
-    expect(filterTools('financial-calculators').map((tool) => tool.id)).toEqual([
-      'cagr-calculator',
-      'roi-calculator',
-    ]);
+    expect(filterTools('finance').map((tool) => tool.id)).toEqual(['cagr-calculator', 'roi-calculator']);
     expect(filterTools('not-a-category')).toEqual([]);
+  });
+
+  it('supports scalable type, data-mode and regulatory filters', () => {
+    expect(
+      filterToolDirectory(toolRegistry, { kind: 'generator', execution: 'local' }).every(
+        (tool) => tool.kind === 'generator' && tool.executionMode === 'local-only',
+      ),
+    ).toBe(true);
+    expect(filterToolDirectory(toolRegistry, { regulated: 'regulated' }).map((tool) => tool.id)).toEqual([
+      'gst-calculator',
+      'gst-invoice-generator',
+    ]);
+    expect(filterToolDirectory(toolRegistry, { kind: 'worksheet' })).toEqual([]);
   });
 
   it('keeps discovery references and featured ordering valid', () => {

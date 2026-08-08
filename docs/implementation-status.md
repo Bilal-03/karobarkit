@@ -46,9 +46,9 @@ Status: implemented; final verification results are recorded in the completion h
 
 ### Information architecture
 
-The launch surface contains `/`, `/tools`, `/categories`, `/categories/[slug]`, `/search`, eight canonical `/tools/[slug]` routes, methodology and source pages, FAQ/about/contact pages, legal pages, an error-report workflow and custom not-found behavior. The four normalized categories are Financial calculations, Billing & taxes, Business documents, and Marketing & QR codes. No placeholder category or new tool was added.
+The launch surface contains `/`, `/tools`, `/categories`, `/categories/[slug]`, `/search`, eight canonical `/tools/[slug]` routes, methodology and source pages, FAQ/about/contact pages, legal pages, an error-report workflow and custom not-found behavior. Phase 1 replaces the four launch categories with the approved eight-category Business Toolkit architecture. Four categories currently contain live tools; roadmap categories are visibly unavailable, noindex and contain no placeholder tool cards.
 
-The tool registry remains the source of truth for names, slugs, categories, summaries, SEO, sources and relationships. It now also owns short names, tags, synonyms, featured status, launch priority, regulatory status and the local-only privacy classification. The homepage featured section is an explicitly curated list ordered by launch priority; it does not claim usage-based popularity.
+The tool registry remains the source of truth for names, slugs, categories, summaries, SEO, sources and relationships. It is now split into per-tool modules with a metadata-only index and owns tool type, UI adapter, primary/secondary categories, execution mode, lifecycle, feature flag, risk, owner, policy dependencies, reviewer status and trust metadata. The homepage featured section is an explicitly curated list ordered by launch priority; it does not claim usage-based popularity.
 
 ### Search and relationships
 
@@ -66,11 +66,11 @@ Visible content powers WebSite/SearchAction, WebApplication, BreadcrumbList and 
 
 Discovery uses labelled native search/select controls, accessible result counts, a single interactive link per tool card, breadcrumb current-page semantics, visible focus, skip navigation, keyboard-operable FAQ disclosures, a mobile menu and responsive one-column states. The Playwright viewport matrix covers 320, 360, 390, 430, 768, 1024, 1280, 1440 and 1920 pixels. The directory and search import registry metadata only and add no search library or package.
 
-The discovery analytics allowlist includes search, zero-result, category, featured-tool, related-tool and report-error event names. No analytics transport is configured, and raw search queries or form values are not sent. The error-report page prepares a copyable report locally and explicitly states that it does not submit anything; a delivery backend or published support address remains a launch-operations dependency.
+The discovery analytics allowlist includes search, zero-result, category, featured-tool, related-tool and report-error event names. No analytics transport is configured, and raw search queries or form values are not sent. The directory now filters locally by category, type, execution mode and regulatory scope while the canonical catalogue route remains statically renderable. The error-report page prepares a copyable report locally and explicitly states that it does not submit anything; a delivery backend or published support address remains a launch-operations dependency.
 
 ### Audit notes and known limitations
 
-The pre-implementation audit found a clean worktree, eight active registry tools, four populated categories, the approved core routes, and a passing baseline production build. Existing canonical slugs intentionally differ from the benchmark inventory and no benchmark legacy aliases were added because this is an original product with no verified legacy traffic. The previous homepage said seven tools despite eight active entries; discovery is now registry-driven. The `/contact` form has no submission backend and was converted to an equally explicit local-only fallback during this milestone. Search uses a normal GET navigation rather than instant client-side filtering, which keeps the bundle small and remains keyboard accessible.
+The pre-implementation audit found eight active registry tools, four populated launch categories, the approved core routes, and a passing baseline production build. Existing canonical slugs intentionally differ from the benchmark inventory and no benchmark legacy aliases were added because this is an original product with no verified legacy traffic. The previous homepage said seven tools despite eight active entries; discovery is now registry-driven. The `/contact` form later gained the controlled server delivery described below. Search and directory filters use local deterministic metadata without a hosted index or search dependency.
 
 ## Milestone 7 — Production readiness
 
@@ -85,3 +85,21 @@ Verification: 160 unit/integration tests passed; the Chromium responsive/accessi
 ## Brand identity alignment
 
 The current site shell follows the KarobarKit identity board: navy blue `#0D1B2A`, emerald teal `#0FA89A`, slate `#64748B`, saffron gold `#F6A623` and light gray `#F2F4F7`. Outfit is used for display headings and Plus Jakarta Sans for body copy. The supplied transparent badge and standalone PNG marks are used consistently in the header, footer, homepage hero and favicon; accessible darker shades are reserved for text and action contrast. The contact notification email and generated document accents use the same navy/teal system.
+
+## Business Toolkit expansion — Phase 0
+
+Status: complete on 9 August 2026 with downstream reviewer staffing gates.
+
+The approved “Business Toolkit for India” plan now has an implementation-governance packet under `docs/product-spec/`. It freezes a 48-tool canonical catalogue, method/policy register, normalized source library, v2 execution contracts, risk and language rules, effective-dated change control, and five architecture decisions. Inventory validation found 48 unique tool IDs, 48 unique canonical slugs, 48 matching formula/policy entries, and no unresolved source IDs.
+
+No application behavior or current route changed during Phase 0. New Tier D tax/payroll scope is blocked until named external CA and payroll/labour reviewers are recorded; legal-sensitive Phase 5 scenarios have the equivalent corporate/legal reviewer gate. These staffing dependencies do not block Phase 1 platform work or Phase 2 non-regulated business tools. See [`docs/product-spec/phase-0-completion-report.md`](product-spec/phase-0-completion-report.md).
+
+## Business Toolkit expansion — Phase 1
+
+Status: complete on 9 August 2026, with GST and GST Invoice external CA/tax review still explicitly pending.
+
+KarobarKit is now positioned as **The Business Toolkit for India**. The application uses the eight approved categories, keeps all eight existing tool routes and results, and shows honest roadmap states without publishing planned tool pages. Homepage, category discovery, directory filters, global metadata, sitemap and structured data use the new architecture.
+
+The runtime contract now covers six tool types, four execution modes, five lifecycle states, primary and secondary categories, feature flags, risk, ownership, review cadence, policy dependencies, reviewer status and a task-specific UI adapter. The former monolithic registry is split into per-tool modules and a metadata-only build index. GST now consumes a reusable effective-dated policy primitive.
+
+Every live tool page exposes a trust record containing method, formula, sources, effective period, last verification date, review cadence, reviewer status, risk, data behavior, limitations and an error-report path. Tier D tools retain official sources and say “external review pending”; no unearned approval is claimed. See [`docs/product-spec/phase-1-completion-report.md`](product-spec/phase-1-completion-report.md).

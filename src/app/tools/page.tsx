@@ -1,25 +1,18 @@
-import { LiveToolSearch } from '@/components/search/live-tool-search';
+import { Suspense } from 'react';
+
+import { DirectoryToolSearch } from '@/components/search/live-tool-search';
 import { Container } from '@/components/ui/container';
-import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
-  title: 'All business tools',
-  description: 'Browse KarobarKit calculators and practical business tools for Indian small businesses.',
+  title: 'Business tools for India',
+  description:
+    'Browse the KarobarKit directory of transparent calculators, generators and practical business tools for India.',
   path: '/tools',
 });
 
-interface ToolsPageProps {
-  searchParams?: Promise<{ category?: string; q?: string }>;
-}
-
-export default async function ToolsPage({ searchParams }: ToolsPageProps) {
-  const params = searchParams ? await searchParams : {};
-  const query = typeof params.q === 'string' ? params.q : '';
-  const requestedCategory = typeof params.category === 'string' ? params.category : 'all';
-  const category = categoryRegistry.some((item) => item.slug === requestedCategory)
-    ? requestedCategory
-    : 'all';
+export default function ToolsPage() {
   return (
     <>
       <section className="info-hero">
@@ -27,10 +20,10 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
           <p className="eyebrow">Tool directory</p>
           <div className="directory-heading">
             <div>
-              <h1>Tools for the numbers behind your business</h1>
+              <h1>Find the right tool for the business task</h1>
               <p className="lede">
-                A small, growing collection of local-first utilities. Each tool has a clear purpose, a visible
-                method and a date it was reviewed.
+                Search by task, category, tool type, data use or regulatory scope. Every live tool exposes its
+                method, limitations, sources and verification status.
               </p>
             </div>
             <span className="result-count">{toolRegistry.length} tools available</span>
@@ -39,13 +32,16 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
       </section>
       <Container>
         <div className="search-section">
-          <LiveToolSearch
-            key={`${query}:${category}`}
-            id="directory-search"
-            initialQuery={query}
-            initialCategory={category}
-            variant="directory"
-          />
+          <Suspense
+            fallback={
+              <div className="state-block state-block--loading" aria-live="polite">
+                <strong>Loading directory controls</strong>
+                <p>The live tool index is ready; filters are reading this URL.</p>
+              </div>
+            }
+          >
+            <DirectoryToolSearch id="directory-search" />
+          </Suspense>
         </div>
       </Container>
     </>

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { categoryRegistry, getToolsByCategory, toolRegistry } from '@/domain/registry';
 import { absoluteUrl } from '@/lib/site';
 
 const staticPaths = [
@@ -21,10 +21,12 @@ const staticPaths = [
   '/report-an-error',
 ];
 
+const liveCategories = categoryRegistry.filter((category) => getToolsByCategory(category.slug).length > 0);
+
 export function getSitemapPaths() {
   return [
     ...staticPaths,
-    ...categoryRegistry.map((category) => `/categories/${category.slug}`),
+    ...liveCategories.map((category) => `/categories/${category.slug}`),
     ...toolRegistry.map((tool) => `/tools/${tool.slug}`),
   ];
 }
@@ -35,9 +37,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: absoluteUrl(path),
       lastModified: new Date('2026-08-08T00:00:00Z'),
     })),
-    ...categoryRegistry.map((category) => ({
+    ...liveCategories.map((category) => ({
       url: absoluteUrl(`/categories/${category.slug}`),
-      lastModified: new Date('2026-08-08T00:00:00Z'),
+      lastModified: new Date('2026-08-09T00:00:00Z'),
     })),
     ...toolRegistry.map((tool) => ({
       url: absoluteUrl(`/tools/${tool.slug}`),

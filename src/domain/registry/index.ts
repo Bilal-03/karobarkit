@@ -1,739 +1,47 @@
-import { formatIndianCurrency, formatPercentage } from '@/domain/formatting/indian';
-import {
-  calculateUpi,
-  upiInputSchema,
-  type UpiInput,
-  type UpiResult,
-  validateUpiInput,
-} from '@/domain/qr/upi';
-import {
-  calculateUrlQr,
-  type UrlQrInput,
-  type UrlQrResult,
-  urlQrInputSchema,
-  validateUrlQrInput,
-} from '@/domain/qr/url';
-import { QR_LOCAL_PRIVACY_NOTE, UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
-import {
-  calculateLetterhead,
-  letterheadInputSchema,
-  letterheadDefaultValues,
-  type LetterheadDocument,
-  type LetterheadInput,
-  validateLetterheadInput,
-} from '@/domain/documents/letterhead';
-import {
-  calculatePaymentReceipt,
-  paymentReceiptInputSchema,
-  paymentReceiptDefaultValues,
-  type PaymentReceiptDocument,
-  type PaymentReceiptInput,
-  validatePaymentReceiptInput,
-} from '@/domain/documents/payment-receipt';
-import { DOCUMENT_LAST_REVIEWED } from '@/domain/documents/constants';
-import { INVOICE_LAST_REVIEWED } from '@/domain/invoices/constants';
-import {
-  calculateGstInvoice,
-  gstInvoiceInputSchema,
-  invoiceDefaultValues,
-  invoiceSourceReferences,
-  type GstInvoiceDocument,
-  type GstInvoiceInput,
-  validateGstInvoiceInput,
-} from '@/domain/invoices';
-
-import {
-  calculateCagr,
-  cagrInputSchema,
-  type CagrInput,
-  type CagrResult,
-  validateCagrInput,
-} from '../calculations/cagr';
-import {
-  calculateRoi,
-  roiInputSchema,
-  type RoiInput,
-  type RoiResult,
-  validateRoiInput,
-} from '../calculations/roi';
-import { calculateGstTool, gstInputSchema, type GstInput, type GstResult, validateGstInput } from '../gst';
 import { defaultPolicyContext } from '../policies/context';
-import {
-  GST_POLICY_AS_OF,
-  GST_UI_RATE_PRESET_IDS,
-  getGstSourceReferences,
-  validateGstUiPresetIds,
-} from '../policies/gst';
-import type { AnyToolDefinition, SourceReference, ToolDefinition } from './types';
 
-export type { AnyToolDefinition, SourceReference, ToolDefinition } from './types';
+import { isFeatureFlagEnabled } from './feature-flags';
+import type { AnyToolDefinition } from './types';
+import { cagrTool } from './tools/cagr';
+import { gstTool } from './tools/gst';
+import { gstInvoiceTool } from './tools/gst-invoice';
+import { letterheadTool } from './tools/letterhead';
+import { paymentReceiptTool } from './tools/payment-receipt';
+import { roiTool } from './tools/roi';
+import { upiStandeeTool } from './tools/upi-standee';
+import { urlQrTool } from './tools/url-qr';
 
-export const TOOL_LAST_REVIEWED = '2026-08-08';
-
-const gstUiPolicyValidation = validateGstUiPresetIds(GST_UI_RATE_PRESET_IDS, GST_POLICY_AS_OF);
-if (!gstUiPolicyValidation.success) {
-  throw new Error('GST UI presets do not match the active GST policy.');
-}
-
-const cagrSource: SourceReference = {
-  id: 'cagr-standard-financial-mathematics',
-  title: 'Compound annual growth rate formula reference',
-  publisher: 'Investopedia',
-  url: 'https://www.investopedia.com/terms/c/cagr.asp',
-  lastChecked: TOOL_LAST_REVIEWED,
-  evidenceLevel: 'editorial',
+export type {
+  AnalyticsPolicy,
+  AnyToolDefinition,
+  FaqItem,
+  ReviewerStatus,
+  SourceReference,
+  ToolCategoryDefinition,
+  ToolDefinition,
+  ToolExecutionMode,
+  ToolGovernance,
+  ToolKind,
+  ToolLifecycle,
+  ToolReviewer,
+  ToolRiskTier,
+  ToolTrustMetadata,
+  ToolUiAdapter,
+} from './types';
+export { categoryRegistry, getCategoryBySlug } from './categories';
+export { TOOL_LAST_REVIEWED } from './shared';
+export {
+  cagrTool,
+  gstInvoiceTool,
+  gstTool,
+  letterheadTool,
+  paymentReceiptTool,
+  roiTool,
+  upiStandeeTool,
+  urlQrTool,
 };
 
-const roiSource: SourceReference = {
-  id: 'roi-standard-financial-ratio',
-  title: 'Return on investment definition and formula',
-  publisher: 'Investopedia',
-  url: 'https://www.investopedia.com/terms/r/returnoninvestment.asp',
-  lastChecked: TOOL_LAST_REVIEWED,
-  evidenceLevel: 'editorial',
-};
-
-const qrStandardSource: SourceReference = {
-  id: 'qr-code-standard-overview',
-  title: 'QR Code two-dimensional symbol overview',
-  publisher: 'DENSO WAVE',
-  url: 'https://www.qrcode.com/en/about/',
-  lastChecked: TOOL_LAST_REVIEWED,
-  evidenceLevel: 'authoritative',
-};
-
-const urlStandardSource: SourceReference = {
-  id: 'whatwg-url-standard',
-  title: 'URL Standard',
-  publisher: 'WHATWG',
-  url: 'https://url.spec.whatwg.org/',
-  lastChecked: TOOL_LAST_REVIEWED,
-  evidenceLevel: 'authoritative',
-};
-
-const upiSource: SourceReference = {
-  id: 'npci-upi-deep-linking-parameters',
-  title: 'UPI QR key deep-linking parameters',
-  publisher: 'National Payments Corporation of India',
-  url: 'https://www.npci.org.in/PDF/npci/upi/circular/2017/Circular18_BankCompliances_to_enbaleUPIMerchantecosystem_0.pdf',
-  lastChecked: TOOL_LAST_REVIEWED,
-  evidenceLevel: 'official',
-};
-
-const sharedAnalyticsPolicy = {
-  allowedEvents: [
-    'tool_viewed',
-    'tool_started',
-    'tool_completed',
-    'tool_validation_failed',
-    'result_generated',
-    'result_printed',
-    'result_downloaded',
-    'result_copied',
-    'result_shared',
-    'related_tool_opened',
-  ],
-  forbiddenProperties: [
-    'beginningValue',
-    'endingValue',
-    'years',
-    'investmentCost',
-    'finalValue',
-    'profit',
-    'percentage',
-    'amount',
-    'result',
-    'rawInput',
-    'url',
-    'normalizedUrl',
-    'payload',
-    'upiId',
-    'payeeName',
-    'note',
-    'businessName',
-    'businessAddress',
-    'phone',
-    'email',
-    'website',
-    'tagline',
-    'gstin',
-    'cin',
-    'registrationNumber',
-    'additionalContact',
-    'socialHandle',
-    'recipientName',
-    'recipientAddress',
-    'body',
-    'receiptNumber',
-    'receiptDate',
-    'receivedFrom',
-    'paymentPurpose',
-    'paymentMethod',
-    'transactionReference',
-    'paymentNote',
-    'invoiceReference',
-    'customerAddress',
-    'signatoryName',
-    'signatoryDesignation',
-    'documentContents',
-    'logo',
-  ],
-};
-
-export const cagrTool: ToolDefinition<CagrInput, CagrResult> = {
-  id: 'cagr-calculator',
-  slug: 'cagr-calculator',
-  kind: 'calculator',
-  name: 'CAGR Calculator',
-  shortName: 'CAGR',
-  category: 'financial-calculators',
-  categoryLabel: 'Financial calculations',
-  tags: ['growth', 'finance', 'percentage'],
-  searchTerms: ['compound annual growth rate', 'annual growth', 'growth rate', 'returns over time'],
-  featured: true,
-  launchPriority: 2,
-  privacyClassification: 'local-only',
-  summary: 'See the smoothed annual growth rate between two positive values over time.',
-  inputSchema: cagrInputSchema,
-  defaultValues: { beginningValue: '100000', endingValue: '161051', years: '5' },
-  validate: validateCagrInput,
-  calculate: calculateCagr,
-  renderResult: (result) => formatPercentage(result.percentage),
-  sources: [cagrSource],
-  limitations: [
-    'CAGR smooths the path between two values; it does not show year-by-year volatility or interim cash flows.',
-    'The model requires positive beginning and ending values. It is not a substitute for a cash-flow or investment performance analysis.',
-  ],
-  lastReviewed: TOOL_LAST_REVIEWED,
-  seo: {
-    title: 'CAGR Calculator for Indian Businesses | KarobarKit',
-    description:
-      'Calculate compound annual growth rate from beginning value, ending value and duration with a clear formula and worked example.',
-    keywords: ['cagr calculator', 'compound annual growth rate', 'business growth calculator'],
-  },
-  relatedToolIds: ['roi-calculator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter the starting value and the ending value in rupees or another consistent unit.',
-    'Enter the number of years between those values.',
-    'Select Calculate to see the annualized rate and an interpretation of the result.',
-  ],
-  formula: 'CAGR = (ending value ÷ beginning value)^(1 ÷ years) − 1',
-  workedExample: '₹1,00,000 growing to ₹1,61,051 over 5 years produces a CAGR of approximately 10.00%.',
-  resultInterpretation:
-    'A positive result is the smoothed annual growth rate. A negative result indicates a smoothed decline across the period.',
-  edgeCases: [
-    'Zero or negative values cannot be used in this standard CAGR model because the ratio and fractional exponent are not defined for this use case.',
-    'Very long periods and values with excessive precision are rejected to keep the calculation predictable and safe.',
-  ],
-  faqs: [
-    {
-      question: 'Does CAGR mean the value grew by the same amount every year?',
-      answer: 'No. CAGR is a smoothed annual rate. Actual yearly performance may be uneven.',
-    },
-    {
-      question: 'Can I enter a loss?',
-      answer:
-        'You can enter a lower positive ending value and receive a negative CAGR. Zero or negative values are outside this model.',
-    },
-  ],
-  privacyNote:
-    'Inputs stay in this browser. Financial values are not sent to analytics or stored on a server.',
-};
-
-export const roiTool: ToolDefinition<RoiInput, RoiResult> = {
-  id: 'roi-calculator',
-  slug: 'roi-calculator',
-  kind: 'calculator',
-  name: 'ROI Calculator',
-  shortName: 'ROI',
-  category: 'financial-calculators',
-  categoryLabel: 'Financial calculations',
-  tags: ['return', 'profit', 'loss', 'finance'],
-  searchTerms: ['return on investment', 'investment return', 'profit percentage'],
-  featured: true,
-  launchPriority: 3,
-  privacyClassification: 'local-only',
-  summary: 'Compare an investment cost with its final value to see profit, loss and basic ROI.',
-  inputSchema: roiInputSchema,
-  defaultValues: { investmentCost: '100000', finalValue: '125000' },
-  validate: validateRoiInput,
-  calculate: calculateRoi,
-  renderResult: (result) => formatPercentage(result.percentage),
-  sources: [roiSource],
-  limitations: [
-    'Basic ROI does not account for time, compounding, taxes, fees, inflation or interim cash flows.',
-    'Final value is the amount received or valued at the end—not the profit. Profit is calculated as final value minus investment cost.',
-  ],
-  lastReviewed: TOOL_LAST_REVIEWED,
-  seo: {
-    title: 'ROI Calculator for Indian Businesses | KarobarKit',
-    description:
-      'Calculate profit or loss and basic return on investment from cost and final value with an explicit formula and limitations.',
-    keywords: ['roi calculator', 'return on investment', 'profit calculator'],
-  },
-  relatedToolIds: ['cagr-calculator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter the total investment cost.',
-    'Enter the final value received or estimated at the end. This is not the profit field.',
-    'Select Calculate to see the rupee profit or loss and the basic ROI percentage.',
-  ],
-  formula: 'ROI = (final value − investment cost) ÷ investment cost × 100',
-  workedExample:
-    'An investment cost of ₹1,00,000 with a final value of ₹1,25,000 produces ₹25,000 profit and 25.00% ROI.',
-  resultInterpretation:
-    'A positive ROI means the final value is above the original cost. A negative ROI means the final value is below the original cost.',
-  edgeCases: [
-    'Investment cost must be greater than zero because zero would make the percentage undefined.',
-    'A final value of zero represents a complete loss. Negative final values are not accepted in this model.',
-  ],
-  faqs: [
-    {
-      question: 'Is the final value the same as gain?',
-      answer: 'No. Enter the complete final value. The tool subtracts the cost to calculate profit or loss.',
-    },
-    {
-      question: 'Does ROI tell me whether an investment was good over time?',
-      answer:
-        'Only partly. Basic ROI ignores time, so use CAGR or a cash-flow analysis when duration matters.',
-    },
-  ],
-  privacyNote:
-    'Inputs stay in this browser. Financial values are not sent to analytics or stored on a server.',
-};
-
-export const gstTool: ToolDefinition<GstInput, GstResult> = {
-  id: 'gst-calculator',
-  slug: 'gst-calculator',
-  kind: 'calculator',
-  name: 'GST Calculator',
-  shortName: 'GST',
-  category: 'billing-taxes',
-  categoryLabel: 'Billing & taxes',
-  tags: ['gst', 'tax', 'cgst', 'sgst', 'igst'],
-  searchTerms: ['gst calculator', 'tax calculator', 'inclusive gst', 'exclusive gst'],
-  featured: true,
-  launchPriority: 1,
-  regulatory: true,
-  privacyClassification: 'local-only',
-  summary: 'Calculate GST on an exclusive or inclusive amount with an explicit tax-component choice.',
-  inputSchema: gstInputSchema,
-  defaultValues: {
-    amount: '1000',
-    ratePresetId: 'gst-headline-rate-18',
-    customRate: '',
-    mode: 'exclusive',
-    supplyType: 'unspecified',
-  },
-  validate: validateGstInput,
-  calculate: calculateGstTool,
-  renderResult: (result) => formatIndianCurrency(result.gstAmount),
-  sources: getGstSourceReferences(),
-  limitations: [
-    'The 5% and 18% choices are source-backed headline presets, not a classification decision. The calculator does not determine whether they apply to a particular product or service.',
-    'It does not determine taxability, HSN/SAC, exemption, reverse charge, input tax credit, compensation cess, registration, filing, export treatment or legal place of supply.',
-    'Intra-state results use cautious “CGST + SGST/UTGST” wording because the calculator has no verified location model to choose State tax versus Union Territory tax.',
-  ],
-  disclaimer:
-    'This is an educational arithmetic calculator, not tax advice or a filing determination. Verify the applicable notification, classification, supply type and transaction facts with official GST material or a qualified professional.',
-  lastReviewed: TOOL_LAST_REVIEWED,
-  seo: {
-    title: 'GST Calculator for Indian Businesses | KarobarKit',
-    description:
-      'Calculate GST inclusive or exclusive amounts with source-backed headline presets, explicit supply-type allocation and transparent rounding.',
-    keywords: [
-      'gst calculator',
-      'gst inclusive calculator',
-      'gst exclusive calculator',
-      'cgst sgst igst calculator',
-    ],
-  },
-  relatedToolIds: ['roi-calculator', 'payment-receipt-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter a positive amount with up to two decimal places.',
-    'Choose a source-backed headline rate or select a clearly labelled custom rate if you already know the rate to use.',
-    'Choose whether the amount is GST exclusive or already GST inclusive, then select the tax split you need. The calculator does not infer place of supply.',
-  ],
-  formula:
-    'Exclusive: GST = taxable value × rate ÷ 100. Inclusive: taxable value = total ÷ (1 + rate ÷ 100).',
-  workedExample:
-    'For a ₹1,000 exclusive amount at 18%, GST is ₹180.00 and the total is ₹1,180.00. This numeric example demonstrates the formula only; it does not classify a supply.',
-  resultInterpretation:
-    'The result shows arithmetic for the values selected. A source-backed preset does not mean that the rate is legally applicable to your product, service or transaction.',
-  edgeCases: [
-    'Amounts must be finite, positive, at most two decimal places and no more than ₹999,999,999,999,999.99.',
-    'Custom rates allow 0% through 100% with at most two decimal places and always carry a user-responsibility warning.',
-    'Currency values use half-up rounding. Intra-state components reconcile by assigning the rounded remainder to SGST/UTGST.',
-  ],
-  faqs: [
-    {
-      question: 'Does the calculator tell me which GST rate applies?',
-      answer:
-        'No. It offers two source-backed headline choices and a custom-rate option, but it does not classify products or services or recommend a rate.',
-    },
-    {
-      question: 'Does intra-state always mean SGST rather than UTGST?',
-      answer:
-        'The calculator does not decide that. It labels the second component SGST/UTGST until a verified location model is added.',
-    },
-    {
-      question: 'Are my amounts sent anywhere?',
-      answer:
-        'No. The calculation runs in this browser and financial inputs and results are excluded from analytics and logs.',
-    },
-  ],
-  privacyNote:
-    'The amount, rate choice, mode, supply type and calculated tax stay in this browser. They are not sent to analytics, a backend, a URL or a log.',
-};
-
-export const urlQrTool: ToolDefinition<UrlQrInput, UrlQrResult> = {
-  id: 'url-qr-generator',
-  slug: 'url-qr',
-  kind: 'generator',
-  generatorKind: 'qr',
-  name: 'URL QR Generator',
-  shortName: 'URL QR',
-  category: 'marketing-barcodes',
-  categoryLabel: 'Marketing & QR codes',
-  tags: ['qr', 'url', 'website', 'link'],
-  searchTerms: ['qr code generator', 'website qr', 'link qr', 'url qr'],
-  featured: true,
-  launchPriority: 6,
-  privacyClassification: 'local-only',
-  summary: 'Turn a safe HTTP or HTTPS URL into a downloadable, print-ready QR code.',
-  inputSchema: urlQrInputSchema,
-  defaultValues: { url: '', size: '512' },
-  validate: validateUrlQrInput,
-  calculate: calculateUrlQr,
-  renderResult: (result) => result.normalizedUrl,
-  sources: [qrStandardSource, urlStandardSource],
-  limitations: [
-    'The generator encodes the URL; it does not check whether the site exists, is trustworthy or will remain online.',
-    'Only HTTP and HTTPS URLs are supported. Unsupported protocols are rejected instead of being silently changed.',
-  ],
-  lastReviewed: TOOL_LAST_REVIEWED,
-  seo: {
-    title: 'URL QR Generator for Indian Businesses | KarobarKit',
-    description:
-      'Create a private, client-side QR code from an HTTP or HTTPS URL with configurable size, PNG download and print support.',
-    keywords: ['url qr generator', 'website qr code', 'qr code generator'],
-  },
-  relatedToolIds: ['upi-standee-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter an HTTP or HTTPS URL. A bare domain is normalized to HTTPS; unsafe protocols are rejected.',
-    'Choose the output size that suits your screen, print or sign.',
-    'Generate the preview, scan-test it with a trusted app, then download PNG or print.',
-  ],
-  formula: 'QR payload = normalized HTTP(S) URL',
-  workedExample:
-    'Entering example.com/pricing is normalized to https://example.com/pricing before it is encoded.',
-  resultInterpretation:
-    'The QR code stores the displayed normalized URL. Scanning it may open that URL in the scanning app or browser.',
-  edgeCases: [
-    'javascript:, data:, file: and other non-HTTP(S) protocols are rejected and never encoded.',
-    'URLs with embedded usernames or passwords are rejected to reduce accidental credential sharing.',
-    'A 2,048-character limit keeps the QR payload practical to scan and export.',
-  ],
-  faqs: [
-    {
-      question: 'Does KarobarKit visit or check the URL?',
-      answer: 'No. The URL is normalized and encoded locally; the tool does not request the destination.',
-    },
-    {
-      question: 'Why did my URL become HTTPS?',
-      answer:
-        'A bare domain has no protocol, so the tool uses HTTPS as the safe default. URLs that explicitly use another protocol are rejected.',
-    },
-  ],
-  privacyNote: QR_LOCAL_PRIVACY_NOTE,
-};
-
-export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
-  id: 'upi-standee-generator',
-  slug: 'upi-standee',
-  kind: 'generator',
-  generatorKind: 'qr',
-  name: 'UPI Standee Generator',
-  shortName: 'UPI QR',
-  category: 'marketing-barcodes',
-  categoryLabel: 'Marketing & QR codes',
-  tags: ['upi', 'qr', 'payment', 'standee'],
-  searchTerms: ['upi qr', 'payment qr', 'upi standee', 'shop payment display'],
-  featured: true,
-  launchPriority: 5,
-  privacyClassification: 'local-only',
-  summary: 'Create a local, print-ready UPI payment QR standee with an optional fixed amount and note.',
-  inputSchema: upiInputSchema,
-  defaultValues: { payeeName: '', upiId: '', amount: '', note: '' },
-  validate: validateUpiInput,
-  calculate: calculateUpi,
-  renderResult: (result) => result.payload,
-  sources: [qrStandardSource, upiSource],
-  limitations: [
-    'The tool constructs a standard UPI payment URI but does not verify ownership, activity, bank support or settlement.',
-    'A UPI app and compatible bank account are required to complete a payment. Always verify the payee in the app before authorizing.',
-    'The fixed amount limit is a QR payload safety guard, not a claim about UPI transaction limits.',
-  ],
-  lastReviewed: TOOL_LAST_REVIEWED,
-  seo: {
-    title: 'UPI Standee Generator for Indian Businesses | KarobarKit',
-    description:
-      'Generate a private, client-side UPI payment QR standee with safe URI encoding, optional amount, print layout and PNG download.',
-    keywords: ['upi standee generator', 'upi qr code', 'payment qr standee'],
-  },
-  relatedToolIds: ['url-qr-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter the payee name and UPI ID exactly as you want users to see them.',
-    'Optionally add a fixed INR amount and a short payment note.',
-    'Generate the standee, scan-test it in a trusted UPI app, then download or print it.',
-  ],
-  formula: 'upi://pay?pa={UPI ID}&pn={payee name}&am={optional amount}&cu=INR&tn={optional note}',
-  workedExample:
-    'A payee name of Ravi & Sons and UPI ID ravi@bank become safely percent-encoded URI parameters before QR rendering.',
-  resultInterpretation:
-    'The QR code contains payment details for a UPI app to interpret. It does not initiate or confirm a payment by itself.',
-  edgeCases: [
-    'Payee name is required; UPI ID must use an ASCII name@handle format with supported punctuation.',
-    'Fixed amounts must be greater than zero, use no more than two decimal places and stay within the QR safety bound.',
-    `Payment notes are limited to ${80} characters and cannot contain line breaks or control characters.`,
-  ],
-  faqs: [
-    {
-      question: 'Does a valid-looking UPI ID guarantee that payments will work?',
-      answer:
-        'No. Syntax validation cannot verify account ownership, activity or bank support. Confirm the payee inside your UPI app.',
-    },
-    {
-      question: 'Can I leave the amount blank?',
-      answer: 'Yes. A blank amount lets the payer enter the amount in their UPI app if the app supports it.',
-    },
-  ],
-  privacyNote: `${QR_LOCAL_PRIVACY_NOTE} ${UPI_OWNERSHIP_DISCLAIMER}`,
-};
-
-const documentSource: SourceReference = {
-  id: 'css-paged-media-a4-printing',
-  title: 'CSS Paged Media Module Level 3',
-  publisher: 'World Wide Web Consortium',
-  url: 'https://www.w3.org/TR/css-page-3/',
-  lastChecked: DOCUMENT_LAST_REVIEWED,
-  evidenceLevel: 'authoritative',
-};
-
-const documentPrivacyNote =
-  'Business details, document text and logos are processed locally in this browser. They are not sent to a server, saved by default or included in analytics.';
-
-export const letterheadTool: ToolDefinition<LetterheadInput, LetterheadDocument> = {
-  id: 'letterhead-generator',
-  slug: 'letterhead-generator',
-  kind: 'generator',
-  generatorKind: 'document',
-  name: 'Letterhead Generator',
-  shortName: 'Letterhead',
-  category: 'business-documents',
-  categoryLabel: 'Business documents',
-  tags: ['letterhead', 'document', 'pdf', 'business stationery'],
-  searchTerms: ['company letterhead', 'business letterhead', 'letter pad'],
-  featured: true,
-  launchPriority: 7,
-  privacyClassification: 'local-only',
-  summary: 'Create an original, print-ready A4 letterhead with local logo processing and simple layouts.',
-  inputSchema: letterheadInputSchema,
-  defaultValues: letterheadDefaultValues,
-  validate: validateLetterheadInput,
-  calculate: calculateLetterhead,
-  renderResult: (result) => result.metadata.title,
-  sources: [documentSource],
-  limitations: [
-    'The generator creates a business document layout; it does not verify business names, registrations, logos or recipient details.',
-    'Plain text is supported. Longer letters are split across A4 pages; review page breaks before sharing.',
-    'PDF text supports Latin and Devanagari through a bundled Noto Sans font. Use browser Print → Save as PDF for other scripts or full system-font coverage.',
-  ],
-  lastReviewed: DOCUMENT_LAST_REVIEWED,
-  seo: {
-    title: 'Letterhead Generator for Indian Businesses | KarobarKit',
-    description:
-      'Create a private, original A4 letterhead with business details, optional logo, controlled layouts, print preview and PDF download.',
-    keywords: ['letterhead generator', 'business letterhead', 'letterhead maker'],
-  },
-  relatedToolIds: ['payment-receipt-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter the business name and address, then add contact details or identifiers you want displayed.',
-    'Choose one of the controlled layouts, an accessible accent and an optional local logo.',
-    'Add recipient and letter text if needed, review the A4 preview, then download the PDF or print.',
-  ],
-  formula: 'No calculation. The tool maps the entered text into a deterministic A4 document template.',
-  workedExample:
-    'A business name, multiline address and optional recipient/body text are placed into the selected A4 template without a server upload.',
-  resultInterpretation:
-    'The preview is a printable business communication layout. Optional registration details are displayed as entered and are not verified.',
-  edgeCases: [
-    'Whitespace-only required fields are rejected while Unicode and multiline text are preserved.',
-    'Only safe raster logos are accepted; SVG and arbitrary markup are rejected.',
-    'Long letter bodies continue onto additional A4 pages instead of being silently clipped.',
-  ],
-  faqs: [
-    {
-      question: 'Is my logo uploaded anywhere?',
-      answer: 'No. PNG, JPEG and WebP logos are decoded and resized in your browser only.',
-    },
-    {
-      question: 'Are GSTIN, CIN or registration details verified?',
-      answer: 'No. They are optional display fields and should be checked against your own records.',
-    },
-  ],
-  privacyNote: documentPrivacyNote,
-};
-
-export const paymentReceiptTool: ToolDefinition<PaymentReceiptInput, PaymentReceiptDocument> = {
-  id: 'payment-receipt-generator',
-  slug: 'payment-receipt-generator',
-  kind: 'generator',
-  generatorKind: 'document',
-  name: 'Payment Receipt Generator',
-  shortName: 'Payment Receipt',
-  category: 'business-documents',
-  categoryLabel: 'Business documents',
-  tags: ['receipt', 'payment', 'document', 'pdf'],
-  searchTerms: ['payment receipt', 'receipt maker', 'payment acknowledgement', 'money receipt'],
-  featured: true,
-  launchPriority: 4,
-  privacyClassification: 'local-only',
-  summary: 'Create a clear A4 acknowledgement of a declared payment without an account or server storage.',
-  inputSchema: paymentReceiptInputSchema,
-  defaultValues: paymentReceiptDefaultValues,
-  validate: validatePaymentReceiptInput,
-  calculate: calculatePaymentReceipt,
-  renderResult: (result) => result.monetaryValue.formatted,
-  sources: [documentSource],
-  limitations: [
-    'This is an acknowledgement created from information you enter. It is not bank confirmation, proof of settlement, a government receipt or a GST tax invoice.',
-    'The tool never contacts a bank, UPI app, card network or payment gateway. Independently verify settlement.',
-    'Amount-to-words supports positive INR values up to ₹99,99,99,99,99,99,999.99 with a maximum of two decimal places.',
-  ],
-  lastReviewed: DOCUMENT_LAST_REVIEWED,
-  seo: {
-    title: 'Payment Receipt Generator for Indian Businesses | KarobarKit',
-    description:
-      'Create a private A4 payment acknowledgement with amount in Indian words, optional payment details, print preview and local PDF download.',
-    keywords: ['payment receipt generator', 'receipt maker', 'payment acknowledgement'],
-  },
-  relatedToolIds: ['letterhead-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter a receipt number, local receipt date, payer name, positive amount and payment purpose.',
-    'Optionally add issuer identity, payment method, references, a logo and signature placeholder.',
-    'Review the amount in figures and words, then download the A4 PDF or print after checking settlement independently.',
-  ],
-  formula: 'Amount in words = deterministic Indian numbering conversion of the entered rupees and paise.',
-  workedExample:
-    '₹1,250.50 is displayed as ₹1,250.50 and “One Thousand Two Hundred Fifty Rupees and Fifty Paise Only.”',
-  resultInterpretation:
-    'The receipt records what the issuer declares was received. It does not prove that a financial transaction settled.',
-  edgeCases: [
-    'Receipt numbers allow letters, numbers, spaces, hyphens and slashes; global uniqueness is not claimed.',
-    'Dates are validated as local calendar dates and formatted without timezone shifting.',
-    'NaN, infinity, zero, negative values, excessive precision and unsupported large values are rejected.',
-  ],
-  faqs: [
-    {
-      question: 'Can this receipt be used as bank confirmation?',
-      answer: 'No. It is a user-created acknowledgement. Check the relevant bank or payment app separately.',
-    },
-    {
-      question: 'Does it create a GST tax invoice?',
-      answer:
-        'No. GST invoicing is outside this milestone and the receipt is explicitly not a GST tax invoice.',
-    },
-  ],
-  privacyNote: documentPrivacyNote,
-};
-
-export const gstInvoiceTool: ToolDefinition<GstInvoiceInput, GstInvoiceDocument> = {
-  id: 'gst-invoice-generator',
-  slug: 'gst-invoice-generator',
-  kind: 'generator',
-  generatorKind: 'document',
-  name: 'GST Invoice Generator',
-  shortName: 'GST Invoice',
-  category: 'business-documents',
-  categoryLabel: 'Business documents',
-  tags: ['gst', 'invoice', 'tax invoice', 'billing', 'pdf'],
-  searchTerms: ['gst invoice', 'gst bill', 'tax invoice', 'invoice maker', 'bill generator'],
-  featured: true,
-  launchPriority: 1,
-  regulatory: true,
-  privacyClassification: 'local-only',
-  summary:
-    'Prepare a private A4 GST tax invoice draft with source-backed rate choices and reconciled totals.',
-  inputSchema: gstInvoiceInputSchema,
-  defaultValues: invoiceDefaultValues,
-  validate: validateGstInvoiceInput,
-  calculate: calculateGstInvoice,
-  renderResult: (result) => result.totals.amountInWords,
-  sources: [...invoiceSourceReferences, ...getGstSourceReferences()],
-  limitations: [
-    'This is a standard tax-invoice draft workflow. It does not claim that the output is legally compliant for every transaction or taxpayer.',
-    'The generator does not determine classification, HSN/SAC, exemption, applicable GST rate, place of supply, CGST versus UTGST, reverse-charge applicability, ITC, registration, filing, e-invoicing, IRN or tax advice.',
-    'GSTIN validation is structural only. The tool does not verify existence, ownership, registration status or recipient identity.',
-    'HSN/SAC, tax rate, supply type, place of supply and reverse-charge marking are user-supplied choices. Review official rules and transaction facts before issue.',
-    'Drafts remain in memory and are cleared on refresh. PDF export depends on browser font loading; Print → Save as PDF is the fallback for unsupported characters.',
-  ],
-  disclaimer:
-    'Review this locally generated draft against the applicable CGST/SGST/UTGST/IGST rules, invoice particulars, classification, rate notifications and your records before issue. It is not an e-invoice, IRN, filing record or professional tax advice.',
-  lastReviewed: INVOICE_LAST_REVIEWED,
-  seo: {
-    title: 'GST Invoice Generator for Indian Businesses | KarobarKit',
-    description:
-      'Create a private A4 GST tax invoice draft with line-item GST calculations, source-backed rate presets, PDF download and print preview.',
-    keywords: ['gst invoice generator', 'gst tax invoice', 'invoice maker india', 'a4 gst invoice'],
-  },
-  relatedToolIds: ['gst-calculator', 'payment-receipt-generator'],
-  analyticsPolicy: sharedAnalyticsPolicy,
-  howToUse: [
-    'Enter supplier and recipient particulars from your records, then explicitly choose the supply type and inter-State place of supply where applicable.',
-    'Add each line with a pre-GST unit price, quantity, optional issuer-supplied HSN/SAC and a reviewed rate preset or clearly marked custom rate.',
-    'Review rounded line values, tax groups, totals, warnings and A4 page breaks before downloading or printing the draft.',
-  ],
-  formula:
-    'Gross line value = quantity × pre-GST unit price; taxable value = gross value − line discount; GST = taxable value × selected rate ÷ 100; line total = taxable value + GST.',
-  workedExample:
-    'Two units at ₹1,000 each at 18% for an intra-State supply produce ₹2,000 taxable value, ₹180 CGST, ₹180 SGST/UTGST and ₹2,360 total.',
-  resultInterpretation:
-    'Totals are deterministic arithmetic from the values and tax choices entered. They do not establish that a rate, classification, place of supply or invoice treatment is legally applicable.',
-  edgeCases: [
-    'Currency inputs allow at most two decimal places; quantities allow up to six decimal places. NaN, Infinity, negative values, unsafe precision and impractical totals are rejected.',
-    'Line discounts must be nonnegative and leave a positive taxable value. Invoice-level discounts and unmodelled additional charges are not supported.',
-    'An invoice date must be covered by a reviewed GST policy bundle. Dates before the current bundle’s effective date are rejected rather than assigned an invented rate.',
-    'The PDF filename contains only a sanitized invoice number and date; it never contains GSTIN, customer data or amounts.',
-  ],
-  faqs: [
-    {
-      question: 'Does this create a legally compliant GST invoice?',
-      answer:
-        'It creates an A4 draft containing the supported Rule 46-style fields. You must verify classification, HSN/SAC, rate, place of supply, reverse charge, e-invoice applicability and all transaction facts before issue.',
-    },
-    {
-      question: 'Does it check whether a GSTIN is active or belongs to the party?',
-      answer:
-        'No. Only the structure of the entered GSTIN is checked locally; existence and ownership are never verified.',
-    },
-    {
-      question: 'Are invoice drafts saved?',
-      answer:
-        'No. Drafts are held in memory for the current page session and are cleared when the page is refreshed or closed.',
-    },
-  ],
-  privacyNote:
-    'Supplier, recipient, line-item, tax and payment details are processed in memory in this browser only. They are not sent to a backend, stored by default, included in analytics or written to logs.',
-};
-
-export const toolRegistry = [
+export const allToolDefinitions = [
   cagrTool,
   roiTool,
   gstTool,
@@ -744,40 +52,45 @@ export const toolRegistry = [
   gstInvoiceTool,
 ] as const;
 
-export const categoryRegistry = [
-  {
-    id: 'financial-calculators',
-    slug: 'financial-calculators',
-    name: 'Financial calculations',
-    description: 'Understand growth and returns with formulas that show their work.',
-  },
-  {
-    id: 'marketing-barcodes',
-    slug: 'marketing-barcodes',
-    name: 'Marketing & QR codes',
-    description: 'Create local QR outputs for URLs and UPI payment displays.',
-  },
-  {
-    id: 'billing-taxes',
-    slug: 'billing-taxes',
-    name: 'Billing & taxes',
-    description:
-      'Use transparent arithmetic for selected billing and tax calculations, with source and scope limits visible.',
-  },
-  {
-    id: 'business-documents',
-    slug: 'business-documents',
-    name: 'Business documents',
-    description: 'Prepare original, local-first A4 documents for everyday business communication.',
-  },
-] as const;
+export const toolRegistry = allToolDefinitions.filter((tool) => isToolAvailable(tool));
+
+export function isToolAvailable(tool: Pick<AnyToolDefinition, 'featureFlag' | 'lifecycle'>) {
+  return (tool.lifecycle === 'live' || tool.lifecycle === 'beta') && isFeatureFlagEnabled(tool.featureFlag);
+}
+
+export const toolMetadataIndex = toolRegistry.map((tool) => ({
+  id: tool.id,
+  slug: tool.slug,
+  kind: tool.kind,
+  uiAdapter: tool.ui.adapter,
+  name: tool.name,
+  shortName: tool.shortName,
+  category: tool.category,
+  categoryLabel: tool.categoryLabel,
+  secondaryCategories: tool.secondaryCategories,
+  tags: tool.tags,
+  searchTerms: tool.searchTerms,
+  summary: tool.summary,
+  featured: tool.featured ?? false,
+  lifecycle: tool.lifecycle,
+  executionMode: tool.executionMode,
+  riskTier: tool.governance.riskTier,
+  regulatory: tool.regulatory ?? false,
+  lastVerified: tool.trust.lastVerified,
+}));
 
 export function getToolBySlug(slug: string) {
   return toolRegistry.find((tool) => tool.slug === slug);
 }
 
+export function getToolDefinitionBySlug(slug: string) {
+  return allToolDefinitions.find((tool) => tool.slug === slug);
+}
+
 export function getToolsByCategory(category: string) {
-  return toolRegistry.filter((tool) => tool.category === category);
+  return toolRegistry.filter(
+    (tool) => tool.category === category || tool.secondaryCategories.includes(category),
+  );
 }
 
 export function getRelatedTools(tool: Pick<AnyToolDefinition, 'relatedToolIds'>) {

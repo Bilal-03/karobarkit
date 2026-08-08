@@ -11,8 +11,8 @@ export function Header() {
           <BrandLockup compact />
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/tools">Tools</Link>
-          <Link href="/categories">Categories</Link>
+          <Link href="/tools">All tools</Link>
+          <Link href="/categories">8 categories</Link>
           <Link href="/methodology">Methodology</Link>
           <Link href="/sources">Sources</Link>
         </nav>
@@ -22,7 +22,7 @@ export function Header() {
             <span className="header-action__label">Search</span>
           </Link>
           <Link className="button button--small button--secondary header-cta" href="/tools">
-            Browse tools
+            Open toolkit
           </Link>
           <MobileNav />
         </div>

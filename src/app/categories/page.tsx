@@ -5,8 +5,9 @@ import { categoryRegistry, getToolsByCategory } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
-  title: 'Business tool categories',
-  description: 'Browse KarobarKit tools by financial, tax, document and QR workflows.',
+  title: 'Business toolkit categories for India',
+  description:
+    'Browse KarobarKit across Business, GST & Tax, Startup, Finance, E-commerce, HR & Salary, Generators and AI Tools.',
   path: '/categories',
 });
 
@@ -18,7 +19,8 @@ export default function CategoriesPage() {
           <p className="eyebrow">Categories</p>
           <h1>Browse tools by business task</h1>
           <p className="lede">
-            Four practical groups cover the current launch tools without placeholder categories.
+            Eight clear areas form the product architecture. Live counts are explicit, and roadmap categories
+            do not publish placeholder tool pages.
           </p>
         </Container>
       </section>
@@ -33,7 +35,10 @@ export default function CategoriesPage() {
                 </h2>
                 <p>{category.description}</p>
                 <Link className="text-link" href={`/categories/${category.slug}`}>
-                  {count} tool{count === 1 ? '' : 's'} <span aria-hidden="true">→</span>
+                  {count > 0
+                    ? `${count} live tool${count === 1 ? '' : 's'}`
+                    : `Roadmap · Phase ${category.roadmapPhase}`}{' '}
+                  <span aria-hidden="true">→</span>
                 </Link>
               </article>
             );

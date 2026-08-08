@@ -25,7 +25,7 @@ export default function SourcesPage() {
           <h2>Current tool references</h2>
           <div className="source-table-wrap">
             <table className="source-table">
-              <caption>Source references for calculations and QR payload generation.</caption>
+              <caption>Source references for live calculations, generators and document workflows.</caption>
               <thead>
                 <tr>
                   <th scope="col">Tool</th>
@@ -85,6 +85,10 @@ export default function SourcesPage() {
             A checked date means the reference link and the formula description were reviewed for this
             release. It is not a claim that a standard financial ratio answers every business or investment
             question.
+          </p>
+          <p>
+            Reviewer status is shown separately on each tool. “External review pending” is not approval; it is
+            an explicit unresolved governance state for higher-risk workflows.
           </p>
         </section>
         <section>
