@@ -162,7 +162,7 @@ test.describe('foundation routes', () => {
   });
 
   test('keeps roadmap categories honest and out of the index', async ({ page }) => {
-    await page.goto('/categories/startup');
+    await page.goto('/categories/ai-tools');
     await expect(page.getByText('This category is on the roadmap')).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
     await expect(page.locator('.tool-card')).toHaveCount(0);

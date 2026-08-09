@@ -30,6 +30,9 @@ describe('tool discovery', () => {
     ['gst bill', 'gst-invoice-generator'],
     ['money receipt', 'payment-receipt-generator'],
     ['payment qr', 'upi-standee-generator'],
+    ['break even point', 'break-even-calculator'],
+    ['cash runway', 'runway-calculator'],
+    ['return on ad spend', 'roas-calculator'],
   ])('maps the synonym %s to %s', (query, expectedId) => {
     expect(searchTools(query)[0]?.id).toBe(expectedId);
   });
@@ -55,7 +58,8 @@ describe('tool discovery', () => {
 
   it('keeps discovery references and featured ordering valid', () => {
     expect(validateDiscoveryRegistry()).toEqual([]);
-    expect(getFeaturedTools()).toHaveLength(toolRegistry.length);
+    expect(getFeaturedTools()).toHaveLength(8);
+    expect(getFeaturedTools().every((tool) => tool.featured)).toBe(true);
     expect(new Set(toolRegistry.map((tool) => tool.slug)).size).toBe(toolRegistry.length);
     expect(new Set(categoryRegistry.map((category) => category.slug)).size).toBe(categoryRegistry.length);
   });

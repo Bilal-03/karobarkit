@@ -11,7 +11,7 @@ import {
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the completed calculators, GST calculator, QR generators and document generators', () => {
+  it('contains the published foundation tools and Phase 2 business economics tools', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
@@ -21,6 +21,16 @@ describe('tool registry contract', () => {
       'letterhead-generator',
       'payment-receipt-generator',
       'gst-invoice-generator',
+      'margin-calculator',
+      'markup-calculator',
+      'break-even-calculator',
+      'pricing-calculator',
+      'cash-flow-calculator',
+      'burn-rate-calculator',
+      'runway-calculator',
+      'marketplace-margin-calculator',
+      'roas-calculator',
+      'cod-cost-calculator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'business',
@@ -43,7 +53,7 @@ describe('tool registry contract', () => {
       expect(tool.lastReviewed).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(tool.privacyNote).toContain('browser');
       expect(tool.executionMode).toBe('local-only');
-      expect(tool.lifecycle).toBe('live');
+      expect(['live', 'beta']).toContain(tool.lifecycle);
       expect(tool.secondaryCategories).toBeInstanceOf(Array);
       expect(tool.governance.owner).toBeTruthy();
       expect(tool.governance.reviewCadenceDays).toBeGreaterThan(0);
@@ -58,7 +68,7 @@ describe('tool registry contract', () => {
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(8);
+    expect(allToolDefinitions).toHaveLength(18);
     expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
     for (const metadata of toolMetadataIndex) {
       expect(metadata).not.toHaveProperty('defaultValues');

@@ -32,6 +32,11 @@ describe('privacy-safe analytics boundary', () => {
       supplyType: 'intra-state',
       calculationMode: 'exclusive',
       policyVersion: 'gst-general-rates-2025-09-22-v1',
+      revenue: '100000',
+      totalCost: '70000',
+      targetMargin: '40',
+      currentCash: '900000',
+      rtoRate: '8',
     });
 
     const event = handler.mock.calls[0]?.[0] as CustomEvent;

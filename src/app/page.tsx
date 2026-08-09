@@ -94,8 +94,8 @@ export default function HomePage() {
       <Container>
         <Section
           eyebrow="Start small"
-          title="Eight live tools, one release standard"
-          description="The current tools keep their proven routes and calculations while the toolkit expands behind feature flags. Roadmap entries never appear as live tool pages."
+          title="Live tools, one release standard"
+          description="Start with the published tools, then explore the expanding business toolkit. Every live and beta route carries its method, data-flow and review status."
         >
           <div className="tool-grid">
             {featuredTools.map((tool) => (
@@ -117,14 +117,15 @@ export default function HomePage() {
               return (
                 <article className="content-card category-card" key={category.id}>
                   <span className="tag">
-                    {count > 0 ? `${count} live` : `Phase ${category.roadmapPhase}`}
+                    {count > 0 ? `${count} published` : `Phase ${category.roadmapPhase}`}
                   </span>
                   <h3>
                     <Link href={`/categories/${category.slug}`}>{category.name}</Link>
                   </h3>
                   <p>{category.shortDescription}</p>
                   <Link className="text-link" href={`/categories/${category.slug}`}>
-                    {count > 0 ? 'Browse live tools' : 'View roadmap scope'} <span aria-hidden="true">→</span>
+                    {count > 0 ? 'Browse published tools' : 'View roadmap scope'}{' '}
+                    <span aria-hidden="true">→</span>
                   </Link>
                 </article>
               );

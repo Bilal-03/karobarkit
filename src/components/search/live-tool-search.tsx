@@ -59,6 +59,8 @@ function ToolResults({
                 name={tool.name}
                 summary={tool.summary}
                 categoryLabel={tool.categoryLabel}
+                lifecycle={tool.lifecycle}
+                executionMode={tool.executionMode}
               />
             ))}
           </div>
@@ -83,6 +85,8 @@ function ToolResults({
               name={tool.name}
               summary={tool.summary}
               categoryLabel={tool.categoryLabel}
+              lifecycle={tool.lifecycle}
+              executionMode={tool.executionMode}
             />
           ))}
         </div>

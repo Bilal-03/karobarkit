@@ -62,7 +62,7 @@ export default async function CategoryPage({ params }: CategoryRouteProps) {
           {tools.length > 0 ? (
             <>
               <p className="result-count">
-                {tools.length} live tool{tools.length === 1 ? '' : 's'} in this category
+                {tools.length} published tool{tools.length === 1 ? '' : 's'} in this category
               </p>
               <div className="tool-grid">
                 {tools.map((tool) => (
@@ -72,6 +72,8 @@ export default async function CategoryPage({ params }: CategoryRouteProps) {
                     name={tool.name}
                     summary={tool.summary}
                     categoryLabel={tool.categoryLabel}
+                    lifecycle={tool.lifecycle}
+                    executionMode={tool.executionMode}
                   />
                 ))}
               </div>
@@ -85,7 +87,7 @@ export default async function CategoryPage({ params }: CategoryRouteProps) {
               </p>
               <div className="inline-actions">
                 <Link className="button button--secondary" href="/tools">
-                  Browse live tools
+                  Browse published tools
                 </Link>
                 <Link className="button button--ghost" href="/methodology">
                   Read the release method

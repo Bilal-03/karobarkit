@@ -2,7 +2,7 @@
 
 ## Product and calculations
 
-- [x] Eight active tools are registry-backed and discoverable.
+- [x] Eighteen published tools are registry-backed and discoverable (8 live foundation tools plus 10 Phase 2 beta tools).
 - [x] No placeholder, fake popularity or debug route is exposed.
 - [x] CAGR, ROI, GST and invoice calculations independently verified.
 - [x] GST sources resolve and current presets are source-backed.
@@ -20,7 +20,7 @@
 - [x] Security headers and upload/URL/filename validation reviewed.
 - [x] Contact delivery route validates inputs, blocks honeypot submissions and avoids content logging.
 - [x] No production dependency vulnerabilities reported.
-- [x] Sensitive inputs excluded from analytics, URLs, storage and safe logs.
+- [x] Sensitive inputs excluded from analytics, URLs and safe logs; explicit scenario transfer is tab-only and opt-in.
 - [ ] Production contact delivery and monitoring provider configured.
 
 ## SEO and deployment

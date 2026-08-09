@@ -78,7 +78,7 @@ Status: conditional go for controlled launch preparation; see [`docs/launch/fina
 
 The production-readiness pass recorded a clean baseline at commit `60bd76836b5e5f58d343fe895647d97da3b830ad`, reverified all deterministic calculation paths and current GST source URLs on 8 August 2026, and added a complete launch evidence set under `docs/launch/`. The reviewed GST policy date and tool/document review dates are now 8 August 2026.
 
-The contact page now posts to a Vercel/Next Route Handler at `/api/contact`. The server validates the payload, ignores honeypot submissions, and sends plain-text delivery through Resend using server-only `RESEND_API_KEY`, `CONTACT_TO_EMAIL` and optional `CONTACT_FROM_EMAIL` variables; setup is documented in [`docs/contact-delivery.md`](contact-delivery.md). The error-report page remains a local copyable fallback. Security headers, URL/image/filename validation, safe logging and privacy boundaries were reviewed. No browser storage writes, production analytics transport, external error-monitoring provider or production domain are configured; contact delivery still needs its Vercel credentials and a real test send.
+The contact page now posts to a Vercel/Next Route Handler at `/api/contact`. The server validates the payload, ignores honeypot submissions, and sends plain-text delivery through Resend using server-only `RESEND_API_KEY`, `CONTACT_TO_EMAIL` and optional `CONTACT_FROM_EMAIL` variables; setup is documented in [`docs/contact-delivery.md`](contact-delivery.md). The error-report page remains a local copyable fallback. Security headers, URL/image/filename validation, safe logging and privacy boundaries were reviewed. No persistent browser storage, production analytics transport, external error-monitoring provider or production domain are configured; Phase 2 has only an explicit tab-only scenario handoff. Contact delivery still needs its Vercel credentials and a real test send.
 
 Verification: 160 unit/integration tests passed; the Chromium responsive/accessibility matrix passed 226 tests with 34 intentional skips. One desktop-1280 letterhead download timeout in the long serial run passed on focused rerun. The production build generated 34 routes, including `/api/contact`, and `npm audit --omit=dev --audit-level=moderate` reported zero vulnerabilities. Safari, Firefox, Edge, physical devices, Lighthouse/Core Web Vitals, production domain redirects, contact credentials/test delivery, monitoring and rollback execution remain explicit pre-launch actions rather than unverified claims.
 
@@ -103,3 +103,21 @@ KarobarKit is now positioned as **The Business Toolkit for India**. The applicat
 The runtime contract now covers six tool types, four execution modes, five lifecycle states, primary and secondary categories, feature flags, risk, ownership, review cadence, policy dependencies, reviewer status and a task-specific UI adapter. The former monolithic registry is split into per-tool modules and a metadata-only build index. GST now consumes a reusable effective-dated policy primitive.
 
 Every live tool page exposes a trust record containing method, formula, sources, effective period, last verification date, review cadence, reviewer status, risk, data behavior, limitations and an error-report path. Tier D tools retain official sources and say “external review pending”; no unearned approval is claimed. See [`docs/product-spec/phase-1-completion-report.md`](product-spec/phase-1-completion-report.md).
+
+## Business Toolkit expansion — Phase 2
+
+Status: complete on 9 August 2026 as a lower-regulatory-risk beta wave; the existing GST and GST Invoice external review gates remain unchanged.
+
+The public registry now contains ten beta business-economics tools: Margin, Markup, Break-even, Pricing, Cash Flow, Burn Rate, Runway, Marketplace Margin, ROAS and COD Cost. They share a decimal-safe validation/calculation engine, Indian currency/number formatting, local CSV export, print-friendly result summaries and the same trust record as the foundation tools. Marketplace, tax, advertising and COD rates are explicitly user-supplied estimates; no live vendor or statutory rate is inferred.
+
+Each tool has an independent definition, formula, worked example, limitations, edge cases, FAQ, source record, risk tier, review cadence and privacy-safe analytics policy. The related-tool graph provides curated journeys, and an explicit tab-only scenario transfer can copy only matching fields after the user chooses to save and import. Values never enter URLs, analytics, logs or a backend, and are not saved by default.
+
+Verification completed:
+
+- `npm run format:check`, `npm run lint`, `npm run typecheck` and `git diff --check` passed.
+- Serialized `npm test -- --maxWorkers=1`: 20 files and 191 tests passed.
+- `npm run build`: production build passed and generated 48 pages, including all 18 published tool routes.
+- Focused Playwright check on `desktop-1440`: 2 Phase 2 journeys passed (calculation/CSV and explicit scenario handoff).
+- Mobile/desktop layout matrix was not rerun, per the user’s request to skip non-functional responsive repetition; existing responsive CSS and keyboard semantics remain in place.
+
+The next authorized phase is Phase 3: finance calculations and document workflows, with official/verified fixtures for EMI, SIP, FD, XIRR, loan comparison, invoice and quotation flows.

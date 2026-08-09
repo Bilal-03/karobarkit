@@ -12,6 +12,7 @@
 - `phase-0-architecture-decisions.md` — accepted local-first, policy, AI-authority, module, and workflow ADRs.
 - `phase-0-completion-report.md` — Phase 0 inventory validation, exit gates, dependencies, and Phase 1 hand-off.
 - `phase-1-completion-report.md` — implemented product architecture, registry v2, policy primitive, trust UI, discovery controls, verification, and Phase 2 hand-off.
+- `phase-2-completion-report.md` — ten business-economics beta tools, shared decimal engine, local export, scenario handoff, privacy controls and verification.
 
 ## Original public audit pack
 

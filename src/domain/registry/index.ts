@@ -3,6 +3,19 @@ import { defaultPolicyContext } from '../policies/context';
 import { isFeatureFlagEnabled } from './feature-flags';
 import type { AnyToolDefinition } from './types';
 import { cagrTool } from './tools/cagr';
+import {
+  breakEvenTool,
+  burnRateTool,
+  cashFlowTool,
+  codCostTool,
+  marginTool,
+  markupTool,
+  marketplaceMarginTool,
+  pricingTool,
+  roasTool,
+  runwayTool,
+  businessEconomicsTools,
+} from './tools/business-economics';
 import { gstTool } from './tools/gst';
 import { gstInvoiceTool } from './tools/gst-invoice';
 import { letterheadTool } from './tools/letterhead';
@@ -32,13 +45,24 @@ export { categoryRegistry, getCategoryBySlug } from './categories';
 export { TOOL_LAST_REVIEWED } from './shared';
 export {
   cagrTool,
+  breakEvenTool,
+  burnRateTool,
+  cashFlowTool,
+  codCostTool,
   gstInvoiceTool,
   gstTool,
   letterheadTool,
+  marginTool,
+  markupTool,
+  marketplaceMarginTool,
   paymentReceiptTool,
+  pricingTool,
   roiTool,
+  roasTool,
+  runwayTool,
   upiStandeeTool,
   urlQrTool,
+  businessEconomicsTools,
 };
 
 export const allToolDefinitions = [
@@ -50,6 +74,7 @@ export const allToolDefinitions = [
   letterheadTool,
   paymentReceiptTool,
   gstInvoiceTool,
+  ...businessEconomicsTools,
 ] as const;
 
 export const toolRegistry = allToolDefinitions.filter((tool) => isToolAvailable(tool));

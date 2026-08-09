@@ -47,9 +47,11 @@ export default function MethodologyPage() {
           <h2>Privacy and update process</h2>
           <p>
             Current calculations, QR payloads and documents stay in the browser. Analytics accepts only a
-            small event allowlist and excludes entered values, identities and document contents. Regulatory
-            material is stored in a reusable effective-dated policy package, reviewed against named sources
-            and updated through code review rather than scraped into a result at runtime.
+            small event allowlist and excludes entered values, identities and document contents. Business
+            economics offers an explicit, tab-only scenario handoff that imports matching fields only after
+            confirmation; it is not persistent storage or cloud sync. Regulatory material is stored in a
+            reusable effective-dated policy package, reviewed against named sources and updated through code
+            review rather than scraped into a result at runtime.
           </p>
         </section>
         <section>

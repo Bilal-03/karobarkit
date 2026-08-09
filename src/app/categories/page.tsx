@@ -19,8 +19,8 @@ export default function CategoriesPage() {
           <p className="eyebrow">Categories</p>
           <h1>Browse tools by business task</h1>
           <p className="lede">
-            Eight clear areas form the product architecture. Live counts are explicit, and roadmap categories
-            do not publish placeholder tool pages.
+            Eight clear areas form the product architecture. Published counts are explicit, and roadmap
+            categories do not publish placeholder tool pages.
           </p>
         </Container>
       </section>
@@ -36,7 +36,7 @@ export default function CategoriesPage() {
                 <p>{category.description}</p>
                 <Link className="text-link" href={`/categories/${category.slug}`}>
                   {count > 0
-                    ? `${count} live tool${count === 1 ? '' : 's'}`
+                    ? `${count} published tool${count === 1 ? '' : 's'}`
                     : `Roadmap · Phase ${category.roadmapPhase}`}{' '}
                   <span aria-hidden="true">→</span>
                 </Link>

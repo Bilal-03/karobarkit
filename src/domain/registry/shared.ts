@@ -12,6 +12,8 @@ export function liveLocalMetadata({
   effectiveFrom,
   reviewerRole = 'Product and domain review',
   reviewerStatus = 'not-required',
+  lifecycle = 'live',
+  featureFlag,
 }: {
   riskTier: 'A' | 'B' | 'C' | 'D';
   reviewCadenceDays: number;
@@ -21,11 +23,14 @@ export function liveLocalMetadata({
   effectiveFrom?: string;
   reviewerRole?: string;
   reviewerStatus?: 'not-required' | 'pending' | 'approved';
+  lifecycle?: 'internal' | 'beta' | 'live' | 'stale-disabled' | 'retired';
+  featureFlag?: string;
 }) {
   return {
     privacyClassification: 'local-only' as const,
     executionMode: 'local-only' as const,
-    lifecycle: 'live' as const,
+    lifecycle,
+    featureFlag,
     governance: {
       owner: 'KarobarKit product and domain team',
       riskTier,
@@ -146,6 +151,42 @@ export const sharedAnalyticsPolicy = {
     'signatoryDesignation',
     'documentContents',
     'logo',
+    'revenue',
+    'totalCost',
+    'unitCost',
+    'sellingPrice',
+    'fixedCosts',
+    'sellingPricePerUnit',
+    'variableCostPerUnit',
+    'targetMargin',
+    'discountPercent',
+    'taxRate',
+    'openingCash',
+    'cashInflows',
+    'cashOutflows',
+    'oneOffOutflows',
+    'periodMonths',
+    'totalOutflows',
+    'totalInflows',
+    'currentCash',
+    'monthlyOutflows',
+    'monthlyInflows',
+    'productCost',
+    'platformFeePercent',
+    'shippingCost',
+    'paymentFeePercent',
+    'returnCost',
+    'taxCost',
+    'adSpend',
+    'attributedRevenue',
+    'otherVariableCosts',
+    'orderValue',
+    'codFee',
+    'forwardShipping',
+    'returnShipping',
+    'rtoRate',
+    'returnLoss',
+    'cashCycleCost',
   ],
 };
 

@@ -6,7 +6,7 @@
 **Status:** Build-ready product and technical plan
 **Planning assumption:** Two product engineers, one product/design owner, and fractional CA/tax, payroll, and security reviewers. A single-engineer delivery will take approximately two to three times longer.
 
-**Execution status:** Phase 0 product and governance contracts were completed on 9 August 2026. See the [completion report](phase-0-completion-report.md), [Phase 0 product contract](phase-0-product-contract.md), [canonical catalogue](business_toolkit_catalogue.csv), [formula and policy register](business_toolkit_formula_policy_register.csv), [source library](business_toolkit_source_library.csv), [tool contract v2](tool-contract-v2.md), [change-control workflow](regulatory-change-control.md), and [architecture decisions](phase-0-architecture-decisions.md).
+**Execution status:** Phase 0 contracts, Phase 1 platform foundation and Phase 2 everyday business-economics beta are complete as of 9 August 2026. See the [Phase 0 completion report](phase-0-completion-report.md), [Phase 1 completion report](phase-1-completion-report.md), [Phase 2 completion report](phase-2-completion-report.md), [canonical catalogue](business_toolkit_catalogue.csv), [formula and policy register](business_toolkit_formula_policy_register.csv), [source library](business_toolkit_source_library.csv), [tool contract v2](tool-contract-v2.md), [change-control workflow](regulatory-change-control.md), and [architecture decisions](phase-0-architecture-decisions.md).
 
 ## 1. Executive decision
 

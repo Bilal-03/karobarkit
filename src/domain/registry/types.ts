@@ -84,6 +84,20 @@ export interface ToolCategoryDefinition {
 
 export type ToolUiAdapter =
   | { adapter: 'calculator'; variant: 'cagr' | 'roi' }
+  | {
+      adapter: 'business-calculator';
+      variant:
+        | 'margin'
+        | 'markup'
+        | 'break-even'
+        | 'pricing'
+        | 'cash-flow'
+        | 'burn-rate'
+        | 'runway'
+        | 'marketplace-margin'
+        | 'roas'
+        | 'cod-cost';
+    }
   | { adapter: 'gst-calculator' }
   | { adapter: 'qr-generator'; variant: 'url-qr' | 'upi-standee' }
   | { adapter: 'document-generator'; variant: 'letterhead' | 'payment-receipt' }

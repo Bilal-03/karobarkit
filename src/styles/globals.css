@@ -1082,6 +1082,30 @@ p {
   display: grid;
   gap: var(--space-5);
 }
+.scenario-transfer {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid rgba(15, 168, 154, 0.32);
+  border-radius: var(--radius-sm);
+  background: var(--accent-050);
+}
+.scenario-transfer strong {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--ink-900);
+}
+.scenario-transfer p,
+.scenario-transfer__note {
+  margin-bottom: var(--space-3);
+  color: var(--ink-650);
+  font-size: 0.86rem;
+}
+.scenario-transfer .inline-actions {
+  margin-top: var(--space-3);
+}
+.scenario-transfer__note {
+  margin-top: var(--space-3);
+}
 .gst-policy-summary {
   display: grid;
   gap: 3px;
@@ -2935,6 +2959,7 @@ p {
   .breadcrumbs,
   .tool-hero__meta,
   .calculator-card,
+  .scenario-actions,
   .report-link {
     display: none !important;
   }

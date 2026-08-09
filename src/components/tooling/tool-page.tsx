@@ -22,6 +22,7 @@ import { faqStructuredData, toolStructuredData } from '@/lib/structured-data';
 import { ToolTrustPanel } from '@/components/trust/tool-trust-panel';
 
 import { CalculatorForm } from './calculator-form';
+import { BusinessCalculatorForm } from './business-calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
@@ -82,6 +83,19 @@ function ToolInteraction({ tool }: { tool: SupportedTool }) {
           kind={tool.ui.variant}
           tool={{
             id: tool.id,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    case 'business-calculator':
+      return (
+        <BusinessCalculatorForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            name: tool.name,
             category: tool.category,
             defaultValues: tool.defaultValues,
             privacyNote: tool.privacyNote,
@@ -246,6 +260,8 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
                   name={related.name}
                   summary={related.summary}
                   categoryLabel={related.categoryLabel}
+                  lifecycle={related.lifecycle}
+                  executionMode={related.executionMode}
                 />
               ))}
             </div>

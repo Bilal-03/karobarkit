@@ -22,8 +22,8 @@ export default function ToolsPage() {
             <div>
               <h1>Find the right tool for the business task</h1>
               <p className="lede">
-                Search by task, category, tool type, data use or regulatory scope. Every live tool exposes its
-                method, limitations, sources and verification status.
+                Search by task, category, tool type, data use or regulatory scope. Every published tool
+                exposes its method, limitations, sources and verification status.
               </p>
             </div>
             <span className="result-count">{toolRegistry.length} tools available</span>
