@@ -1,6 +1,6 @@
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 
-export type EffectiveDatedStatus = 'active' | 'historical' | 'provisional';
+export type EffectiveDatedStatus = 'active' | 'historical' | 'provisional' | 'stale' | 'withdrawn';
 
 export interface EffectiveDateRange {
   effectiveFrom: string;

@@ -1,4 +1,4 @@
-import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { allToolDefinitions, categoryRegistry, toolRegistry } from '@/domain/registry';
 
 export type Tool = (typeof toolRegistry)[number];
 
@@ -109,11 +109,11 @@ export function getFeaturedTools() {
 }
 
 export function validateDiscoveryRegistry() {
-  const toolIds = new Set(toolRegistry.map((tool) => tool.id));
+  const toolIds = new Set(allToolDefinitions.map((tool) => tool.id));
   const categoryIds = new Set<string>(categoryRegistry.map((category) => category.id));
   const errors: string[] = [];
 
-  for (const tool of toolRegistry) {
+  for (const tool of allToolDefinitions) {
     if (!categoryIds.has(tool.category)) errors.push(`${tool.id}: missing category ${tool.category}`);
     for (const secondaryCategory of tool.secondaryCategories) {
       if (!categoryIds.has(secondaryCategory)) {
@@ -123,7 +123,7 @@ export function validateDiscoveryRegistry() {
         errors.push(`${tool.id}: primary category repeated as secondary category`);
       }
     }
-    if (tool.lifecycle !== 'live' && tool.lifecycle !== 'beta') {
+    if (tool.lifecycle !== 'live' && tool.lifecycle !== 'beta' && tool.lifecycle !== 'internal') {
       errors.push(`${tool.id}: non-public lifecycle leaked into public registry`);
     }
     if (tool.ui.adapter === 'unavailable') {
@@ -136,6 +136,9 @@ export function validateDiscoveryRegistry() {
       tool.sources.every((source) => source.evidenceLevel !== 'official')
     ) {
       errors.push(`${tool.id}: Tier D tool requires an official source`);
+    }
+    if (tool.featureFlag === 'phase4-tax-review' && (tool.governance.goldenFixtureIds?.length ?? 0) === 0) {
+      errors.push(`${tool.id}: Phase 4 tool requires golden fixture IDs before release`);
     }
     if (new Set(tool.relatedToolIds).size !== tool.relatedToolIds.length)
       errors.push(`${tool.id}: duplicate related tool`);

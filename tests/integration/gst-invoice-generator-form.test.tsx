@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -36,6 +36,30 @@ async function fillMinimumInvoice() {
 }
 
 describe('GST invoice generator form', () => {
+  it('shows the policy selected by invoice date and blocks unsupported history', async () => {
+    render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
+
+    expect(screen.getByText(/applies to 2026-08-08/iu)).toBeInTheDocument();
+    const user = await fillMinimumInvoice();
+    const invoiceDate = document.getElementById('invoiceDate');
+    if (!invoiceDate) throw new Error('Invoice date field not found.');
+    fireEvent.change(invoiceDate, { target: { value: '2024-01-01' } });
+    expect(screen.getByText('The reviewed GST policy is unavailable.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
+    expect(await screen.findAllByText(/No active GST policy covers the requested date/iu)).not.toHaveLength(
+      0,
+    );
+  }, 30_000);
+
+  it('blocks a future invoice date beyond the verified GST snapshot', async () => {
+    render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
+    const invoiceDate = document.getElementById('invoiceDate');
+    if (!invoiceDate) throw new Error('Invoice date field not found.');
+    fireEvent.change(invoiceDate, { target: { value: '2099-01-01' } });
+    expect(screen.getByText('The reviewed GST policy is unavailable.')).toBeInTheDocument();
+  });
+
   it('announces validation errors and keeps the first item undeletable', async () => {
     const user = userEvent.setup();
     render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);

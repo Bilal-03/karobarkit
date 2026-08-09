@@ -58,7 +58,7 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
   const initialValues = useMemo(() => tool.defaultValues as GstInput, [tool.defaultValues]);
   const rateOptions = useMemo(() => getGstRateOptions(defaultPolicyContext.asOf), []);
   const policy = useMemo(() => getActiveGstPolicy(defaultPolicyContext.asOf), []);
-  const freshness = useMemo(() => getGstPolicyFreshness(policy, defaultPolicyContext.asOf), [policy]);
+  const freshness = useMemo(() => getGstPolicyFreshness(policy), [policy]);
   const [values, setValues] = useState<GstInput>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
   const [result, setResult] = useState<GstResult | null>(null);

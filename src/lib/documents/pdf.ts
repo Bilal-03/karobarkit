@@ -9,7 +9,15 @@ import latinRegularUrl from '@fontsource/noto-sans-devanagari/files/noto-sans-de
 
 import { DocumentExportError } from '@/domain/documents/errors';
 import { addressToText } from '@/domain/invoices/calculation';
-import type { BusinessDocument, LetterheadDocument, PaymentReceiptDocument } from '@/domain/documents/types';
+import type {
+  BusinessCardDocument,
+  BusinessDocument,
+  InvoiceDocument,
+  LetterheadDocument,
+  PaymentReceiptDocument,
+  QuotationDocument,
+  QuotationLine,
+} from '@/domain/documents/types';
 import type { GstInvoiceDocument, GstInvoiceLine, InvoiceParty } from '@/domain/invoices/types';
 
 const A4_WIDTH = 595.28;
@@ -775,6 +783,270 @@ function drawInvoicePage(
     );
 }
 
+function drawQuotationPage(
+  page: PDFPage,
+  document: QuotationDocument | InvoiceDocument,
+  fonts: PdfFonts,
+  logo: PdfImageSource | undefined,
+  items: QuotationLine[],
+  pageIndex: number,
+) {
+  drawTemplateFrame(page, document);
+  let y = drawIdentityHeader(page, document, fonts, logo);
+  const margin = document.layout.marginLeftMm * MM;
+  const contentWidth = A4_WIDTH - (document.layout.marginLeftMm + document.layout.marginRightMm) * MM;
+  const accent = accentColor(document.branding.accent);
+  const isInvoice = document.type === 'invoice';
+  drawText(page, isInvoice ? 'INVOICE' : 'QUOTATION', margin, y, fonts, {
+    size: 18,
+    bold: true,
+    color: accent,
+  });
+  drawRightText(page, document.displayDate, margin + contentWidth, y, fonts, { size: 9, color: MUTED });
+  y -= 30;
+  drawRule(page, margin, y, margin + contentWidth, accent, 1.1);
+  y -= 24;
+  const metaWidth = contentWidth / 2 - 12;
+  drawText(page, isInvoice ? 'Invoice number' : 'Quote number', margin, y, fonts, {
+    size: 8.5,
+    bold: true,
+    color: MUTED,
+  });
+  drawText(page, document.metadata.number, margin, y - 15, fonts, { size: 10.5, bold: true });
+  drawText(page, isInvoice ? 'Billed to' : 'Prepared for', margin + metaWidth + 24, y, fonts, {
+    size: 8.5,
+    bold: true,
+    color: MUTED,
+  });
+  y = drawWrapped(page, document.recipient.name, margin + metaWidth + 24, y - 15, metaWidth, fonts, {
+    size: 10.5,
+    bold: true,
+  });
+  if (document.recipient.address.text)
+    y = Math.min(
+      y,
+      drawWrapped(page, document.recipient.address.text, margin + metaWidth + 24, y - 3, metaWidth, fonts, {
+        size: 8.2,
+        color: MUTED,
+      }),
+    );
+  if (!isInvoice && 'displayValidUntil' in document && document.displayValidUntil)
+    drawRightText(page, `Valid until: ${document.displayValidUntil}`, margin + contentWidth, y - 4, fonts, {
+      size: 8.2,
+      color: MUTED,
+    });
+  if (isInvoice && document.displayDueDate)
+    drawRightText(page, `Due date: ${document.displayDueDate}`, margin + contentWidth, y - 4, fonts, {
+      size: 8.2,
+      color: MUTED,
+    });
+  y -= 42;
+  const widths = [
+    24,
+    contentWidth * 0.35,
+    54,
+    72,
+    66,
+    contentWidth - 24 - contentWidth * 0.35 - 54 - 72 - 66,
+  ];
+  const labels = ['#', 'Description', 'Qty', 'Rate', 'Discount', 'Subtotal'];
+  let cursorX = margin;
+  labels.forEach((label, index) => {
+    drawText(page, label, cursorX + 3, y, fonts, { size: 7.5, bold: true, color: MUTED });
+    cursorX += widths[index] ?? 0;
+  });
+  drawRule(page, margin, y - 6, margin + contentWidth, LINE, 0.8);
+  y -= 12;
+  const firstItemIndex = document.items.findIndex((item) => item.id === items[0]?.id);
+  items.forEach((line, index) => {
+    const descriptionLines = wrapLine(line.description, (widths[1] ?? 0) - 8, fonts, { size: 8.1 });
+    const rowHeight = Math.max(22, descriptionLines.length * 10.3 + 9);
+    let x = margin;
+    drawText(page, String((firstItemIndex < 0 ? index : firstItemIndex + index) + 1), x + 3, y - 13, fonts, {
+      size: 7.5,
+    });
+    x += widths[0] ?? 0;
+    drawWrapped(page, line.description, x + 3, y - 10, (widths[1] ?? 0) - 8, fonts, {
+      size: 8.1,
+      lineHeight: 10.3,
+    });
+    x += widths[1] ?? 0;
+    drawRightText(
+      page,
+      `${line.quantity}${line.unit ? ` ${line.unit}` : ''}`,
+      x + (widths[2] ?? 0) - 3,
+      y - 13,
+      fonts,
+      { size: 7.3 },
+    );
+    x += widths[2] ?? 0;
+    drawRightText(page, formatPdfCurrency(line.unitPrice), x + (widths[3] ?? 0) - 3, y - 13, fonts, {
+      size: 7.3,
+    });
+    x += widths[3] ?? 0;
+    drawRightText(page, formatPdfCurrency(line.discountAmount), x + (widths[4] ?? 0) - 3, y - 13, fonts, {
+      size: 7.3,
+    });
+    x += widths[4] ?? 0;
+    drawRightText(page, formatPdfCurrency(line.subtotal), x + (widths[5] ?? 0) - 3, y - 13, fonts, {
+      size: 7.3,
+      bold: true,
+    });
+    drawRule(page, margin, y - rowHeight, margin + contentWidth, LINE, 0.45);
+    y -= rowHeight;
+  });
+  if (pageIndex < document.pageChunks.length - 1) {
+    drawText(
+      page,
+      `${isInvoice ? 'Invoice' : 'Quotation'} items continue on the next page.`,
+      margin,
+      y - 18,
+      fonts,
+      {
+        size: 8,
+        color: MUTED,
+      },
+    );
+  } else {
+    y -= 18;
+    const summaryWidth = contentWidth * 0.45;
+    const summaryX = margin + contentWidth - summaryWidth;
+    drawText(page, 'Gross value', summaryX, y, fonts, { size: 8.5, color: MUTED });
+    drawRightText(page, formatPdfCurrency(document.totals.grossValue), margin + contentWidth, y, fonts, {
+      size: 8.5,
+    });
+    y -= 16;
+    drawText(page, 'Discounts', summaryX, y, fonts, { size: 8.5, color: MUTED });
+    drawRightText(page, formatPdfCurrency(document.totals.discountAmount), margin + contentWidth, y, fonts, {
+      size: 8.5,
+    });
+    y -= 7;
+    drawRule(page, summaryX, y, margin + contentWidth, accent, 0.9);
+    y -= 17;
+    drawText(page, isInvoice ? 'Invoice subtotal' : 'Quoted subtotal', summaryX, y, fonts, {
+      size: 9,
+      bold: true,
+    });
+    drawRightText(page, formatPdfCurrency(document.totals.subtotal), margin + contentWidth, y, fonts, {
+      size: 10,
+      bold: true,
+      color: accent,
+    });
+    y -= 28;
+    drawText(page, 'Total in words', margin, y, fonts, { size: 8.5, bold: true, color: MUTED });
+    y = drawWrapped(page, document.totals.amountInWords, margin, y - 15, contentWidth * 0.5, fonts, {
+      size: 8.5,
+      bold: true,
+    });
+    const notes = [
+      document.notes ? `Notes: ${document.notes}` : '',
+      document.terms ? `Terms: ${document.terms}` : '',
+      isInvoice && document.paymentDetails ? `Payment details: ${document.paymentDetails}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    if (notes)
+      drawWrapped(
+        page,
+        notes,
+        margin,
+        Math.max(y - 8, document.layout.marginBottomMm * MM + 100),
+        contentWidth * 0.55,
+        fonts,
+        { size: 7.5, color: MUTED },
+      );
+    const signatureY = document.layout.marginBottomMm * MM + 76;
+    drawRule(page, margin + contentWidth - 130, signatureY, margin + contentWidth, INK, 0.7);
+    if (document.signature.name)
+      drawText(page, document.signature.name, margin + contentWidth - 130, signatureY - 15, fonts, {
+        size: 8,
+        bold: true,
+      });
+    if (document.signature.designation)
+      drawText(page, document.signature.designation, margin + contentWidth - 130, signatureY - 28, fonts, {
+        size: 7.5,
+        color: MUTED,
+      });
+    drawWrapped(
+      page,
+      isInvoice
+        ? 'Commercial invoice draft only. This document is not a GST tax invoice, filing record, payment confirmation or guarantee of tax treatment.'
+        : 'Estimate only. This quotation is not a GST tax invoice, e-invoice, IRN, payment confirmation or guarantee of supply.',
+      margin,
+      document.layout.marginBottomMm * MM + 45,
+      contentWidth,
+      fonts,
+      { size: 7.2, color: MUTED },
+    );
+  }
+  drawFooter(page, document, fonts);
+  if (pageIndex > 0)
+    drawRightText(
+      page,
+      `Page ${pageIndex + 1}`,
+      margin + contentWidth,
+      document.layout.marginBottomMm * MM + 34,
+      fonts,
+      { size: 7.5, color: MUTED },
+    );
+}
+
+function drawBusinessCardPage(
+  page: PDFPage,
+  document: BusinessCardDocument,
+  fonts: PdfFonts,
+  logo: PdfImageSource | undefined,
+) {
+  drawTemplateFrame(page, document);
+  let y = drawIdentityHeader(page, document, fonts, logo);
+  const margin = document.layout.marginLeftMm * MM;
+  const contentWidth = A4_WIDTH - (document.layout.marginLeftMm + document.layout.marginRightMm) * MM;
+  const accent = accentColor(document.branding.accent);
+  drawText(page, 'BUSINESS CARD', margin, y, fonts, { size: 18, bold: true, color: accent });
+  y -= 34;
+  const cardWidth = contentWidth * 0.86;
+  const cardHeight = 190;
+  const cardX = margin + (contentWidth - cardWidth) / 2;
+  page.drawRectangle({
+    x: cardX,
+    y: y - cardHeight,
+    width: cardWidth,
+    height: cardHeight,
+    color: rgb(0.96, 0.98, 0.97),
+    borderColor: accent,
+    borderWidth: 1.4,
+  });
+  if (logo) drawLogo(page, logo, cardX + 24, y - 28, 70, 45);
+  drawText(page, document.identity.name, cardX + 24, y - 92, fonts, { size: 13, bold: true, color: accent });
+  drawText(page, document.personName, cardX + 24, y - 124, fonts, { size: 22, bold: true });
+  if (document.designation)
+    drawText(page, document.designation, cardX + 24, y - 143, fonts, { size: 9, color: MUTED });
+  const contact = [document.contact.phone, document.contact.email, document.contact.website]
+    .filter(Boolean)
+    .join(' · ');
+  if (contact)
+    drawWrapped(page, contact, cardX + 24, y - 163, cardWidth - 48, fonts, { size: 8.2, color: MUTED });
+  if (document.address)
+    drawWrapped(page, document.address, cardX + 24, y - 181, cardWidth - 48, fonts, {
+      size: 7.8,
+      color: MUTED,
+    });
+  y -= cardHeight + 42;
+  drawText(page, 'Back / notes', margin, y, fonts, { size: 9, bold: true, color: MUTED });
+  if (document.note)
+    y = drawWrapped(page, document.note, margin, y - 17, contentWidth * 0.7, fonts, { size: 9 });
+  drawWrapped(
+    page,
+    'Print on A4 and trim to your preferred card stock. Printer alignment and final dimensions should be checked before production.',
+    margin,
+    Math.min(y - 20, document.layout.marginBottomMm * MM + 72),
+    contentWidth,
+    fonts,
+    { size: 8, color: MUTED },
+  );
+  drawFooter(page, document, fonts);
+}
+
 export async function createDocumentPdf(document: BusinessDocument): Promise<Blob> {
   if (typeof window === 'undefined') {
     throw new DocumentExportError('pdf_failed', 'PDF downloads are available in your browser.');
@@ -794,6 +1066,14 @@ export async function createDocumentPdf(document: BusinessDocument): Promise<Blo
         const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
         drawInvoicePage(page, document, fonts, logo, items, index);
       });
+    } else if (document.type === 'quotation' || document.type === 'invoice') {
+      document.pageChunks.forEach((items, index) => {
+        const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
+        drawQuotationPage(page, document, fonts, logo, items, index);
+      });
+    } else if (document.type === 'business-card') {
+      const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
+      drawBusinessCardPage(page, document, fonts, logo);
     } else {
       const page = pdf.addPage([A4_WIDTH, A4_HEIGHT]);
       drawReceiptPage(page, document, fonts, logo);

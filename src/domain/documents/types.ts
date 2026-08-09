@@ -130,6 +130,110 @@ export interface PaymentReceiptInput extends DocumentFormInput {
   signaturePlaceholder: boolean;
 }
 
+export type QuotationDiscountType = 'none' | 'percentage' | 'fixed';
+
+export interface QuotationLineInput {
+  id: string;
+  description: string;
+  quantity: string;
+  unit: string;
+  unitPrice: string;
+  discountType: QuotationDiscountType;
+  discountValue: string;
+}
+
+export interface QuotationInput extends DocumentFormInput {
+  quoteNumber: string;
+  quoteDate: string;
+  validUntil: string;
+  customerName: string;
+  customerAddress: string;
+  customerEmail: string;
+  customerPhone: string;
+  items: QuotationLineInput[];
+  notes: string;
+  terms: string;
+  signatoryName: string;
+  signatoryDesignation: string;
+  signaturePlaceholder: boolean;
+}
+
+export interface QuotationLine {
+  id: string;
+  description: string;
+  quantity: string;
+  unit: string;
+  unitPrice: string;
+  grossValue: string;
+  discountType: QuotationDiscountType;
+  discountValue: string;
+  discountAmount: string;
+  subtotal: string;
+}
+
+export interface QuotationTotals {
+  grossValue: string;
+  discountAmount: string;
+  subtotal: string;
+  amountInWords: string;
+}
+
+export interface QuotationDocument {
+  type: 'quotation';
+  identity: BusinessIdentity;
+  logo: LogoAsset | null;
+  branding: BrandingPreferences;
+  footerText: string;
+  metadata: DocumentMetadata;
+  recipient: RecipientBlock;
+  recipientContact: ContactInformation;
+  items: QuotationLine[];
+  pageChunks: QuotationLine[][];
+  totals: QuotationTotals;
+  notes: string;
+  terms: string;
+  signature: SignatureField;
+  displayDate: string;
+  displayValidUntil: string;
+  layout: PageLayout;
+  exportSettings: ExportSettings;
+}
+
+export interface InvoiceDocument extends Omit<QuotationDocument, 'type' | 'metadata' | 'displayValidUntil'> {
+  type: 'invoice';
+  metadata: DocumentMetadata;
+  dueDate: string;
+  displayDueDate: string;
+  paymentDetails: string;
+}
+
+export interface BusinessCardInput extends DocumentFormInput {
+  personName: string;
+  designation: string;
+  cardPhone: string;
+  cardEmail: string;
+  cardWebsite: string;
+  cardAddress: string;
+  cardTagline: string;
+  cardNote: string;
+}
+
+export interface BusinessCardDocument {
+  type: 'business-card';
+  identity: BusinessIdentity;
+  logo: LogoAsset | null;
+  branding: BrandingPreferences;
+  footerText: string;
+  personName: string;
+  designation: string;
+  contact: ContactInformation;
+  address: string;
+  tagline: string;
+  note: string;
+  layout: PageLayout;
+  exportSettings: ExportSettings;
+}
+
 export interface LetterheadDocument {
   type: 'letterhead';
   identity: BusinessIdentity;
@@ -167,6 +271,12 @@ export interface PaymentReceiptDocument {
   exportSettings: ExportSettings;
 }
 
-export type BusinessDocument = LetterheadDocument | PaymentReceiptDocument | GstInvoiceDocument;
+export type BusinessDocument =
+  | LetterheadDocument
+  | PaymentReceiptDocument
+  | QuotationDocument
+  | InvoiceDocument
+  | BusinessCardDocument
+  | GstInvoiceDocument;
 
 export type DocumentValidationResult<T> = ValidationResult<T>;

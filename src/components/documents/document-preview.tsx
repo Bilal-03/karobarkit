@@ -1,7 +1,15 @@
 import Image from 'next/image';
 
 import { formatIndianCurrency, formatIndianNumber } from '@/domain/formatting/indian';
-import type { BusinessDocument, LetterheadDocument, PaymentReceiptDocument } from '@/domain/documents/types';
+import type {
+  BusinessCardDocument,
+  BusinessDocument,
+  InvoiceDocument,
+  LetterheadDocument,
+  PaymentReceiptDocument,
+  QuotationDocument,
+  QuotationLine,
+} from '@/domain/documents/types';
 import type { GstInvoiceDocument, GstInvoiceLine } from '@/domain/invoices/types';
 
 function Logo({ document }: { document: BusinessDocument }) {
@@ -237,6 +245,272 @@ function PaymentReceiptPage({ document }: { document: PaymentReceiptDocument }) 
           This receipt records a payment declared by the issuer. It is not bank confirmation, proof of
           settlement, a government receipt or a GST tax invoice.
         </aside>
+      </div>
+    </TemplatePage>
+  );
+}
+
+function QuotationLineDetails({ line, index }: { line: QuotationLine; index: number }) {
+  return (
+    <details className="invoice-mobile-line">
+      <summary>
+        <span>
+          {index + 1}. {line.description}
+        </span>
+        <strong>{formatIndianCurrency(line.subtotal)}</strong>
+      </summary>
+      <dl>
+        <div>
+          <dt>Quantity</dt>
+          <dd>
+            {formatIndianNumber(line.quantity)} {line.unit}
+          </dd>
+        </div>
+        <div>
+          <dt>Unit price</dt>
+          <dd>{formatIndianCurrency(line.unitPrice)}</dd>
+        </div>
+        <div>
+          <dt>Discount</dt>
+          <dd>{formatIndianCurrency(line.discountAmount)}</dd>
+        </div>
+        <div>
+          <dt>Line subtotal</dt>
+          <dd>{formatIndianCurrency(line.subtotal)}</dd>
+        </div>
+      </dl>
+    </details>
+  );
+}
+
+function QuotationPage({
+  document,
+  items,
+  pageIndex,
+}: {
+  document: QuotationDocument | InvoiceDocument;
+  items: QuotationLine[];
+  pageIndex: number;
+}) {
+  const isLastPage = pageIndex === document.pageChunks.length - 1;
+  const isInvoice = document.type === 'invoice';
+  const firstItemIndex = document.items.findIndex((item) => item.id === items[0]?.id);
+  return (
+    <TemplatePage document={document} pageNumber={pageIndex + 1}>
+      <div className="invoice-content quotation-content">
+        <div className="invoice-heading">
+          <div>
+            <p className="document-kicker">
+              {isInvoice ? 'Commercial invoice · local draft' : 'Commercial estimate · local draft'}
+            </p>
+            <h1>{isInvoice ? 'Invoice' : 'Quotation'}</h1>
+          </div>
+          <dl>
+            <div>
+              <dt>{isInvoice ? 'Invoice no.' : 'Quote no.'}</dt>
+              <dd>{document.metadata.number}</dd>
+            </div>
+            <div>
+              <dt>{isInvoice ? 'Invoice date' : 'Quote date'}</dt>
+              <dd>
+                <time dateTime={document.metadata.date}>{document.displayDate}</time>
+              </dd>
+            </div>
+            {'displayValidUntil' in document && document.displayValidUntil ? (
+              <div>
+                <dt>Valid until</dt>
+                <dd>{document.displayValidUntil}</dd>
+              </div>
+            ) : null}
+            {isInvoice && document.displayDueDate ? (
+              <div>
+                <dt>Due date</dt>
+                <dd>{document.displayDueDate}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
+        {pageIndex === 0 ? (
+          <div className="invoice-parties">
+            <div className="invoice-party-block">
+              <span className="invoice-label">{isInvoice ? 'Billed to' : 'Prepared for'}</span>
+              <strong>{document.recipient.name}</strong>
+              {document.recipient.address.text ? (
+                <p className="preserve-lines">{document.recipient.address.text}</p>
+              ) : null}
+              {[document.recipientContact.phone, document.recipientContact.email].filter(Boolean).length ? (
+                <span>
+                  {[document.recipientContact.phone, document.recipientContact.email]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              ) : null}
+            </div>
+            <div className="invoice-party-block">
+              <span className="invoice-label">Document status</span>
+              <strong>{isInvoice ? 'Commercial draft' : 'Estimate only'}</strong>
+              <p>
+                {isInvoice
+                  ? 'Values are shown before any GST or other statutory treatment.'
+                  : 'Prices are shown before any GST or other statutory treatment.'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="document-continuation">{isInvoice ? 'Invoice' : 'Quotation'} · continued</p>
+        )}
+        <div className="invoice-table-wrap">
+          <table className="invoice-table quotation-table">
+            <caption>
+              {isInvoice ? 'Invoice' : 'Quotation'} items, page {pageIndex + 1}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Description</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Rate</th>
+                <th scope="col">Discount</th>
+                <th scope="col">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((line, index) => (
+                <tr key={line.id}>
+                  <td>{(firstItemIndex < 0 ? index : firstItemIndex + index) + 1}</td>
+                  <td className="break-anywhere">{line.description}</td>
+                  <td>
+                    {formatIndianNumber(line.quantity)} {line.unit}
+                  </td>
+                  <td>{formatIndianCurrency(line.unitPrice)}</td>
+                  <td>{formatIndianCurrency(line.discountAmount)}</td>
+                  <td>
+                    <strong>{formatIndianCurrency(line.subtotal)}</strong>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="invoice-mobile-lines" aria-label="Quotation items in mobile layout">
+          {items.map((line, index) => (
+            <QuotationLineDetails key={line.id} line={line} index={firstItemIndex + index} />
+          ))}
+        </div>
+        {!isLastPage ? (
+          <p className="invoice-continuation-note">
+            More {isInvoice ? 'invoice' : 'quotation'} items continue on the next A4 page.
+          </p>
+        ) : null}
+        {isLastPage ? (
+          <>
+            <div className="invoice-result-grid quotation-summary-grid">
+              <section
+                className="invoice-words"
+                aria-label={`${isInvoice ? 'Invoice' : 'Quotation'} total in words`}
+              >
+                <span className="invoice-label">Total in words</span>
+                <strong>{document.totals.amountInWords}</strong>
+              </section>
+              <section
+                className="invoice-totals"
+                aria-label={`${isInvoice ? 'Invoice' : 'Quotation'} totals`}
+              >
+                <div>
+                  <span>Gross value</span>
+                  <strong>{formatIndianCurrency(document.totals.grossValue)}</strong>
+                </div>
+                <div>
+                  <span>Discounts</span>
+                  <strong>{formatIndianCurrency(document.totals.discountAmount)}</strong>
+                </div>
+                <div className="invoice-grand-total">
+                  <span>{isInvoice ? 'Invoice subtotal' : 'Quoted subtotal'}</span>
+                  <strong>{formatIndianCurrency(document.totals.subtotal)}</strong>
+                </div>
+              </section>
+            </div>
+            <div className="invoice-extra-grid">
+              <div>
+                {document.notes ? (
+                  <p>
+                    <strong>Notes:</strong> {document.notes}
+                  </p>
+                ) : null}
+                {document.terms ? (
+                  <p>
+                    <strong>Terms:</strong> {document.terms}
+                  </p>
+                ) : null}
+                {isInvoice && document.paymentDetails ? (
+                  <p>
+                    <strong>Payment details:</strong> {document.paymentDetails}
+                  </p>
+                ) : null}
+              </div>
+              <div className="invoice-signature">
+                <span>{isInvoice ? 'Authorised signatory' : 'Prepared by'}</span>
+                {document.signature.showPlaceholder ? <div aria-hidden="true" /> : null}
+                {document.signature.name ? <strong>{document.signature.name}</strong> : null}
+                {document.signature.designation ? <span>{document.signature.designation}</span> : null}
+              </div>
+            </div>
+            <aside className="invoice-disclaimer quotation-disclaimer">
+              {isInvoice
+                ? 'This commercial invoice is a local draft created from the entered information. It is not a GST tax invoice, filing record, payment confirmation or guarantee of tax treatment.'
+                : 'This quotation is an estimate created from the entered information. It is not a GST tax invoice, e-invoice, IRN, payment confirmation or guarantee of supply.'}
+            </aside>
+          </>
+        ) : null}
+      </div>
+    </TemplatePage>
+  );
+}
+
+function BusinessCardPage({ document }: { document: BusinessCardDocument }) {
+  const contact = [document.contact.phone, document.contact.email, document.contact.website].filter(Boolean);
+  return (
+    <TemplatePage document={document}>
+      <div className="business-card-content">
+        <p className="document-kicker">Print-ready contact card</p>
+        <h1>Business card</h1>
+        <div className="business-card-sheet">
+          <section className="business-card business-card--front" aria-label="Business card front">
+            <div className="business-card__brand">
+              <Logo document={document} />
+              <div>
+                <strong>{document.identity.name}</strong>
+                {document.identity.tagline ? <span>{document.identity.tagline}</span> : null}
+              </div>
+            </div>
+            <div className="business-card__person">
+              <h2>{document.personName}</h2>
+              {document.designation ? <p>{document.designation}</p> : null}
+            </div>
+            {document.tagline ? <p className="business-card__tagline">{document.tagline}</p> : null}
+            {contact.length ? <p className="business-card__contact">{contact.join(' · ')}</p> : null}
+            {document.address ? (
+              <p className="business-card__address preserve-lines">{document.address}</p>
+            ) : null}
+          </section>
+          <section className="business-card business-card--back" aria-label="Business card notes">
+            <strong>{document.identity.name}</strong>
+            {document.note ? (
+              <p className="preserve-lines">{document.note}</p>
+            ) : (
+              <p>Share this card after checking every contact detail.</p>
+            )}
+            {document.identity.gstin ? <span>GSTIN: {document.identity.gstin}</span> : null}
+            {document.identity.registrationNumber ? (
+              <span>Reg. no.: {document.identity.registrationNumber}</span>
+            ) : null}
+            <small>Local design preview · trim after printing</small>
+          </section>
+        </div>
+        <p className="document-export-help">
+          Print on A4 paper and trim to the card stock size you use. Dimensions and print alignment depend on
+          your printer.
+        </p>
       </div>
     </TemplatePage>
   );
@@ -548,7 +822,22 @@ export function DocumentPreview({ document, targetId }: { document: BusinessDocu
         ? document.pageChunks.map((items, index) => (
             <GstInvoicePage document={document} items={items} pageIndex={index} key={`invoice-${index}`} />
           ))
-        : [<PaymentReceiptPage document={document} key="receipt" />];
+        : document.type === 'invoice'
+          ? document.pageChunks.map((items, index) => (
+              <QuotationPage document={document} items={items} pageIndex={index} key={`invoice-${index}`} />
+            ))
+          : document.type === 'quotation'
+            ? document.pageChunks.map((items, index) => (
+                <QuotationPage
+                  document={document}
+                  items={items}
+                  pageIndex={index}
+                  key={`quotation-${index}`}
+                />
+              ))
+            : document.type === 'business-card'
+              ? [<BusinessCardPage document={document} key="business-card" />]
+              : [<PaymentReceiptPage document={document} key="receipt" />];
 
   return (
     <div className="document-preview" data-testid="document-preview" aria-label="Document preview">

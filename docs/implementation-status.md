@@ -120,4 +120,56 @@ Verification completed:
 - Focused Playwright check on `desktop-1440`: 2 Phase 2 journeys passed (calculation/CSV and explicit scenario handoff).
 - Mobile/desktop layout matrix was not rerun, per the user’s request to skip non-functional responsive repetition; existing responsive CSS and keyboard semantics remain in place.
 
-The next authorized phase is Phase 3: finance calculations and document workflows, with official/verified fixtures for EMI, SIP, FD, XIRR, loan comparison, invoice and quotation flows.
+The next authorized phase is Phase 4: India tax, payroll and compliance tools, beginning with the controlled HRA and GST transaction-date sub-wave.
+
+## Business Toolkit expansion — Phase 3 finance foundation
+
+Status: complete on 9 August 2026 for the beta scope; finance and document-language review gates remain external release dependencies.
+
+The registry now includes five local-only finance tools: EMI, SIP, FD, XIRR and Loan Comparison. They share a decimal-safe engine, bounded validation, Indian formatting, print summaries and CSV export. EMI includes a complete amortization schedule and an explicitly labelled user-entered rate-reset scenario. SIP distinguishes end-of-month and beginning-of-month contributions and uses no-guarantee language. FD requires a declared compounding frequency and excludes bank-specific tax or premature-closure rules. XIRR accepts dated cash-flow lines, requires both signs and reports no-solution or non-convergence errors. Loan Comparison compares two neutral user-entered scenarios without lender scraping or ranking.
+
+The finance source records point to the controlled finance methodology, SEBI’s official SIP calculator reference and RBI’s official EMI reset FAQ. No current rate, tax treatment or product term is hardcoded into the calculations. Finance input names are excluded from both the registry analytics policy and the runtime event sanitizer.
+
+Finance foundation verification:
+
+- Unit and integration fixtures cover EMI reconciliation, zero-rate and reset scenarios, SIP timing, FD compounding, leap-year and Microsoft XIRR fixtures, signed-return validation, solver boundary errors, loan comparisons and form behavior.
+- `npm run format:check`, `npm run lint`, `npm run typecheck` and serialized `npm test -- --maxWorkers=1` passed (22 files, 213 tests).
+- `npm run build` passed and generated 53 static pages, including all 23 published tool routes.
+- Focused Playwright finance journey passed on `desktop-1440` (1 test: EMI result, amortization output, source link and CSV download). The previously requested responsive matrix is not being repeated.
+- The finance foundation’s sub-wave exit gates are complete. The document workflow sub-wave and its remaining external language review are recorded below.
+
+## Business Toolkit expansion — Phase 3 document workflow wave
+
+Status: implementation complete on 9 August 2026 for the beta scope; external document-language review remains a release staffing gate.
+
+The public registry now also includes local-only Invoice, Quotation, Business Card and Invoice Number generators. Invoice and Quotation use shared document identity, logo, style, Indian amount-to-words and decimal-safe line arithmetic, while deliberately excluding GST calculation and unsupported compliance claims. Business Card produces a local front/back proof sheet and PDF. Invoice Number formats a user-supplied prefix, financial year and padded sequence without claiming reservation or cross-device uniqueness.
+
+Document output now shares the existing A4 preview and PDF/print path. Explicit, opt-in session-only handoffs are available for Quotation → Invoice, Quotation → GST Invoice, Invoice/GST Invoice → Payment Receipt and Invoice/GST Invoice → UPI QR. Handoffs copy only selected fields, never place values in URLs or analytics, require destination-side review and do not issue invoices, confirm settlement or verify UPI ownership automatically.
+
+Verification completed for this wave:
+
+- `npm run format:check`, `npm run lint` and `npm run typecheck` pass (lint has only the existing Next.js warning for full-page internal handoff navigation).
+- Focused unit and integration fixtures cover invoice and quotation rounding/discount boundaries, invoice due-date ordering, business-card website safety, invoice-number sequence boundaries, preview rendering and privacy/disclaimer language.
+- Serialized `npm test -- --maxWorkers=1` passes: 23 files and 224 tests.
+- `npm run build` passes and generates 54 static routes (plus 2 dynamic routes), including all 27 published tool routes.
+- Focused Playwright `desktop-1440` checks pass: quotation A4/PDF/print plus Quote → GST Invoice import, Business Card PDF plus Invoice Number preview, commercial Invoice PDF/print plus receipt handoff, and GST Invoice receipt/UPI handoffs (4 tests). The responsive matrix is intentionally not repeated.
+
+Phase 3 implementation and built-app handoff checks are complete. The remaining release gate is final reviewer sign-off for document language and export behavior. No GST compliance, invoice issuance, payment settlement or QR ownership claim is made by this wave.
+
+## Business Toolkit expansion — Phase 4 tax, payroll and compliance layer
+
+Status: public controlled beta on 10 August 2026. Named CA/tax and payroll/labour reviewer approval and signed fixtures remain governance follow-ups; they do not block visibility for this personal project.
+
+The five release blockers and two governance/test gaps identified in the Phase 4 review are corrected. HRA now uses the controlling Rule 2A city list (Mumbai, Kolkata, Delhi and Chennai), includes eligible turnover-based commission in its salary base, asks for rented accommodation and a stable fact pattern, and stops unsupported own-house/no-rent and changed-period claims. Its official source bundle records the 15 May 2026 ITR-4 publication date and validates HTTPS Government domains. GST rejects future transaction dates beyond the reviewed snapshot, evaluates freshness against the runtime date and disables invoice generation when the policy is stale.
+
+All four Phase 4 sub-waves are implemented and public as a controlled beta: HRA/GST transaction-date refinement; Income Tax and TDS; Presumptive Tax and Corporate Tax; and CTC, In-hand Salary, PF and Gratuity. The eight new tax/payroll calculators are local-only, policy-scoped, Tier D, beta and reviewer-pending. They carry source dependencies, explicit eligibility lockouts, stale/source kill-switches, golden fixture IDs and analytics field exclusions. `phase4-tax-review` remains an explicit opt-out flag for deployments that need to hide them.
+
+Verification evidence:
+
+- `npm run format:check`, `npm run typecheck`, `npm run lint` and `git diff --check` pass. ESLint reports six pre-existing Next.js internal-navigation warnings and no errors.
+- Serialized `npm test -- --maxWorkers=1 --no-file-parallelism` passes: 26 files and 249 tests. Negative cases cover future dates, stale policies, unsupported eligibility, Act transition, residency, threshold and payroll boundaries.
+- `npm run build` passes: 66 static pages, including all 36 public tool route parameters. An explicit empty `NEXT_PUBLIC_TOOL_FEATURE_FLAGS` value can opt Phase 4 out of a deployment.
+- Focused Playwright `desktop-1440` HRA smoke check passes. Mobile and multi-viewport layout matrices are intentionally not repeated per the user’s instruction.
+- Public beta operation still requires clear reviewer-pending labels, signed golden fixtures, source-policy approval, stale/withdrawn kill-switch rehearsal and production-equivalent build evidence before any “reviewed” or “approved” claim is made.
+
+See [`docs/product-spec/phase-4-completion-report.md`](product-spec/phase-4-completion-report.md) for the source links, scope, fixture coverage and activation checklist.

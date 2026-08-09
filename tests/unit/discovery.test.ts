@@ -9,7 +9,7 @@ import {
   searchTools,
   validateDiscoveryRegistry,
 } from '@/domain/discovery';
-import { categoryRegistry, toolRegistry } from '@/domain/registry';
+import { allToolDefinitions, categoryRegistry, toolRegistry } from '@/domain/registry';
 
 describe('tool discovery', () => {
   it('normalizes punctuation, case, whitespace and length', () => {
@@ -33,13 +33,26 @@ describe('tool discovery', () => {
     ['break even point', 'break-even-calculator'],
     ['cash runway', 'runway-calculator'],
     ['return on ad spend', 'roas-calculator'],
+    ['equated monthly instalment', 'emi-calculator'],
+    ['systematic investment plan', 'sip-calculator'],
+    ['fixed deposit calculator', 'fd-calculator'],
+    ['dated cash flow return', 'xirr-calculator'],
+    ['compare loans', 'loan-comparison'],
   ])('maps the synonym %s to %s', (query, expectedId) => {
     expect(searchTools(query)[0]?.id).toBe(expectedId);
   });
 
   it('returns no irrelevant tools and filters valid categories', () => {
     expect(searchTools('spaceship telemetry')).toEqual([]);
-    expect(filterTools('finance').map((tool) => tool.id)).toEqual(['cagr-calculator', 'roi-calculator']);
+    expect(filterTools('finance').map((tool) => tool.id)).toEqual([
+      'cagr-calculator',
+      'roi-calculator',
+      'emi-calculator',
+      'sip-calculator',
+      'fd-calculator',
+      'xirr-calculator',
+      'loan-comparison',
+    ]);
     expect(filterTools('not-a-category')).toEqual([]);
   });
 
@@ -52,13 +65,25 @@ describe('tool discovery', () => {
     expect(filterToolDirectory(toolRegistry, { regulated: 'regulated' }).map((tool) => tool.id)).toEqual([
       'gst-calculator',
       'gst-invoice-generator',
+      'hra-calculator',
+      'income-tax-calculator',
+      'tds-calculator',
+      'corporate-tax-calculator',
+      'presumptive-tax-calculator',
+      'ctc-calculator',
+      'in-hand-salary-calculator',
+      'pf-calculator',
+      'gratuity-calculator',
     ]);
+    expect(allToolDefinitions.find((tool) => tool.id === 'hra-calculator')?.featureFlag).toBe(
+      'phase4-tax-review',
+    );
     expect(filterToolDirectory(toolRegistry, { kind: 'worksheet' })).toEqual([]);
   });
 
   it('keeps discovery references and featured ordering valid', () => {
     expect(validateDiscoveryRegistry()).toEqual([]);
-    expect(getFeaturedTools()).toHaveLength(8);
+    expect(getFeaturedTools()).toHaveLength(11);
     expect(getFeaturedTools().every((tool) => tool.featured)).toBe(true);
     expect(new Set(toolRegistry.map((tool) => tool.slug)).size).toBe(toolRegistry.length);
     expect(new Set(categoryRegistry.map((category) => category.slug)).size).toBe(categoryRegistry.length);

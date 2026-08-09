@@ -203,10 +203,15 @@ export class GstPolicyError extends Error {
   }
 }
 
+function currentIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 const AUTHORITY_HOSTS: Record<SourceAuthority, readonly string[]> = {
   CBIC: ['cbic-gst.gov.in', 'www.cbic-gst.gov.in', 'taxinformation.cbic.gov.in'],
   GST_COUNCIL: ['gstcouncil.gov.in', 'www.gstcouncil.gov.in'],
   GST_PORTAL: ['gst.gov.in', 'www.gst.gov.in'],
+  INCOME_TAX_DEPARTMENT: ['incometax.gov.in', 'www.incometax.gov.in'],
   OTHER_GOVERNMENT: ['pib.gov.in', 'www.pib.gov.in', 'static.pib.gov.in'],
 };
 
@@ -488,6 +493,12 @@ export function validateGstPolicyBundle(
 }
 
 export function getActiveGstPolicy(asOf = GST_POLICY_AS_OF): GstPolicyVersion {
+  if (isIsoDate(asOf) && compareIsoDates(asOf, GST_POLICY_AS_OF) > 0) {
+    throw new GstPolicyError(
+      'future_policy_date',
+      `No reviewed GST policy covers dates after ${GST_POLICY_AS_OF}. Update the policy bundle before using a future transaction date.`,
+    );
+  }
   const validation = validateGstPolicyBundle(GST_POLICY_BUNDLE, asOf);
   if (!validation.success) {
     throw new GstPolicyError(
@@ -562,7 +573,7 @@ export function validateGstUiPresetIds(
       };
 }
 
-export function getGstPolicyFreshness(policy: GstPolicyVersion, asOf = GST_POLICY_AS_OF): GstPolicyFreshness {
+export function getGstPolicyFreshness(policy: GstPolicyVersion, asOf = currentIsoDate()): GstPolicyFreshness {
   const reviewDueOn = addIsoDays(policy.lastVerifiedOn, GST_POLICY_REVIEW_INTERVAL_DAYS);
   return {
     isStale: compareIsoDates(asOf, reviewDueOn) > 0,

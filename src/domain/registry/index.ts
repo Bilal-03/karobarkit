@@ -18,8 +18,25 @@ import {
 } from './tools/business-economics';
 import { gstTool } from './tools/gst';
 import { gstInvoiceTool } from './tools/gst-invoice';
+import { hraTool } from './tools/hra';
+import {
+  corporateTaxTool,
+  ctcTool,
+  gratuityTool,
+  inHandSalaryTool,
+  incomeTaxTool,
+  pfTool,
+  presumptiveTaxTool,
+  taxTools,
+  tdsTool,
+} from './tools/tax';
+import { financeTools, fdTool, emiTool, loanComparisonTool, sipTool, xirrTool } from './tools/finance';
 import { letterheadTool } from './tools/letterhead';
 import { paymentReceiptTool } from './tools/payment-receipt';
+import { businessCardTool } from './tools/business-card';
+import { invoiceTool } from './tools/invoice';
+import { invoiceNumberTool } from './tools/invoice-number';
+import { quotationTool } from './tools/quotation';
 import { roiTool } from './tools/roi';
 import { upiStandeeTool } from './tools/upi-standee';
 import { urlQrTool } from './tools/url-qr';
@@ -51,18 +68,37 @@ export {
   codCostTool,
   gstInvoiceTool,
   gstTool,
+  hraTool,
+  incomeTaxTool,
+  tdsTool,
+  corporateTaxTool,
+  presumptiveTaxTool,
+  ctcTool,
+  inHandSalaryTool,
+  pfTool,
+  gratuityTool,
   letterheadTool,
   marginTool,
   markupTool,
   marketplaceMarginTool,
   paymentReceiptTool,
+  businessCardTool,
+  invoiceTool,
+  invoiceNumberTool,
+  quotationTool,
   pricingTool,
   roiTool,
   roasTool,
   runwayTool,
   upiStandeeTool,
   urlQrTool,
+  emiTool,
+  sipTool,
+  fdTool,
+  xirrTool,
+  loanComparisonTool,
   businessEconomicsTools,
+  financeTools,
 };
 
 export const allToolDefinitions = [
@@ -73,8 +109,15 @@ export const allToolDefinitions = [
   upiStandeeTool,
   letterheadTool,
   paymentReceiptTool,
+  businessCardTool,
+  invoiceTool,
+  invoiceNumberTool,
+  quotationTool,
   gstInvoiceTool,
+  hraTool,
   ...businessEconomicsTools,
+  ...financeTools,
+  ...taxTools,
 ] as const;
 
 export const toolRegistry = allToolDefinitions.filter((tool) => isToolAvailable(tool));

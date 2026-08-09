@@ -14,6 +14,11 @@ import {
 import { exportErrorMessage, downloadDataUrl, printElement, safeFilename } from '@/lib/qr/export';
 import { QR_LOCAL_PRIVACY_NOTE, UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
 import { trackEvent } from '@/lib/analytics';
+import {
+  clearLocalScenarioTransfer,
+  readLocalScenarioTransfer,
+  type LocalScenarioTransfer,
+} from '@/domain/workflows/local-scenario-transfer';
 
 import { QrPreview, useQrImage } from '@/components/qr/qr-preview';
 import { Button } from '@/components/ui/button';
@@ -51,6 +56,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [handoffTransfer, setHandoffTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +69,18 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
   }, [tool.category, tool.id]);
+
+  useEffect(() => {
+    if (!isUrl) {
+      const timer = window.setTimeout(() => {
+        const transfer = readLocalScenarioTransfer();
+        if (transfer?.sourceKind === 'gst-invoice-to-upi' || transfer?.sourceKind === 'invoice-to-upi')
+          setHandoffTransfer(transfer);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [isUrl]);
 
   useEffect(() => {
     if (errors.length === 0) {
@@ -79,6 +97,20 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
     setResult(null);
     setGenerationError(null);
     setExportError(null);
+  }
+
+  function importInvoiceHandoff() {
+    if (!handoffTransfer || isUrl) return;
+    const incoming = handoffTransfer.values;
+    setValues((current) => ({
+      ...(current as UpiInput),
+      amount: incoming.amount || (current as UpiInput).amount,
+      note: incoming.note || (current as UpiInput).note,
+    }));
+    setErrors([]);
+    setResult(null);
+    setHandoffTransfer(null);
+    clearLocalScenarioTransfer();
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -175,6 +207,30 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
         </div>
         <form onSubmit={onSubmit} noValidate>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          {handoffTransfer && !isUrl ? (
+            <div className="local-handoff-banner" role="status">
+              <strong>An invoice total is ready for a UPI QR draft</strong>
+              <p>
+                Import the declared amount and invoice note, then enter and verify the payee name and UPI ID
+                yourself.
+              </p>
+              <div className="inline-actions">
+                <Button type="button" onClick={importInvoiceHandoff}>
+                  Import invoice amount
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    clearLocalScenarioTransfer();
+                    setHandoffTransfer(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          ) : null}
           {isUrl ? (
             <>
               <InputField

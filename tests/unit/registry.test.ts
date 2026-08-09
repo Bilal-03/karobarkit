@@ -11,7 +11,7 @@ import {
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the published foundation tools and Phase 2 business economics tools', () => {
+  it('contains the published foundation, business, finance and Phase 4 beta tools', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
@@ -20,7 +20,12 @@ describe('tool registry contract', () => {
       'upi-standee',
       'letterhead-generator',
       'payment-receipt-generator',
+      'business-card-generator',
+      'invoice-generator',
+      'invoice-number-generator',
+      'quotation-generator',
       'gst-invoice-generator',
+      'hra-calculator',
       'margin-calculator',
       'markup-calculator',
       'break-even-calculator',
@@ -31,6 +36,19 @@ describe('tool registry contract', () => {
       'marketplace-margin-calculator',
       'roas-calculator',
       'cod-cost-calculator',
+      'emi-calculator',
+      'sip-calculator',
+      'fd-calculator',
+      'xirr-calculator',
+      'loan-comparison',
+      'income-tax-calculator',
+      'tds-calculator',
+      'corporate-tax-calculator',
+      'presumptive-tax-calculator',
+      'ctc-calculator',
+      'in-hand-salary-calculator',
+      'pf-calculator',
+      'gratuity-calculator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'business',
@@ -61,14 +79,14 @@ describe('tool registry contract', () => {
       expect(tool.trust.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(['not-required', 'pending', 'approved']).toContain(tool.trust.reviewer.status);
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
-      expect(['calculator', 'generator']).toContain(tool.kind);
+      expect(['calculator', 'comparison', 'generator']).toContain(tool.kind);
       expect(tool.ui.adapter).not.toBe('unavailable');
       if (tool.kind === 'generator') expect(tool.generatorKind).toBeDefined();
     }
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(18);
+    expect(allToolDefinitions).toHaveLength(36);
     expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
     for (const metadata of toolMetadataIndex) {
       expect(metadata).not.toHaveProperty('defaultValues');
@@ -80,12 +98,36 @@ describe('tool registry contract', () => {
 
   it('does not imply external approval for regulated tools while review is pending', () => {
     const regulated = toolRegistry.filter((tool) => tool.governance.riskTier === 'D');
-    expect(regulated.map((tool) => tool.id)).toEqual(['gst-calculator', 'gst-invoice-generator']);
+    expect(regulated.map((tool) => tool.id)).toEqual([
+      'gst-calculator',
+      'gst-invoice-generator',
+      'hra-calculator',
+      'income-tax-calculator',
+      'tds-calculator',
+      'corporate-tax-calculator',
+      'presumptive-tax-calculator',
+      'ctc-calculator',
+      'in-hand-salary-calculator',
+      'pf-calculator',
+      'gratuity-calculator',
+    ]);
     for (const tool of regulated) {
       expect(tool.trust.reviewer.status).toBe('pending');
       expect(tool.sources.some((source) => source.evidenceLevel === 'official')).toBe(true);
       expect(tool.governance.policyDependencies.length).toBeGreaterThan(0);
     }
+  });
+
+  it('publishes Phase 4 Tier D tools as a controlled beta by default', () => {
+    expect(toolRegistry.some((tool) => tool.id === 'hra-calculator')).toBe(true);
+    expect(toolRegistry.some((tool) => tool.id === 'income-tax-calculator')).toBe(true);
+    expect(allToolDefinitions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'hra-calculator', featureFlag: 'phase4-tax-review' }),
+        expect.objectContaining({ id: 'income-tax-calculator', featureFlag: 'phase4-tax-review' }),
+        expect.objectContaining({ id: 'pf-calculator', featureFlag: 'phase4-tax-review' }),
+      ]),
+    );
   });
 
   it('keeps slug, canonical path, title and H1 tied to one record', () => {

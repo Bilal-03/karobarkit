@@ -18,6 +18,11 @@ import {
 import type { BusinessDocument, LetterheadInput, PaymentReceiptInput } from '@/domain/documents/types';
 import { documentExportErrorMessage, downloadDocumentPdf, printDocument } from '@/lib/documents/export';
 import { trackEvent } from '@/lib/analytics';
+import {
+  clearLocalScenarioTransfer,
+  readLocalScenarioTransfer,
+  type LocalScenarioTransfer,
+} from '@/domain/workflows/local-scenario-transfer';
 
 import { DocumentPreview } from '@/components/documents/document-preview';
 import { LogoUploader } from '@/components/documents/logo-uploader';
@@ -62,6 +67,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [handoffTransfer, setHandoffTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = `${kind}-document-print-area`;
@@ -69,6 +75,21 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
   }, [tool.category, tool.id]);
+
+  useEffect(() => {
+    if (!isLetterhead) {
+      const timer = window.setTimeout(() => {
+        const transfer = readLocalScenarioTransfer();
+        if (
+          transfer?.sourceKind === 'gst-invoice-to-payment-receipt' ||
+          transfer?.sourceKind === 'invoice-to-payment-receipt'
+        )
+          setHandoffTransfer(transfer);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [isLetterhead]);
 
   useEffect(() => {
     if (errors.length === 0) return;
@@ -83,6 +104,33 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
     setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
+  }
+
+  function importReceiptHandoff() {
+    if (!handoffTransfer || isLetterhead) return;
+    const incoming = handoffTransfer.values;
+    setValues(
+      (current) =>
+        ({
+          ...current,
+          businessName: incoming.businessName || current.businessName,
+          businessAddress: incoming.businessAddress || current.businessAddress,
+          phone: incoming.phone || current.phone,
+          email: incoming.email || current.email,
+          gstin: incoming.gstin || current.gstin,
+          receiptNumber: incoming.receiptNumber || (current as PaymentReceiptInput).receiptNumber,
+          receiptDate: incoming.receiptDate || (current as PaymentReceiptInput).receiptDate,
+          receivedFrom: incoming.receivedFrom || (current as PaymentReceiptInput).receivedFrom,
+          amount: incoming.amount || (current as PaymentReceiptInput).amount,
+          paymentPurpose: incoming.paymentPurpose || (current as PaymentReceiptInput).paymentPurpose,
+          invoiceReference: incoming.invoiceReference || (current as PaymentReceiptInput).invoiceReference,
+          customerAddress: incoming.customerAddress || (current as PaymentReceiptInput).customerAddress,
+        }) as DocumentInput,
+    );
+    setErrors([]);
+    setResult(null);
+    setHandoffTransfer(null);
+    clearLocalScenarioTransfer();
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -174,6 +222,30 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
         </div>
         <form onSubmit={onSubmit} noValidate>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          {handoffTransfer && !isLetterhead ? (
+            <div className="local-handoff-banner" role="status">
+              <strong>An invoice is ready for a receipt draft</strong>
+              <p>
+                Import selected invoice and issuer fields into this tab, then confirm the declared payment
+                details.
+              </p>
+              <div className="inline-actions">
+                <Button type="button" onClick={importReceiptHandoff}>
+                  Import invoice details
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    clearLocalScenarioTransfer();
+                    setHandoffTransfer(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <fieldset className="document-form-section">
             <legend>Business identity</legend>
             <InputField

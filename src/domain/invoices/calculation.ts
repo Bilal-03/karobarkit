@@ -7,7 +7,6 @@ import { decimalToString, parseDecimal } from '@/domain/formatting/decimal';
 import { calculateGst } from '@/domain/gst';
 import {
   GST_CUSTOM_RATE_ID,
-  GST_POLICY_AS_OF,
   getActiveGstPolicy,
   getActiveGstRatePresets,
   getGstPolicyFreshness,
@@ -204,7 +203,14 @@ export function calculateGstInvoice(input: GstInvoiceInput): GstInvoiceDocument 
   }
   const value = validation.data;
   const policy = getActiveGstPolicy(value.invoiceDate);
-  const freshness = getGstPolicyFreshness(policy, GST_POLICY_AS_OF);
+  const freshness = getGstPolicyFreshness(policy);
+  if (freshness.isStale) {
+    throw new DocumentInputError(
+      'invoiceDate',
+      'policy_stale',
+      `The GST policy review is due (${freshness.reviewDueOn}). This invoice path is disabled until the policy is re-verified.`,
+    );
+  }
   const lines = value.items.map((item) => calculateLine(item, value.supplyType, value.invoiceDate));
   const taxGroups = [
     ...lines

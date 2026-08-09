@@ -13,6 +13,9 @@
 - `phase-0-completion-report.md` — Phase 0 inventory validation, exit gates, dependencies, and Phase 1 hand-off.
 - `phase-1-completion-report.md` — implemented product architecture, registry v2, policy primitive, trust UI, discovery controls, verification, and Phase 2 hand-off.
 - `phase-2-completion-report.md` — ten business-economics beta tools, shared decimal engine, local export, scenario handoff, privacy controls and verification.
+- `phase-3-finance-foundation-report.md` — EMI, SIP, FD, XIRR and Loan Comparison finance foundation, official source boundaries and verification status.
+- `phase-4-tax-subwave-1-report.md` — controlled HRA and GST transaction-date refinement, official Income Tax sources, privacy boundary and verification status.
+- `phase-4-completion-report.md` — corrected HRA/GST release gates plus Income Tax, TDS, presumptive, corporate-tax and payroll sub-waves.
 
 ## Original public audit pack
 

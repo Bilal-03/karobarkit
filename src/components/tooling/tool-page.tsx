@@ -23,16 +23,22 @@ import { ToolTrustPanel } from '@/components/trust/tool-trust-panel';
 
 import { CalculatorForm } from './calculator-form';
 import { BusinessCalculatorForm } from './business-calculator-form';
+import { FinanceCalculatorForm } from './finance-calculator-form';
+import { TaxCalculatorForm } from './tax-calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
+import { QuotationGeneratorForm } from '@/components/documents/quotation-generator-form';
+import { InvoiceGeneratorForm } from '@/components/documents/invoice-generator-form';
+import { BusinessCardGeneratorForm } from '@/components/documents/business-card-generator-form';
+import { InvoiceNumberGeneratorForm } from '@/components/documents/invoice-number-generator-form';
 import { GeneratorForm } from './generator-form';
 
 interface SupportedTool {
   id: string;
   slug: string;
   kind: ToolKind;
-  generatorKind?: 'qr' | 'document';
+  generatorKind?: 'qr' | 'document' | 'sequence';
   ui: ToolUiAdapter;
   name: string;
   category: string;
@@ -77,6 +83,30 @@ function ToolInteraction({ tool }: { tool: SupportedTool }) {
           tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
         />
       );
+    case 'quotation-generator':
+      return (
+        <QuotationGeneratorForm
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'invoice-generator':
+      return (
+        <InvoiceGeneratorForm
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'business-card-generator':
+      return (
+        <BusinessCardGeneratorForm
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
+    case 'invoice-number-generator':
+      return (
+        <InvoiceNumberGeneratorForm
+          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
+        />
+      );
     case 'calculator':
       return (
         <CalculatorForm
@@ -92,6 +122,32 @@ function ToolInteraction({ tool }: { tool: SupportedTool }) {
     case 'business-calculator':
       return (
         <BusinessCalculatorForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            name: tool.name,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    case 'finance-calculator':
+      return (
+        <FinanceCalculatorForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            name: tool.name,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    case 'tax-calculator':
+      return (
+        <TaxCalculatorForm
           kind={tool.ui.variant}
           tool={{
             id: tool.id,

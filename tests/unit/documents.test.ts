@@ -8,6 +8,11 @@ import {
 } from '@/domain/documents/formatting';
 import { processLogoFile } from '@/domain/documents/logo';
 import {
+  businessCardDefaultValues,
+  calculateBusinessCard,
+  validateBusinessCardInput,
+} from '@/domain/documents/business-card';
+import {
   calculateLetterhead,
   letterheadDefaultValues,
   validateLetterheadInput,
@@ -17,6 +22,24 @@ import {
   paymentReceiptDefaultValues,
   validatePaymentReceiptInput,
 } from '@/domain/documents/payment-receipt';
+import {
+  calculateInvoice,
+  invoiceDefaultValues,
+  invoiceToReceiptTransferValues,
+  invoiceToUpiTransferValues,
+  validateInvoiceInput,
+} from '@/domain/documents/invoice';
+import {
+  calculateQuotation,
+  quotationDefaultValues,
+  quotationToInvoiceTransferValues,
+  validateQuotationInput,
+} from '@/domain/documents/quotation';
+import {
+  createInvoiceNumber,
+  invoiceNumberDefaultValues,
+  validateInvoiceNumberInput,
+} from '@/domain/documents/sequence';
 import { safeFilename } from '@/lib/security/safe-filename';
 
 describe('shared document formatting', () => {
@@ -137,5 +160,147 @@ describe('logo validation', () => {
 
     const fakePng = new File(['not a png'], 'logo.png', { type: 'image/png' });
     await expect(processLogoFile(fakePng)).rejects.toThrow(/valid image signature/iu);
+  });
+});
+
+describe('quotation, card and sequence workflows', () => {
+  const minimumQuotation = {
+    ...quotationDefaultValues,
+    businessName: 'Ravi & Sons',
+    businessAddress: 'Market Road, Pune',
+    quoteNumber: 'QT/2026-001',
+    quoteDate: '2026-08-06',
+    validUntil: '2026-08-20',
+    customerName: 'Nikhil Foods',
+    customerAddress: 'Pune, Maharashtra',
+    items: [
+      {
+        ...quotationDefaultValues.items[0],
+        description: 'Consulting retainer',
+        quantity: '2',
+        unitPrice: '1000',
+        discountType: 'fixed' as const,
+        discountValue: '100',
+      },
+    ],
+  };
+
+  it('calculates quotation totals without implying GST treatment', () => {
+    const validation = validateQuotationInput(minimumQuotation);
+    expect(validation.success).toBe(true);
+    if (!validation.success) return;
+    const document = calculateQuotation(validation.data);
+    expect(document.totals.subtotal).toBe('1900.00');
+    expect(document.totals.amountInWords).toContain('One Thousand Nine Hundred Rupees');
+    expect(document.type).toBe('quotation');
+    expect(quotationToInvoiceTransferValues(document).itemsJson).toContain('Consulting retainer');
+  });
+
+  it('rejects quotation dates and discounts that are not safe', () => {
+    const invalid = validateQuotationInput({
+      ...minimumQuotation,
+      validUntil: '2026-08-01',
+      items: [{ ...minimumQuotation.items[0], discountValue: '2000' }],
+    });
+    expect(invalid.success).toBe(false);
+    if (invalid.success) return;
+    expect(invalid.errors.map((error) => error.field)).toEqual(
+      expect.arrayContaining(['validUntil', 'items.0.discountValue']),
+    );
+  });
+
+  it('creates a business-card document while keeping contact details local', () => {
+    const validation = validateBusinessCardInput({
+      ...businessCardDefaultValues,
+      businessName: 'Ravi & Sons',
+      businessAddress: 'Market Road',
+      personName: 'Nikhil Sharma',
+      cardEmail: 'nikhil@example.com',
+    });
+    expect(validation.success).toBe(true);
+    if (!validation.success) return;
+    const document = calculateBusinessCard(validation.data);
+    expect(document.personName).toBe('Nikhil Sharma');
+    expect(document.contact.email).toBe('nikhil@example.com');
+  });
+
+  it('rejects unsafe business-card website protocols', () => {
+    const validation = validateBusinessCardInput({
+      ...businessCardDefaultValues,
+      businessName: 'Ravi & Sons',
+      businessAddress: 'Market Road',
+      personName: 'Nikhil Sharma',
+      cardWebsite: 'javascript:alert(1)',
+    });
+    expect(validation.success).toBe(false);
+    if (validation.success) return;
+    expect(validation.errors.some((error) => error.field === 'cardWebsite')).toBe(true);
+  });
+
+  it('formats invoice numbers and rejects invalid sequence input', () => {
+    const result = createInvoiceNumber(invoiceNumberDefaultValues);
+    expect(result.value).toBe('INV/2026-27/0001');
+    const invalid = validateInvoiceNumberInput({ ...invoiceNumberDefaultValues, nextNumber: '0' });
+    expect(invalid.success).toBe(false);
+  });
+
+  it('creates a non-GST invoice with commercial totals and explicit handoff values', () => {
+    const input = {
+      ...invoiceDefaultValues,
+      businessName: 'Ravi & Sons',
+      businessAddress: 'Market Road, Pune',
+      invoiceNumber: 'INV/2026-001',
+      invoiceDate: '2026-08-06',
+      dueDate: '2026-08-20',
+      customerName: 'Nikhil Foods',
+      items: [
+        {
+          ...invoiceDefaultValues.items[0],
+          description: 'Consulting retainer',
+          quantity: '2',
+          unitPrice: '1000',
+          discountType: 'fixed' as const,
+          discountValue: '100',
+        },
+      ],
+      paymentDetails: 'Pay by bank transfer after review.',
+    };
+    const validation = validateInvoiceInput(input);
+    expect(validation.success).toBe(true);
+    if (!validation.success) return;
+    const document = calculateInvoice(validation.data);
+    expect(document.type).toBe('invoice');
+    expect(document.totals.subtotal).toBe('1900.00');
+    expect(document.displayDueDate).toBe('20 August 2026');
+    expect(document.paymentDetails).toContain('bank transfer');
+    expect(invoiceToReceiptTransferValues(document).amount).toBe('1900.00');
+    expect(invoiceToUpiTransferValues(document)).toEqual({
+      amount: '1900.00',
+      note: 'Invoice INV/2026-001',
+    });
+  });
+
+  it('rejects a due date before the invoice date and unsafe invoice number', () => {
+    const validation = validateInvoiceInput({
+      ...invoiceDefaultValues,
+      businessName: 'Ravi & Sons',
+      businessAddress: 'Market Road',
+      invoiceNumber: 'INV#1',
+      invoiceDate: '2026-08-06',
+      dueDate: '2026-08-01',
+      customerName: 'Nikhil Foods',
+      items: [
+        {
+          ...invoiceDefaultValues.items[0],
+          description: 'Service',
+          unitPrice: '100',
+        },
+      ],
+    });
+    expect(validation.success).toBe(false);
+    if (validation.success) return;
+    expect(validation.errors.map((error) => error.field)).toEqual(
+      expect.arrayContaining(['invoiceNumber', 'dueDate']),
+    );
   });
 });

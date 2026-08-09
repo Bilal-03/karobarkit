@@ -243,7 +243,10 @@ export function calculateGstTool(input: GstInput, context: PolicyContext = defau
     mode: resolved.input.mode,
     supplyType: resolved.input.supplyType,
   });
-  const freshness = getGstPolicyFreshness(resolved.policy, context.asOf);
+  // Policy selection is deterministic for the supplied transaction context, but
+  // freshness is evaluated against the runtime date so a stale review cannot be
+  // hidden by the frozen default context used for reproducible calculations.
+  const freshness = getGstPolicyFreshness(resolved.policy);
   return {
     ...calculation,
     rateSource: resolved.rateSource,

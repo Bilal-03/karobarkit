@@ -184,6 +184,10 @@ describe('GST policy validation and freshness', () => {
     expect(stale.reviewDueOn).toBe('2025-06-30');
   });
 
+  it('rejects dates beyond the verified policy snapshot', () => {
+    expect(() => getActiveGstPolicy('2099-01-01')).toThrow(/No reviewed GST policy covers dates after/iu);
+  });
+
   it('rejects missing source authority, URL, unsupported domains and review dates', () => {
     const bundle = clonePolicyBundle();
     const firstSource = bundle.sources[0] as RegulatorySource;

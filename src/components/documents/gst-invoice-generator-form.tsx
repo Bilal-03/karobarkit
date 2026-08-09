@@ -19,6 +19,12 @@ import {
 } from '@/domain/invoices';
 import { documentExportErrorMessage, downloadDocumentPdf, printDocument } from '@/lib/documents/export';
 import { trackEvent } from '@/lib/analytics';
+import {
+  clearLocalScenarioTransfer,
+  readLocalScenarioTransfer,
+  saveLocalScenarioTransfer,
+  type LocalScenarioTransfer,
+} from '@/domain/workflows/local-scenario-transfer';
 
 import { DocumentPreview } from '@/components/documents/document-preview';
 import { LogoUploader } from '@/components/documents/logo-uploader';
@@ -64,10 +70,10 @@ function hasInvoiceValues(values: GstInvoiceInput) {
   );
 }
 
-function policySummary() {
+function policySummary(invoiceDate: string) {
   try {
-    const policy = getActiveGstPolicy(GST_POLICY_AS_OF);
-    return `${policy.id} · effective ${policy.effectiveFrom} · last verified ${policy.lastVerifiedOn}`;
+    const policy = getActiveGstPolicy(invoiceDate || GST_POLICY_AS_OF);
+    return `${policy.id} · applies to ${invoiceDate || GST_POLICY_AS_OF} · effective ${policy.effectiveFrom} · last verified ${policy.lastVerifiedOn}`;
   } catch {
     return 'The reviewed GST policy is unavailable.';
   }
@@ -82,6 +88,8 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [quotationTransfer, setQuotationTransfer] = useState<LocalScenarioTransfer | null>(null);
+  const [handoffError, setHandoffError] = useState<string | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'gst-invoice-document-print-area';
@@ -90,6 +98,14 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
   }, [tool.category, tool.id]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const transfer = readLocalScenarioTransfer();
+      if (transfer?.sourceKind === 'quotation-to-gst-invoice') setQuotationTransfer(transfer);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (errors.length === 0) return;
@@ -102,6 +118,65 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
     setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
+    setHandoffError(null);
+  }
+
+  function importQuotation() {
+    if (!quotationTransfer) return;
+    const incoming = quotationTransfer.values;
+    let importedItems: InvoiceItemInput[] = [];
+    try {
+      const parsed = JSON.parse(incoming.itemsJson ?? '[]') as Array<Record<string, string>>;
+      importedItems = parsed.slice(0, 50).map((item, index) => ({
+        id: `quote-import-${index + 1}`,
+        description: item.description ?? '',
+        hsnOrSac: '',
+        quantity: item.quantity ?? '1',
+        unit: item.unit ?? 'unit',
+        unitPrice: item.unitPrice ?? '',
+        discountType:
+          item.discountType === 'percentage' || item.discountType === 'fixed' ? item.discountType : 'none',
+        discountValue: item.discountValue ?? '',
+        ratePresetId: invoiceDefaultValues.items[0]?.ratePresetId ?? 'gst-headline-rate-18',
+        customRate: '',
+      }));
+    } catch {
+      importedItems = [];
+    }
+    setValues((current) => ({
+      ...current,
+      invoiceNumber: /^[A-Za-z0-9][A-Za-z0-9/-]{0,15}$/u.test(incoming.invoiceNumber ?? '')
+        ? incoming.invoiceNumber
+        : current.invoiceNumber,
+      invoiceDate: incoming.invoiceDate || current.invoiceDate,
+      supplier: {
+        ...current.supplier,
+        legalName: incoming.supplierLegalName || current.supplier.legalName,
+        gstin: incoming.supplierGstin || current.supplier.gstin,
+        phone: incoming.supplierPhone || current.supplier.phone,
+        email: incoming.supplierEmail || current.supplier.email,
+        address: {
+          ...current.supplier.address,
+          line1: incoming.supplierAddress || current.supplier.address.line1,
+        },
+      },
+      recipient: {
+        ...current.recipient,
+        legalName: incoming.recipientName || current.recipient.legalName,
+        phone: incoming.recipientPhone || current.recipient.phone,
+        email: incoming.recipientEmail || current.recipient.email,
+        address: {
+          ...current.recipient.address,
+          line1: incoming.recipientAddress || current.recipient.address.line1,
+        },
+      },
+      items: importedItems.length ? importedItems : current.items,
+    }));
+    setErrors([]);
+    clearResult();
+    clearLocalScenarioTransfer();
+    setQuotationTransfer(null);
+    setHandoffError(null);
   }
 
   function updateValue(field: keyof GstInvoiceInput, value: unknown) {
@@ -255,6 +330,65 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
     }
   }
 
+  function continueToReceipt() {
+    if (!result) return;
+    const saved = saveLocalScenarioTransfer({
+      sourceToolId: tool.id,
+      sourceToolName: 'GST Invoice Generator',
+      sourceKind: 'gst-invoice-to-payment-receipt',
+      values: {
+        receiptNumber: result.invoiceNumber,
+        receiptDate: result.invoiceDate,
+        receivedFrom: result.recipient.legalName,
+        amount: result.totals.grandTotal,
+        paymentPurpose: `Payment against invoice ${result.invoiceNumber}`,
+        invoiceReference: result.invoiceNumber,
+        customerAddress: [
+          result.recipient.address.line1,
+          result.recipient.address.line2,
+          result.recipient.address.city,
+          result.recipient.address.state,
+          result.recipient.address.postalCode,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        businessName: result.supplier.legalName,
+        businessAddress: [
+          result.supplier.address.line1,
+          result.supplier.address.line2,
+          result.supplier.address.city,
+          result.supplier.address.state,
+          result.supplier.address.postalCode,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        phone: result.supplier.phone,
+        email: result.supplier.email,
+        gstin: result.supplier.gstin,
+      },
+    });
+    if (!saved) {
+      setHandoffError('The receipt handoff could not be stored. Enter the receipt details manually.');
+      return;
+    }
+    window.location.href = '/tools/payment-receipt-generator';
+  }
+
+  function continueToUpi() {
+    if (!result) return;
+    const saved = saveLocalScenarioTransfer({
+      sourceToolId: tool.id,
+      sourceToolName: 'GST Invoice Generator',
+      sourceKind: 'gst-invoice-to-upi',
+      values: { amount: result.totals.grandTotal, note: `Invoice ${result.invoiceNumber}` },
+    });
+    if (!saved) {
+      setHandoffError('The UPI handoff could not be stored. Enter the amount and note manually.');
+      return;
+    }
+    window.location.href = '/tools/upi-standee';
+  }
+
   function renderPartyFields(party: 'supplier' | 'recipient') {
     const value = values[party];
     const prefix = party;
@@ -395,12 +529,37 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
         </div>
         <form onSubmit={onSubmit} noValidate>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          {quotationTransfer ? (
+            <div className="local-handoff-banner" role="status">
+              <strong>A quotation is ready to continue</strong>
+              <p>
+                Selected quote fields are waiting in this tab only. Import them, then complete and review all
+                GST particulars.
+              </p>
+              <div className="inline-actions">
+                <Button type="button" onClick={importQuotation}>
+                  Import quotation details
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    clearLocalScenarioTransfer();
+                    setQuotationTransfer(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <div className="gst-policy-summary" role="note">
             <strong>Reviewed GST policy</strong>
-            <span>{policySummary()}</span>
+            <span>{policySummary(values.invoiceDate)}</span>
             <span>
-              Rate presets are source-backed choices only; this generator does not classify goods/services or
-              recommend a rate.
+              The invoice date selects the effective policy; unsupported historical and future dates are
+              blocked. Rate presets are source-backed choices only, and the generator does not classify
+              goods/services or recommend a rate.
             </span>
           </div>
           <fieldset className="document-form-section">
@@ -447,6 +606,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                 label="Invoice date"
                 type="date"
                 value={values.invoiceDate}
+                max={GST_POLICY_AS_OF}
                 onChange={(event) => updateValue('invoiceDate', event.target.value)}
                 error={fieldError(errors, 'invoiceDate')}
                 required
@@ -722,12 +882,23 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                 {exportError}
               </p>
             ) : null}
+            {handoffError ? (
+              <p className="export-error" role="alert">
+                {handoffError}
+              </p>
+            ) : null}
             <div className="inline-actions generator-actions">
               <Button type="button" onClick={downloadPdf} disabled={isExporting}>
                 {isExporting ? 'Preparing PDF…' : 'Download PDF'}
               </Button>
               <Button type="button" variant="secondary" onClick={printPreview}>
                 Print
+              </Button>
+              <Button type="button" variant="secondary" onClick={continueToReceipt}>
+                Continue to payment receipt
+              </Button>
+              <Button type="button" variant="secondary" onClick={continueToUpi}>
+                Continue to UPI QR
               </Button>
             </div>
             <p className="document-export-help">

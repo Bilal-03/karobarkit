@@ -6,9 +6,11 @@ import type { ValidationResult } from '@/domain/calculations/types';
 
 export type EvidenceLevel = 'official' | 'authoritative' | 'editorial';
 
-export type SourceAuthority = 'CBIC' | 'GST_COUNCIL' | 'GST_PORTAL' | 'OTHER_GOVERNMENT';
+export type SourceAuthority =
+  'CBIC' | 'GST_COUNCIL' | 'GST_PORTAL' | 'INCOME_TAX_DEPARTMENT' | 'OTHER_GOVERNMENT';
 
-export type SourceDocumentType = 'notification' | 'rule' | 'circular' | 'press-release' | 'rate-schedule';
+export type SourceDocumentType =
+  'notification' | 'rule' | 'circular' | 'press-release' | 'rate-schedule' | 'validation-rules';
 
 export interface SourceReference {
   id: string;
@@ -70,6 +72,7 @@ export interface ToolGovernance {
   riskTier: ToolRiskTier;
   reviewCadenceDays: number;
   policyDependencies: string[];
+  goldenFixtureIds?: string[];
 }
 
 export interface ToolCategoryDefinition {
@@ -84,6 +87,23 @@ export interface ToolCategoryDefinition {
 
 export type ToolUiAdapter =
   | { adapter: 'calculator'; variant: 'cagr' | 'roi' }
+  | {
+      adapter: 'finance-calculator';
+      variant: 'emi' | 'sip' | 'fd' | 'xirr' | 'loan-comparison';
+    }
+  | {
+      adapter: 'tax-calculator';
+      variant:
+        | 'hra'
+        | 'income-tax'
+        | 'tds'
+        | 'corporate-tax'
+        | 'presumptive-tax'
+        | 'ctc'
+        | 'in-hand-salary'
+        | 'pf'
+        | 'gratuity';
+    }
   | {
       adapter: 'business-calculator';
       variant:
@@ -101,6 +121,10 @@ export type ToolUiAdapter =
   | { adapter: 'gst-calculator' }
   | { adapter: 'qr-generator'; variant: 'url-qr' | 'upi-standee' }
   | { adapter: 'document-generator'; variant: 'letterhead' | 'payment-receipt' }
+  | { adapter: 'quotation-generator' }
+  | { adapter: 'invoice-generator' }
+  | { adapter: 'business-card-generator' }
+  | { adapter: 'invoice-number-generator' }
   | { adapter: 'gst-invoice-generator' }
   | { adapter: 'unavailable' };
 
@@ -108,7 +132,7 @@ export interface ToolDefinition<TInput, TResult> {
   id: string;
   slug: string;
   kind: ToolKind;
-  generatorKind?: 'qr' | 'document';
+  generatorKind?: 'qr' | 'document' | 'sequence';
   ui: ToolUiAdapter;
   name: string;
   shortName?: string;
