@@ -16,6 +16,7 @@
 - `phase-3-finance-foundation-report.md` — EMI, SIP, FD, XIRR and Loan Comparison finance foundation, official source boundaries and verification status.
 - `phase-4-tax-subwave-1-report.md` — controlled HRA and GST transaction-date refinement, official Income Tax sources, privacy boundary and verification status.
 - `phase-4-completion-report.md` — corrected HRA/GST release gates plus Income Tax, TDS, presumptive, corporate-tax and payroll sub-waves.
+- `phase-5-completion-report.md` — public startup metrics, valuation, dilution, ESOP and marketplace-fee beta with policy snapshots, privacy boundaries and remaining release gates.
 
 ## Original public audit pack
 

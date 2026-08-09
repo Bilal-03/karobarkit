@@ -38,6 +38,11 @@ describe('tool discovery', () => {
     ['fixed deposit calculator', 'fd-calculator'],
     ['dated cash flow return', 'xirr-calculator'],
     ['compare loans', 'loan-comparison'],
+    ['customer acquisition cost', 'cac-calculator'],
+    ['customer lifetime value', 'ltv-calculator'],
+    ['startup valuation', 'startup-valuation-calculator'],
+    ['amazon seller fees', 'amazon-fees-calculator'],
+    ['flipkart commission', 'flipkart-fees-calculator'],
   ])('maps the synonym %s to %s', (query, expectedId) => {
     expect(searchTools(query)[0]?.id).toBe(expectedId);
   });
@@ -74,11 +79,16 @@ describe('tool discovery', () => {
       'in-hand-salary-calculator',
       'pf-calculator',
       'gratuity-calculator',
+      'esop-calculator',
     ]);
     expect(allToolDefinitions.find((tool) => tool.id === 'hra-calculator')?.featureFlag).toBe(
       'phase4-tax-review',
     );
-    expect(filterToolDirectory(toolRegistry, { kind: 'worksheet' })).toEqual([]);
+    expect(filterToolDirectory(toolRegistry, { kind: 'worksheet' }).map((tool) => tool.id)).toEqual([
+      'saas-metrics-calculator',
+      'startup-valuation-calculator',
+      'esop-calculator',
+    ]);
   });
 
   it('keeps discovery references and featured ordering valid', () => {

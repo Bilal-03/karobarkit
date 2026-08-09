@@ -173,3 +173,20 @@ Verification evidence:
 - Public beta operation still requires clear reviewer-pending labels, signed golden fixtures, source-policy approval, stale/withdrawn kill-switch rehearsal and production-equivalent build evidence before any “reviewed” or “approved” claim is made.
 
 See [`docs/product-spec/phase-4-completion-report.md`](product-spec/phase-4-completion-report.md) for the source links, scope, fixture coverage and activation checklist.
+
+## Business Toolkit expansion — Phase 5 startup and marketplace depth
+
+Status: public controlled beta on 10 August 2026. Startup-metrics, corporate/legal and marketplace-policy reviewer approval remains pending; startup tools use `phase5-startup-marketplace` and marketplace tools use the separate `phase5-marketplace` flag. Both are enabled by default for this personal project.
+
+The public registry now includes CAC, LTV, SaaS Metrics, Startup Valuation, Equity Dilution, ESOP, Amazon Fees and Flipkart Fees. The first six are local-only deterministic scenario tools. Amazon and Flipkart use local bundled, effective-dated official fee snapshots with category-aware Amazon examples, explicit seller-dashboard overrides for variable rates, newest-version/effective-to resolution, and a stale-policy calculation block unless current overrides are supplied. Future policy dates are rejected and source hosts are validated.
+
+Valuation, dilution and ESOP results are deliberately labelled educational scenarios. ESOP is Tier D and carries official Income Tax, India Code and Startup India source references; no FMV, eligibility, tax liability, securities offer or corporate approval is inferred. Tax-event arithmetic requires exercised/allotted shares and an exercise date; vested shares are not silently treated as exercised. All Phase 5 input fields are excluded from analytics and logs.
+
+Verification evidence:
+
+- `npm run format:check`, `npm run typecheck`, `npm run lint` and `git diff --check` pass. ESLint reports six pre-existing Next.js internal-navigation warnings and no Phase 5 errors.
+- Serialized `npx vitest run --maxWorkers=1 --no-file-parallelism --reporter=dot` passes: 28 files and 271 tests.
+- `npm run build` passes with 74 static pages, including all 44 public tool route parameters.
+- Focused Playwright `desktop-1440` Phase 5 smoke checks pass (2 tests: CAC result/CSV and Amazon policy/estimate boundary). The responsive layout matrix is intentionally not repeated per the user’s instruction.
+
+The Phase 5 completion report is [`docs/product-spec/phase-5-completion-report.md`](product-spec/phase-5-completion-report.md). Remaining release gates are named reviewers, signed fixtures, policy/source approval, stale/withdrawn policy rehearsal and production-equivalent evidence before any reviewed or approved claim is made.

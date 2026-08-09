@@ -40,6 +40,20 @@ import { quotationTool } from './tools/quotation';
 import { roiTool } from './tools/roi';
 import { upiStandeeTool } from './tools/upi-standee';
 import { urlQrTool } from './tools/url-qr';
+import {
+  amazonFeesTool,
+  cacTool,
+  equityDilutionTool,
+  esopTool,
+  flipkartFeesTool,
+  ltvTool,
+  PHASE5_GOLDEN_FIXTURE_MANIFEST,
+  PHASE5_MARKETPLACE_FEATURE_FLAG,
+  phase5Tools,
+  saasMetricsTool,
+  valuationTool,
+  validatePhase5FixtureManifest,
+} from './tools/phase5';
 
 export type {
   AnalyticsPolicy,
@@ -99,6 +113,18 @@ export {
   loanComparisonTool,
   businessEconomicsTools,
   financeTools,
+  cacTool,
+  ltvTool,
+  saasMetricsTool,
+  valuationTool,
+  equityDilutionTool,
+  esopTool,
+  amazonFeesTool,
+  flipkartFeesTool,
+  phase5Tools,
+  PHASE5_GOLDEN_FIXTURE_MANIFEST,
+  PHASE5_MARKETPLACE_FEATURE_FLAG,
+  validatePhase5FixtureManifest,
 };
 
 export const allToolDefinitions = [
@@ -118,6 +144,7 @@ export const allToolDefinitions = [
   ...businessEconomicsTools,
   ...financeTools,
   ...taxTools,
+  ...phase5Tools,
 ] as const;
 
 export const toolRegistry = allToolDefinitions.filter((tool) => isToolAvailable(tool));

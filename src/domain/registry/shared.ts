@@ -15,6 +15,8 @@ export function liveLocalMetadata({
   lifecycle = 'live',
   featureFlag,
   goldenFixtureIds = [],
+  privacyClassification = 'local-only',
+  executionMode = privacyClassification,
 }: {
   riskTier: 'A' | 'B' | 'C' | 'D';
   reviewCadenceDays: number;
@@ -27,10 +29,13 @@ export function liveLocalMetadata({
   lifecycle?: 'internal' | 'beta' | 'live' | 'stale-disabled' | 'retired';
   featureFlag?: string;
   goldenFixtureIds?: string[];
+  privacyClassification?:
+    'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
+  executionMode?: 'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
 }) {
   return {
-    privacyClassification: 'local-only' as const,
-    executionMode: 'local-only' as const,
+    privacyClassification,
+    executionMode,
     lifecycle,
     featureFlag,
     governance: {
@@ -329,6 +334,56 @@ export const sharedAnalyticsPolicy = {
     'rateTypeB',
     'resetAfterMonthsB',
     'resetAnnualRateB',
+    'salesMarketingCost',
+    'attributionWindowMonths',
+    'newCustomers',
+    'paidNewCustomers',
+    'paidAcquisitionCost',
+    'arpuMonthly',
+    'grossMarginPercent',
+    'monthlyChurnPercent',
+    'churnLowPercent',
+    'churnHighPercent',
+    'churnStability',
+    'mrr',
+    'priorMrr',
+    'newMrr',
+    'expansionMrr',
+    'contractionMrr',
+    'churnedMrr',
+    'customers',
+    'priorCustomers',
+    'churnedCustomers',
+    'profitMarginPercent',
+    'annualRevenue',
+    'revenueMultipleLow',
+    'revenueMultipleHigh',
+    'preMoneyValuation',
+    'investmentAmount',
+    'founderOwnershipPercent',
+    'existingInvestorOwnershipPercent',
+    'otherOwnershipPercent',
+    'postMoneyOptionPoolPercent',
+    'fullyDilutedSharesBefore',
+    'grantShares',
+    'vestedPercent',
+    'exercisedShares',
+    'exerciseDate',
+    'exercisePrice',
+    'fairMarketValue',
+    'salePrice',
+    'taxTreatment',
+    'illustrativeTaxRatePercent',
+    'fulfillment',
+    'referralFeePercent',
+    'shippingFee',
+    'closingFeeOverride',
+    'otherFee',
+    'feeGstRatePercent',
+    'paymentMode',
+    'commissionFeePercent',
+    'collectionFeePercent',
+    'fixedFeeOverride',
   ],
 };
 

@@ -137,8 +137,13 @@ export function validateDiscoveryRegistry() {
     ) {
       errors.push(`${tool.id}: Tier D tool requires an official source`);
     }
-    if (tool.featureFlag === 'phase4-tax-review' && (tool.governance.goldenFixtureIds?.length ?? 0) === 0) {
-      errors.push(`${tool.id}: Phase 4 tool requires golden fixture IDs before release`);
+    if (
+      (tool.featureFlag === 'phase4-tax-review' ||
+        tool.featureFlag === 'phase5-startup-marketplace' ||
+        tool.featureFlag === 'phase5-marketplace') &&
+      (tool.governance.goldenFixtureIds?.length ?? 0) === 0
+    ) {
+      errors.push(`${tool.id}: controlled-beta tool requires golden fixture IDs before release`);
     }
     if (new Set(tool.relatedToolIds).size !== tool.relatedToolIds.length)
       errors.push(`${tool.id}: duplicate related tool`);

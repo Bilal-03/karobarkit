@@ -25,6 +25,7 @@ import { CalculatorForm } from './calculator-form';
 import { BusinessCalculatorForm } from './business-calculator-form';
 import { FinanceCalculatorForm } from './finance-calculator-form';
 import { TaxCalculatorForm } from './tax-calculator-form';
+import { Phase5CalculatorForm } from './phase5-calculator-form';
 import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
@@ -148,6 +149,19 @@ function ToolInteraction({ tool }: { tool: SupportedTool }) {
     case 'tax-calculator':
       return (
         <TaxCalculatorForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            name: tool.name,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    case 'phase5-calculator':
+      return (
+        <Phase5CalculatorForm
           kind={tool.ui.variant}
           tool={{
             id: tool.id,

@@ -6,7 +6,7 @@
 **Status:** Build-ready product and technical plan
 **Planning assumption:** Two product engineers, one product/design owner, and fractional CA/tax, payroll, and security reviewers. A single-engineer delivery will take approximately two to three times longer.
 
-**Execution status:** Phase 0 contracts, Phase 1 platform foundation and Phase 2 everyday business-economics beta are complete as of 9 August 2026. See the [Phase 0 completion report](phase-0-completion-report.md), [Phase 1 completion report](phase-1-completion-report.md), [Phase 2 completion report](phase-2-completion-report.md), [canonical catalogue](business_toolkit_catalogue.csv), [formula and policy register](business_toolkit_formula_policy_register.csv), [source library](business_toolkit_source_library.csv), [tool contract v2](tool-contract-v2.md), [change-control workflow](regulatory-change-control.md), and [architecture decisions](phase-0-architecture-decisions.md).
+**Execution status:** Phase 0 contracts, Phase 1 platform foundation, Phase 2 everyday business-economics beta, Phase 3 finance/document beta, Phase 4 tax/payroll controlled beta, and the initial Phase 5 startup/marketplace controlled beta are implemented. See the [Phase 0 completion report](phase-0-completion-report.md), [Phase 1 completion report](phase-1-completion-report.md), [Phase 2 completion report](phase-2-completion-report.md), [Phase 5 completion report](phase-5-completion-report.md), [canonical catalogue](business_toolkit_catalogue.csv), [formula and policy register](business_toolkit_formula_policy_register.csv), [source library](business_toolkit_source_library.csv), [tool contract v2](tool-contract-v2.md), [change-control workflow](regulatory-change-control.md), and [architecture decisions](phase-0-architecture-decisions.md).
 
 ## 1. Executive decision
 
@@ -125,15 +125,15 @@ Build cross-tool hand-offs using explicit user action, never hidden data sharing
 
 ### Startup
 
-| Tool            | V1 scope and result                                                                   | Important limits                                                 | Release |
-| --------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------- |
-| Burn Rate       | Gross burn, net burn, monthly trend, and cash change                                  | Require an explicit time period; flag one-off items              | Phase 2 |
-| Runway          | Reuse the canonical Business tool with startup examples                               | Scenario, not a survival prediction                              | Phase 2 |
-| CAC             | Sales and marketing cost divided by new customers; blended/paid views                 | Define attribution window and included costs                     | Phase 5 |
-| LTV             | Simple subscription model using ARPU, gross margin, and churn; scenario range         | Do not present a precise forecast when churn is unstable or zero | Phase 5 |
-| Valuation       | Scenario models such as revenue multiple and funding pre/post-money; show ranges      | Educational only; not a legal, tax, or registered valuation      | Phase 5 |
-| Equity Dilution | Pre-money, investment, post-money ownership, option-pool scenarios, cap-table preview | Does not replace Companies Act approvals or a registered valuer  | Phase 5 |
-| SaaS Metrics    | MRR, ARR, ARPU, logo/revenue churn, GRR, NRR, CAC payback, LTV:CAC, Rule of 40        | Every metric includes a definition and time window               | Phase 5 |
+| Tool            | V1 scope and result                                                                    | Important limits                                                    | Release |
+| --------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------- |
+| Burn Rate       | Gross burn, net burn, monthly trend, and cash change                                   | Require an explicit time period; flag one-off items                 | Phase 2 |
+| Runway          | Reuse the canonical Business tool with startup examples                                | Scenario, not a survival prediction                                 | Phase 2 |
+| CAC             | Total attributed cost ÷ all new customers; paid-channel spend ÷ paid-channel customers | Declare attribution window and keep paid spend separate             | Phase 5 |
+| LTV             | Simple subscription model using ARPU, gross margin, and churn; scenario range          | Do not present a precise forecast when churn is unstable or zero    | Phase 5 |
+| Valuation       | Scenario models such as revenue multiple and funding pre/post-money; show ranges       | Educational only; not a legal, tax, or registered valuation         | Phase 5 |
+| Equity Dilution | Pre-money, investment, post-money ownership, option-pool scenarios, cap-table preview  | Does not replace Companies Act approvals or a registered valuer     | Phase 5 |
+| SaaS Metrics    | MRR, ARR, ARPU, logo/revenue churn, GRR, NRR, CAC payback, LTV:CAC, Rule of 40         | Normalize multi-month growth/churn to explicit monthly/annual units | Phase 5 |
 
 ### Finance
 
@@ -148,23 +148,23 @@ Build cross-tool hand-offs using explicit user action, never hidden data sharing
 
 ### E-commerce
 
-| Tool               | V1 scope and result                                                                            | Data requirement                                                      | Release |
-| ------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------- |
-| Amazon Fees        | Category, price band, fulfilment, weight/size/distance, taxes, estimated payout/profit         | Versioned official Amazon schedule plus user override                 | Phase 5 |
-| Flipkart Fees      | Category/commission, FBF/NFBF, fixed, collection, shipping, taxes, estimated payout/profit     | Versioned official Flipkart schedule plus seller-dashboard override   | Phase 5 |
-| Marketplace Margin | Vendor-neutral selling price, product cost, platform, shipping, payment, return and tax costs  | User-supplied inputs; reusable by marketplace tools                   | Phase 2 |
-| ROAS               | Revenue/ad spend plus contribution-profit view and break-even ROAS                             | Distinguish platform-attributed revenue from actual collected revenue | Phase 2 |
-| COD Cost           | COD fee, forward/return freight, RTO rate, return loss, cash-cycle cost, expected contribution | All rates user-supplied in V1                                         | Phase 2 |
+| Tool               | V1 scope and result                                                                                           | Data requirement                                                                      | Release |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------- |
+| Amazon Fees        | Category-aware closing examples, price band, fulfilment, weight/size/distance, taxes, estimated payout/profit | Versioned official examples plus Seller Central override for unsupported combinations | Phase 5 |
+| Flipkart Fees      | Category/commission, FBF/NFBF, fixed, payment-mode collection, shipping, taxes, estimated payout/profit       | Versioned fixed bands plus category/payment-mode seller-dashboard overrides           | Phase 5 |
+| Marketplace Margin | Vendor-neutral selling price, product cost, platform, shipping, payment, return and tax costs                 | User-supplied inputs; reusable by marketplace tools                                   | Phase 2 |
+| ROAS               | Revenue/ad spend plus contribution-profit view and break-even ROAS                                            | Distinguish platform-attributed revenue from actual collected revenue                 | Phase 2 |
+| COD Cost           | COD fee, forward/return freight, RTO rate, return loss, cash-cycle cost, expected contribution                | All rates user-supplied in V1                                                         | Phase 2 |
 
 ### HR & Salary
 
-| Tool           | V1 scope and result                                                                             | Policy requirement                                                               | Release |
-| -------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------- |
-| CTC            | Earnings, employer contributions, benefits, bonus, gratuity provision, annual/monthly breakdown | Employer-policy assumptions must be editable                                     | Phase 4 |
-| In-hand Salary | CTC structure to monthly take-home with employee deductions and estimated TDS                   | Tax period/regime, state professional tax, PF applicability, payroll policy      | Phase 4 |
-| PF             | Employee/employer EPF, EPS, EDLI/administrative components where applicable                     | Effective-dated EPFO rules and wage definition; support establishment exceptions | Phase 4 |
-| Gratuity       | Eligibility/event, service period, last-drawn wage, estimated gratuity and cap                  | Effective labour-law version and employment type                                 | Phase 4 |
-| ESOP           | Grant, vesting, exercise cost, ownership/dilution, and tax-event scenarios                      | Educational scenario; legal plan terms and FMV require professional validation   | Phase 5 |
+| Tool           | V1 scope and result                                                                                        | Policy requirement                                                                                          | Release |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------- |
+| CTC            | Earnings, employer contributions, benefits, bonus, gratuity provision, annual/monthly breakdown            | Employer-policy assumptions must be editable                                                                | Phase 4 |
+| In-hand Salary | CTC structure to monthly take-home with employee deductions and estimated TDS                              | Tax period/regime, state professional tax, PF applicability, payroll policy                                 | Phase 4 |
+| PF             | Employee/employer EPF, EPS, EDLI/administrative components where applicable                                | Effective-dated EPFO rules and wage definition; support establishment exceptions                            | Phase 4 |
+| Gratuity       | Eligibility/event, service period, last-drawn wage, estimated gratuity and cap                             | Effective labour-law version and employment type                                                            | Phase 4 |
+| ESOP           | Grant, vesting, exercised/allotted shares, exercise date/cost, ownership/dilution, and tax-event scenarios | Educational scenario; exercise-date FMV, legal plan terms and tax treatment require professional validation | Phase 5 |
 
 ### Generators
 
@@ -305,6 +305,7 @@ Ship:
 Exit gate:
 
 - Marketplace schedules show source, effective/verified date, fulfilment assumptions, taxes, and “estimate only” language.
+- A stale marketplace snapshot cannot calculate without a current seller override, and startup/marketplace beta flags can be disabled independently.
 - Valuation, dilution, and ESOP tools never present scenario output as a legal valuation, securities offer, or tax advice.
 
 ### Phase 6 — AI assistants (3–5 weeks for initial set)

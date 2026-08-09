@@ -13,19 +13,19 @@ hra-calculator,HRA Calculator,hra-calculator,gst-tax,hr-salary,calculator,local-
 corporate-tax-calculator,Corporate Tax Calculator,corporate-tax-calculator,gst-tax,business,calculator,local-only,D,planned,4,income-tax,ca-tax-reviewer
 presumptive-tax-calculator,Presumptive Tax Calculator,presumptive-tax-calculator,gst-tax,business,worksheet,local-only,D,planned,4,income-tax,ca-tax-reviewer
 burn-rate-calculator,Burn Rate Calculator,burn-rate-calculator,startup,business,calculator,local-only,B,planned,2,startup-metrics,business-domain-reviewer
-cac-calculator,CAC Calculator,cac-calculator,startup,ecommerce,calculator,local-only,B,planned,5,startup-metrics,startup-metrics-reviewer
-ltv-calculator,LTV Calculator,ltv-calculator,startup,ecommerce,calculator,local-only,B,planned,5,startup-metrics,startup-metrics-reviewer
-startup-valuation-calculator,Startup Valuation Calculator,startup-valuation-calculator,startup,,worksheet,local-only,B,planned,5,corporate-scenarios,corporate-legal-reviewer
-equity-dilution-calculator,Equity Dilution Calculator,equity-dilution-calculator,startup,,calculator,local-only,B,planned,5,corporate-scenarios,corporate-legal-reviewer
-saas-metrics-calculator,SaaS Metrics Calculator,saas-metrics-calculator,startup,business,worksheet,local-only,B,planned,5,startup-metrics,startup-metrics-reviewer
+cac-calculator,CAC Calculator,cac-calculator,startup,ecommerce,calculator,local-only,B,beta,5,startup-metrics,startup-metrics-reviewer
+ltv-calculator,LTV Calculator,ltv-calculator,startup,ecommerce,calculator,local-only,B,beta,5,startup-metrics,startup-metrics-reviewer
+startup-valuation-calculator,Startup Valuation Calculator,startup-valuation-calculator,startup,,worksheet,local-only,B,beta,5,corporate-scenarios,corporate-legal-reviewer
+equity-dilution-calculator,Equity Dilution Calculator,equity-dilution-calculator,startup,,calculator,local-only,B,beta,5,corporate-scenarios,corporate-legal-reviewer
+saas-metrics-calculator,SaaS Metrics Calculator,saas-metrics-calculator,startup,business,worksheet,local-only,B,beta,5,startup-metrics,startup-metrics-reviewer
 emi-calculator,EMI Calculator,emi-calculator,finance,,calculator,local-only,B,planned,3,consumer-finance,finance-method-reviewer
 sip-calculator,SIP Calculator,sip-calculator,finance,,calculator,local-only,B,planned,3,consumer-finance,finance-method-reviewer
 fd-calculator,FD Calculator,fd-calculator,finance,,calculator,local-only,B,planned,3,consumer-finance,finance-method-reviewer
 cagr-calculator,CAGR Calculator,cagr-calculator,finance,business,calculator,local-only,A,live,1,business-methods,domain-engine-reviewer
 xirr-calculator,XIRR Calculator,xirr-calculator,finance,startup,calculator,local-only,B,planned,3,consumer-finance,finance-method-reviewer
 loan-comparison,Loan Comparison,loan-comparison,finance,business,comparison,local-only,B,planned,3,consumer-finance,finance-method-reviewer
-amazon-fees-calculator,Amazon Fees Calculator,amazon-fees-calculator,ecommerce,,data-backed,local-with-bundled-data,C,planned,5,marketplace-fees,marketplace-policy-reviewer
-flipkart-fees-calculator,Flipkart Fees Calculator,flipkart-fees-calculator,ecommerce,,data-backed,local-with-bundled-data,C,planned,5,marketplace-fees,marketplace-policy-reviewer
+amazon-fees-calculator,Amazon Fees Calculator,amazon-fees-calculator,ecommerce,,data-backed,local-with-bundled-data,C,beta,5,marketplace-fees,marketplace-policy-reviewer
+flipkart-fees-calculator,Flipkart Fees Calculator,flipkart-fees-calculator,ecommerce,,data-backed,local-with-bundled-data,C,beta,5,marketplace-fees,marketplace-policy-reviewer
 marketplace-margin-calculator,Marketplace Margin Calculator,marketplace-margin-calculator,ecommerce,business,calculator,local-only,B,planned,2,business-methods,ecommerce-domain-reviewer
 roas-calculator,ROAS Calculator,roas-calculator,ecommerce,business,calculator,local-only,B,planned,2,business-methods,ecommerce-domain-reviewer
 cod-cost-calculator,COD Cost Calculator,cod-cost-calculator,ecommerce,business,worksheet,local-only,B,planned,2,business-methods,ecommerce-domain-reviewer
@@ -33,7 +33,7 @@ ctc-calculator,CTC Calculator,ctc-calculator,hr-salary,business,worksheet,local-
 in-hand-salary-calculator,In-hand Salary Calculator,in-hand-salary-calculator,hr-salary,gst-tax,worksheet,local-only,D,planned,4,payroll-labour,payroll-labour-reviewer
 pf-calculator,PF Calculator,pf-calculator,hr-salary,gst-tax,calculator,local-only,D,planned,4,payroll-labour,payroll-labour-reviewer
 gratuity-calculator,Gratuity Calculator,gratuity-calculator,hr-salary,gst-tax,calculator,local-only,D,planned,4,payroll-labour,payroll-labour-reviewer
-esop-calculator,ESOP Calculator,esop-calculator,hr-salary,startup,worksheet,local-only,D,planned,5,corporate-scenarios,corporate-legal-reviewer
+esop-calculator,ESOP Calculator,esop-calculator,hr-salary,startup,worksheet,local-only,D,beta,5,corporate-scenarios,corporate-legal-reviewer
 invoice-generator,Invoice Generator,invoice-generator,generators,business,generator,local-only,B,planned,3,document-standards,document-standards-reviewer
 quotation-generator,Quotation Generator,quotation-generator,generators,business,generator,local-only,B,planned,3,document-standards,document-standards-reviewer
 gst-invoice-generator,GST Invoice Generator,gst-invoice-generator,generators,gst-tax,generator,local-only,D,live,1,gst,ca-tax-reviewer

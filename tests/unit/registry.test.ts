@@ -11,7 +11,7 @@ import {
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the published foundation, business, finance and Phase 4 beta tools', () => {
+  it('contains the published foundation, business, finance, Phase 4 and Phase 5 beta tools', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
@@ -49,6 +49,14 @@ describe('tool registry contract', () => {
       'in-hand-salary-calculator',
       'pf-calculator',
       'gratuity-calculator',
+      'cac-calculator',
+      'ltv-calculator',
+      'saas-metrics-calculator',
+      'startup-valuation-calculator',
+      'equity-dilution-calculator',
+      'esop-calculator',
+      'amazon-fees-calculator',
+      'flipkart-fees-calculator',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'business',
@@ -70,7 +78,7 @@ describe('tool registry contract', () => {
       expect(tool.sources.length).toBeGreaterThan(0);
       expect(tool.lastReviewed).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(tool.privacyNote).toContain('browser');
-      expect(tool.executionMode).toBe('local-only');
+      expect(['local-only', 'local-with-bundled-data']).toContain(tool.executionMode);
       expect(['live', 'beta']).toContain(tool.lifecycle);
       expect(tool.secondaryCategories).toBeInstanceOf(Array);
       expect(tool.governance.owner).toBeTruthy();
@@ -79,14 +87,14 @@ describe('tool registry contract', () => {
       expect(tool.trust.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(['not-required', 'pending', 'approved']).toContain(tool.trust.reviewer.status);
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
-      expect(['calculator', 'comparison', 'generator']).toContain(tool.kind);
+      expect(['calculator', 'comparison', 'generator', 'worksheet', 'data-backed']).toContain(tool.kind);
       expect(tool.ui.adapter).not.toBe('unavailable');
       if (tool.kind === 'generator') expect(tool.generatorKind).toBeDefined();
     }
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(36);
+    expect(allToolDefinitions).toHaveLength(44);
     expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
     for (const metadata of toolMetadataIndex) {
       expect(metadata).not.toHaveProperty('defaultValues');
@@ -110,6 +118,7 @@ describe('tool registry contract', () => {
       'in-hand-salary-calculator',
       'pf-calculator',
       'gratuity-calculator',
+      'esop-calculator',
     ]);
     for (const tool of regulated) {
       expect(tool.trust.reviewer.status).toBe('pending');
@@ -126,6 +135,12 @@ describe('tool registry contract', () => {
         expect.objectContaining({ id: 'hra-calculator', featureFlag: 'phase4-tax-review' }),
         expect.objectContaining({ id: 'income-tax-calculator', featureFlag: 'phase4-tax-review' }),
         expect.objectContaining({ id: 'pf-calculator', featureFlag: 'phase4-tax-review' }),
+        expect.objectContaining({ id: 'esop-calculator', featureFlag: 'phase5-startup-marketplace' }),
+        expect.objectContaining({
+          id: 'amazon-fees-calculator',
+          featureFlag: 'phase5-marketplace',
+          trust: expect.objectContaining({ effectiveFrom: '2026-03-16' }),
+        }),
       ]),
     );
   });

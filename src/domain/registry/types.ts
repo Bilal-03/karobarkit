@@ -10,7 +10,15 @@ export type SourceAuthority =
   'CBIC' | 'GST_COUNCIL' | 'GST_PORTAL' | 'INCOME_TAX_DEPARTMENT' | 'OTHER_GOVERNMENT';
 
 export type SourceDocumentType =
-  'notification' | 'rule' | 'circular' | 'press-release' | 'rate-schedule' | 'validation-rules';
+  | 'notification'
+  | 'rule'
+  | 'circular'
+  | 'press-release'
+  | 'rate-schedule'
+  | 'validation-rules'
+  | 'official-page'
+  | 'official-playbook'
+  | 'methodology';
 
 export interface SourceReference {
   id: string;
@@ -103,6 +111,18 @@ export type ToolUiAdapter =
         | 'in-hand-salary'
         | 'pf'
         | 'gratuity';
+    }
+  | {
+      adapter: 'phase5-calculator';
+      variant:
+        | 'cac'
+        | 'ltv'
+        | 'saas-metrics'
+        | 'valuation'
+        | 'equity-dilution'
+        | 'esop'
+        | 'amazon-fees'
+        | 'flipkart-fees';
     }
   | {
       adapter: 'business-calculator';
