@@ -37,8 +37,11 @@ function responseHeaders(remaining?: number, resetAt?: number) {
 }
 
 function requestKey(request: Request) {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const source = forwarded || request.headers.get('x-real-ip') || 'anonymous';
+  const source =
+    request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip')?.trim() ||
+    'anonymous';
   return createHash('sha256').update(source).digest('hex').slice(0, 24);
 }
 
@@ -86,6 +89,54 @@ export async function POST(request: Request) {
   if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES)
     return errorResponse('This request is too large. Shorten the brief and try again.', 413);
 
+  let body: unknown;
+  try {
+    const rawBody = await readLimitedBody(request);
+    body = JSON.parse(rawBody);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'request_too_large')
+      return errorResponse('This request is too large. Shorten the brief and try again.', 413);
+    return errorResponse('Send a valid JSON request.', 400);
+  }
+
+  const parsed = requestSchema.safeParse(body);
+  if (!parsed.success) {
+    return errorResponse('Choose an assistant, complete its fields and accept the data-use notice.', 400);
+  }
+
+  const validation = validateAssistantInput(parsed.data.assistant, parsed.data.input);
+  if (!validation.success) {
+    return Response.json(
+      {
+        ok: false,
+        error: getAssistantInputErrorSummary(validation.errors),
+        fieldErrors: validation.errors,
+      },
+      { status: 422, headers: responseHeaders() },
+    );
+  }
+
+  const prepared = prepareAssistantInput(parsed.data.assistant, validation.data);
+  if (prepared.blockedFields.length > 0) {
+    return Response.json(
+      {
+        ok: false,
+        error: 'Remove confidential financial identifiers or credentials before sending the brief.',
+        fieldErrors: prepared.blockedFields.map((field) => ({
+          field: field.split(':')[0],
+          code: 'sensitive_data_not_allowed',
+          message: 'Do not enter bank, identity, payment or credential data in this assistant.',
+        })),
+      },
+      { status: 422, headers: responseHeaders() },
+    );
+  }
+  if (assistantInputSize(prepared.input) > AI_MAX_INPUT_CHARS) {
+    return errorResponse('Shorten the brief before sending it to the assistant.', 413);
+  }
+
+  // Count only requests that pass the assistant schema, privacy checks and
+  // size cap. Failed form submissions should not consume a provider attempt.
   let access: Awaited<ReturnType<typeof consumeAIAccessForRequest>>;
   try {
     access = await consumeAIAccessForRequest(requestKey(request));
@@ -106,60 +157,6 @@ export async function POST(request: Request) {
       0,
       access.resetAt,
     );
-  }
-
-  let body: unknown;
-  try {
-    const rawBody = await readLimitedBody(request);
-    body = JSON.parse(rawBody);
-  } catch (error) {
-    if (error instanceof Error && error.message === 'request_too_large')
-      return errorResponse(
-        'This request is too large. Shorten the brief and try again.',
-        413,
-        access.remaining,
-      );
-    return errorResponse('Send a valid JSON request.', 400, access.remaining);
-  }
-
-  const parsed = requestSchema.safeParse(body);
-  if (!parsed.success) {
-    return errorResponse(
-      'Choose an assistant, complete its fields and accept the data-use notice.',
-      400,
-      access.remaining,
-    );
-  }
-
-  const validation = validateAssistantInput(parsed.data.assistant, parsed.data.input);
-  if (!validation.success) {
-    return Response.json(
-      {
-        ok: false,
-        error: getAssistantInputErrorSummary(validation.errors),
-        fieldErrors: validation.errors,
-      },
-      { status: 422, headers: responseHeaders(access.remaining) },
-    );
-  }
-
-  const prepared = prepareAssistantInput(parsed.data.assistant, validation.data);
-  if (prepared.blockedFields.length > 0) {
-    return Response.json(
-      {
-        ok: false,
-        error: 'Remove confidential financial identifiers or credentials before sending the brief.',
-        fieldErrors: prepared.blockedFields.map((field) => ({
-          field: field.split(':')[0],
-          code: 'sensitive_data_not_allowed',
-          message: 'Do not enter bank, identity, payment or credential data in this assistant.',
-        })),
-      },
-      { status: 422, headers: responseHeaders(access.remaining) },
-    );
-  }
-  if (assistantInputSize(prepared.input) > AI_MAX_INPUT_CHARS) {
-    return errorResponse('Shorten the brief before sending it to the assistant.', 413, access.remaining);
   }
 
   try {

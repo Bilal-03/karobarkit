@@ -8,6 +8,7 @@ export const AI_GATEWAY_DEADLINE_MS = 13_500;
 export const AI_PROVIDER_DEFAULT_DAILY_REQUEST_LIMIT = 250;
 export const AI_PROVIDER_CIRCUIT_FAILURE_THRESHOLD = 3;
 export const AI_PROVIDER_CIRCUIT_COOLDOWN_MS = 60_000;
+export const AI_RATE_LIMIT_MAX_CONFIGURED = 100;
 
 interface RateBucket {
   count: number;
@@ -24,6 +25,18 @@ const buckets = new Map<string, RateBucket>();
 const providerBudgets = new Map<string, { day: string; count: number }>();
 const providerCircuits = new Map<string, { failures: number; openUntil: number }>();
 
+/**
+ * Allow a deployment owner to tune the public-beta request window while
+ * retaining a hard upper bound. Invalid values deliberately use the safe
+ * default rather than disabling abuse protection.
+ */
+export function getAIRequestLimit() {
+  const configured = Number.parseInt(process.env.AI_RATE_LIMIT_PER_WINDOW ?? '', 10);
+  return Number.isFinite(configured) && configured > 0 && configured <= AI_RATE_LIMIT_MAX_CONFIGURED
+    ? configured
+    : AI_RATE_LIMIT;
+}
+
 function pruneExpiredBuckets(now: number) {
   for (const [key, bucket] of buckets) {
     if (bucket.resetAt <= now) buckets.delete(key);
@@ -36,20 +49,21 @@ function pruneExpiredBuckets(now: number) {
 }
 
 export function consumeAIAccess(key: string, now = Date.now()): AIAccessDecision {
+  const limit = getAIRequestLimit();
   pruneExpiredBuckets(now);
   const current = buckets.get(key);
   if (!current || current.resetAt <= now) {
     const next = { count: 1, resetAt: now + AI_RATE_WINDOW_MS };
     buckets.set(key, next);
-    return { allowed: true, remaining: AI_RATE_LIMIT - 1, resetAt: next.resetAt };
+    return { allowed: true, remaining: limit - 1, resetAt: next.resetAt };
   }
 
-  if (current.count >= AI_RATE_LIMIT) {
+  if (current.count >= limit) {
     return { allowed: false, remaining: 0, resetAt: current.resetAt };
   }
 
   current.count += 1;
-  return { allowed: true, remaining: AI_RATE_LIMIT - current.count, resetAt: current.resetAt };
+  return { allowed: true, remaining: limit - current.count, resetAt: current.resetAt };
 }
 
 export function consumeAIProviderBudget(provider: string, now = Date.now()) {
@@ -98,13 +112,14 @@ export async function consumeAIAccessForRequest(key: string, now = Date.now()): 
   const endpoint = process.env.AI_RATE_LIMIT_SHARED_ENDPOINT?.trim();
   if (!endpoint) return consumeAIAccess(key, now);
   const token = process.env.AI_RATE_LIMIT_SHARED_TOKEN?.trim();
+  const limit = getAIRequestLimit();
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ key, now, limit: AI_RATE_LIMIT, windowMs: AI_RATE_WINDOW_MS }),
+    body: JSON.stringify({ key, now, limit, windowMs: AI_RATE_WINDOW_MS }),
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(`rate_limit_store_http_${response.status}`);

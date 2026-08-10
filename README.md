@@ -46,7 +46,9 @@ AI assistants work without a provider key. To enable a free-tier provider locall
 set either `GEMINI_API_KEY` (Google AI Studio) or `GROQ_API_KEY` (Groq). Keep `AI_PROVIDER=auto` to prefer Gemini and fall
 back to Groq, or set it to `gemini`/`groq` explicitly. These are server-only variables; never prefix them with `NEXT_PUBLIC_`.
 The Groq default is `openai/gpt-oss-20b`; choose a model listed as supporting the requested output mode. For multi-instance
-deployments, configure `AI_RATE_LIMIT_SHARED_ENDPOINT` and its server-only token for an atomic shared counter. The selected
+deployments, configure `AI_RATE_LIMIT_SHARED_ENDPOINT` and its server-only token for an atomic shared counter. The default
+public-beta window is eight valid requests per client per ten minutes; a personal deployment can set the server-only
+`AI_RATE_LIMIT_PER_WINDOW` to a value from 1 to 100. The selected
 provider's own retention, quota and usage terms apply. See `docs/product-spec/phase-6-implementation-status.md` for the
 gateway boundary and release gates.
 

@@ -12,6 +12,7 @@ describe('Phase 6 AI gateway route', () => {
     delete process.env.GEMINI_API_KEY;
     delete process.env.GROQ_API_KEY;
     delete process.env.GROQ_MODEL;
+    delete process.env.AI_RATE_LIMIT_PER_WINDOW;
   });
 
   it('requires explicit consent and returns a safe deterministic fallback without a provider key', async () => {
@@ -232,5 +233,47 @@ describe('Phase 6 AI gateway route', () => {
       }),
     );
     expect(response.status).toBe(413);
+  });
+
+  it('does not consume the request window for invalid consent or form data', async () => {
+    process.env.AI_RATE_LIMIT_PER_WINDOW = '1';
+    const invalidConsent = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-name',
+          input: { businessType: 'Snack delivery' },
+          consent: false,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    expect(invalidConsent.status).toBe(400);
+
+    const valid = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-name',
+          input: { businessType: 'Snack delivery' },
+          consent: true,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    expect(valid.status).toBe(200);
+
+    const exhausted = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-name',
+          input: { businessType: 'Snack delivery' },
+          consent: true,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    expect(exhausted.status).toBe(429);
   });
 });

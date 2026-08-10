@@ -20,14 +20,16 @@ No paid provider key is required: without a configured Gemini or Groq key, the s
 The browser posts to `/api/ai/assist` only after an explicit consent checkbox. The route:
 
 1. validates the assistant-specific schema and rejects unknown/malformed input;
-2. hashes the request source for eight requests per ten minutes, using an optional shared atomic counter for multi-instance deployments;
+2. hashes the request source for eight valid requests per ten minutes by default (with a bounded `AI_RATE_LIMIT_PER_WINDOW` override), using an optional shared atomic counter for multi-instance deployments;
 3. hard-caps the streamed request body at 24 KB, assistant input at 6,000 characters and provider output at 700 tokens;
 4. redacts known contact/tax-ID patterns and rejects obvious identity, payment and credential data before transmission;
 5. sends an immutable system policy plus a JSON data payload to the configured provider within a bounded total deadline;
-6. validates structured JSON output, rejects provider-created numeric claims and filters unsafe claims;
+6. validates structured JSON output, rejects provider-created numeric claims (while accepting the deterministic metrics' two-decimal display form) and filters unsafe claims;
 7. falls back to a deterministic template when no key, network, quota or schema response is available.
 
 `AI_RATE_LIMIT_SHARED_ENDPOINT` can point to a deployment-owned atomic counter accepting `{ key, now, limit, windowMs }` and returning `{ allowed, remaining, resetAt }`. Without it, the bounded in-process limiter is suitable for local/public-beta use but must not be treated as a multi-instance production control.
+
+`AI_RATE_LIMIT_PER_WINDOW` can raise or lower the per-client ten-minute limit for a personal deployment, from 1 through 100. Invalid values fall back to the safe default of eight. Failed validation, consent, privacy and size checks do not consume the window; only a valid assistant request does.
 
 `AI_PROVIDER_DAILY_REQUEST_LIMIT` provides a per-instance provider safety ceiling (250 by default), and three consecutive provider failures open a 60-second circuit. Multi-instance deployments should enforce the same budget and circuit policy in the shared service.
 
