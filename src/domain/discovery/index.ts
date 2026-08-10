@@ -140,7 +140,8 @@ export function validateDiscoveryRegistry() {
     if (
       (tool.featureFlag === 'phase4-tax-review' ||
         tool.featureFlag === 'phase5-startup-marketplace' ||
-        tool.featureFlag === 'phase5-marketplace') &&
+        tool.featureFlag === 'phase5-marketplace' ||
+        tool.featureFlag === 'phase6-ai-assistants') &&
       (tool.governance.goldenFixtureIds?.length ?? 0) === 0
     ) {
       errors.push(`${tool.id}: controlled-beta tool requires golden fixture IDs before release`);

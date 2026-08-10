@@ -384,6 +384,16 @@ export const sharedAnalyticsPolicy = {
     'commissionFeePercent',
     'collectionFeePercent',
     'fixedFeeOverride',
+    'assistantInput',
+    'input',
+    'prompt',
+    'draft',
+    'draftText',
+    'suggestions',
+    'sections',
+    'metrics',
+    'redactedFields',
+    'transmittedFields',
   ],
 };
 

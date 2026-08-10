@@ -26,6 +26,7 @@ import { BusinessCalculatorForm } from './business-calculator-form';
 import { FinanceCalculatorForm } from './finance-calculator-form';
 import { TaxCalculatorForm } from './tax-calculator-form';
 import { Phase5CalculatorForm } from './phase5-calculator-form';
+import { AIAssistantForm } from './ai-assistant-form';
 import { GstCalculatorForm } from './gst-calculator-form';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
@@ -172,6 +173,19 @@ function ToolInteraction({ tool }: { tool: SupportedTool }) {
           }}
         />
       );
+    case 'ai-assistant':
+      return (
+        <AIAssistantForm
+          kind={tool.ui.variant}
+          tool={{
+            id: tool.id,
+            name: tool.name,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
     case 'document-generator':
       return (
         <DocumentGeneratorForm
@@ -220,11 +234,15 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
           <h1>{tool.name}</h1>
           <p className="tool-hero__summary">{tool.summary}</p>
           <div className="tool-hero__meta">
-            <span>Instant result</span>
+            <span>{tool.executionMode === 'network-required' ? 'Reviewable draft' : 'Instant result'}</span>
             <span>•</span>
             <span>No account</span>
             <span>•</span>
-            <span>Inputs stay in your browser</span>
+            <span>
+              {tool.executionMode === 'network-required'
+                ? 'Fields disclosed before submit'
+                : 'Inputs stay in your browser'}
+            </span>
           </div>
         </Container>
       </section>

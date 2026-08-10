@@ -1,7 +1,7 @@
 const configuredFlags = process.env.NEXT_PUBLIC_TOOL_FEATURE_FLAGS;
 const enabledFeatureFlags = new Set(
   (configuredFlags === undefined
-    ? ['phase4-tax-review', 'phase5-startup-marketplace', 'phase5-marketplace']
+    ? ['phase4-tax-review', 'phase5-startup-marketplace', 'phase5-marketplace', 'phase6-ai-assistants']
     : configuredFlags.split(',')
   )
     .map((flag) => flag.trim())

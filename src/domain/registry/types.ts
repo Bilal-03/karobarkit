@@ -146,6 +146,10 @@ export type ToolUiAdapter =
   | { adapter: 'business-card-generator' }
   | { adapter: 'invoice-number-generator' }
   | { adapter: 'gst-invoice-generator' }
+  | {
+      adapter: 'ai-assistant';
+      variant: 'business-name' | 'pricing-assistant' | 'startup-cost-estimator' | 'business-plan-assistant';
+    }
   | { adapter: 'unavailable' };
 
 export interface ToolDefinition<TInput, TResult> {

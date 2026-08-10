@@ -54,6 +54,16 @@ import {
   valuationTool,
   validatePhase5FixtureManifest,
 } from './tools/phase5';
+import {
+  businessNameAssistantTool,
+  businessPlanAssistantTool,
+  phase6Tools,
+  pricingAssistantTool,
+  startupCostAssistantTool,
+  PHASE6_FEATURE_FLAG,
+  PHASE6_EVALUATION_FIXTURE_MANIFEST,
+  validatePhase6FixtureManifest,
+} from './tools/phase6';
 
 export type {
   AnalyticsPolicy,
@@ -125,6 +135,14 @@ export {
   PHASE5_GOLDEN_FIXTURE_MANIFEST,
   PHASE5_MARKETPLACE_FEATURE_FLAG,
   validatePhase5FixtureManifest,
+  businessNameAssistantTool,
+  pricingAssistantTool,
+  startupCostAssistantTool,
+  businessPlanAssistantTool,
+  phase6Tools,
+  PHASE6_FEATURE_FLAG,
+  PHASE6_EVALUATION_FIXTURE_MANIFEST,
+  validatePhase6FixtureManifest,
 };
 
 export const allToolDefinitions = [
@@ -145,6 +163,7 @@ export const allToolDefinitions = [
   ...financeTools,
   ...taxTools,
   ...phase5Tools,
+  ...phase6Tools,
 ] as const;
 
 export const toolRegistry = allToolDefinitions.filter((tool) => isToolAvailable(tool));

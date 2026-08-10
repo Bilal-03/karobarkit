@@ -7,6 +7,8 @@ import {
   getToolBySlug,
   toolMetadataIndex,
   toolRegistry,
+  PHASE6_EVALUATION_FIXTURE_MANIFEST,
+  validatePhase6FixtureManifest,
 } from '@/domain/registry';
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
@@ -57,6 +59,10 @@ describe('tool registry contract', () => {
       'esop-calculator',
       'amazon-fees-calculator',
       'flipkart-fees-calculator',
+      'business-name-generator',
+      'pricing-assistant',
+      'startup-cost-estimator',
+      'business-plan-assistant',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'business',
@@ -78,7 +84,7 @@ describe('tool registry contract', () => {
       expect(tool.sources.length).toBeGreaterThan(0);
       expect(tool.lastReviewed).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(tool.privacyNote).toContain('browser');
-      expect(['local-only', 'local-with-bundled-data']).toContain(tool.executionMode);
+      expect(['local-only', 'local-with-bundled-data', 'network-required']).toContain(tool.executionMode);
       expect(['live', 'beta']).toContain(tool.lifecycle);
       expect(tool.secondaryCategories).toBeInstanceOf(Array);
       expect(tool.governance.owner).toBeTruthy();
@@ -87,14 +93,16 @@ describe('tool registry contract', () => {
       expect(tool.trust.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
       expect(['not-required', 'pending', 'approved']).toContain(tool.trust.reviewer.status);
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
-      expect(['calculator', 'comparison', 'generator', 'worksheet', 'data-backed']).toContain(tool.kind);
+      expect(['calculator', 'comparison', 'generator', 'worksheet', 'data-backed', 'ai-assisted']).toContain(
+        tool.kind,
+      );
       expect(tool.ui.adapter).not.toBe('unavailable');
       if (tool.kind === 'generator') expect(tool.generatorKind).toBeDefined();
     }
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(44);
+    expect(allToolDefinitions).toHaveLength(48);
     expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
     for (const metadata of toolMetadataIndex) {
       expect(metadata).not.toHaveProperty('defaultValues');
@@ -141,8 +149,23 @@ describe('tool registry contract', () => {
           featureFlag: 'phase5-marketplace',
           trust: expect.objectContaining({ effectiveFrom: '2026-03-16' }),
         }),
+        expect.objectContaining({
+          id: 'pricing-assistant',
+          kind: 'ai-assisted',
+          featureFlag: 'phase6-ai-assistants',
+          executionMode: 'network-required',
+          trust: expect.objectContaining({ reviewer: expect.objectContaining({ status: 'pending' }) }),
+        }),
       ]),
     );
+  });
+
+  it('keeps the Phase 6 evaluation manifest traceable without claiming an independent signature', () => {
+    expect(validatePhase6FixtureManifest()).toEqual([]);
+    expect(PHASE6_EVALUATION_FIXTURE_MANIFEST.status).toBe('pending');
+    expect(PHASE6_EVALUATION_FIXTURE_MANIFEST.signature.status).toBe('pending');
+    expect(PHASE6_EVALUATION_FIXTURE_MANIFEST.signature.reviewerName).toBeNull();
+    expect(PHASE6_EVALUATION_FIXTURE_MANIFEST.fixtures.length).toBeGreaterThanOrEqual(8);
   });
 
   it('keeps slug, canonical path, title and H1 tied to one record', () => {

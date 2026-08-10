@@ -819,6 +819,22 @@ p {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
+.ai-assistant-draft__preview {
+  max-height: 28rem;
+  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font: inherit;
+  line-height: 1.6;
+}
+.ai-assistant-summary {
+  margin: 0 0 var(--space-5);
+  color: var(--ink-700);
+}
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -40,10 +40,10 @@ gst-invoice-generator,GST Invoice Generator,gst-invoice-generator,generators,gst
 url-qr,QR Code Generator,url-qr,generators,,generator,local-only,B,live,3,technical-standards,security-reviewer
 business-card-generator,Business Card Generator,business-card-generator,generators,business,generator,local-only,B,planned,3,document-standards,document-standards-reviewer
 invoice-number-generator,Invoice Number Generator,invoice-number-generator,generators,business,generator,local-only,B,planned,3,document-standards,document-standards-reviewer
-business-name-generator,Business Name Generator,business-name-generator,ai-tools,startup,ai-assisted,network-required,B,planned,6,ai-governance,ai-safety-reviewer
-pricing-assistant,Pricing Assistant,pricing-assistant,ai-tools,business,ai-assisted,network-required,B,planned,6,ai-governance,ai-safety-reviewer
-startup-cost-estimator,Startup Cost Estimator,startup-cost-estimator,ai-tools,startup,ai-assisted,network-required,B,planned,6,ai-governance,ai-safety-reviewer
-business-plan-assistant,Business Plan Assistant,business-plan-assistant,ai-tools,startup,ai-assisted,network-required,B,planned,6,ai-governance,ai-safety-reviewer
+business-name-generator,Business Name Assistant,business-name-generator,ai-tools,startup,ai-assisted,network-required,B,beta,6,ai-governance,ai-safety-reviewer
+pricing-assistant,Pricing Assistant,pricing-assistant,ai-tools,business,ai-assisted,network-required,B,beta,6,ai-governance,ai-safety-reviewer
+startup-cost-estimator,Startup Cost Estimator,startup-cost-estimator,ai-tools,startup,ai-assisted,network-required,B,beta,6,ai-governance,ai-safety-reviewer
+business-plan-assistant,Business Plan Assistant,business-plan-assistant,ai-tools,startup,ai-assisted,network-required,B,beta,6,ai-governance,ai-safety-reviewer
 upi-standee,UPI Standee Generator,upi-standee,generators,business,generator,local-only,B,live,1,technical-standards,security-reviewer
 letterhead-generator,Letterhead Generator,letterhead-generator,generators,business,generator,local-only,B,live,1,document-standards,document-standards-reviewer
 payment-receipt-generator,Payment Receipt Generator,payment-receipt-generator,generators,business,generator,local-only,B,live,1,document-standards,document-standards-reviewer

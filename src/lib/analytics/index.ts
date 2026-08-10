@@ -313,6 +313,16 @@ const forbiddenPropertyNames = new Set([
   'commissionFeePercent',
   'collectionFeePercent',
   'fixedFeeOverride',
+  'assistantInput',
+  'input',
+  'prompt',
+  'draft',
+  'draftText',
+  'suggestions',
+  'sections',
+  'metrics',
+  'redactedFields',
+  'transmittedFields',
 ]);
 
 export function trackEvent(event: AnalyticsEventName, properties: SafeAnalyticsProperties = {}) {

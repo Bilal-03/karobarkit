@@ -161,11 +161,12 @@ test.describe('foundation routes', () => {
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toHaveCount(0);
   });
 
-  test('keeps roadmap categories honest and out of the index', async ({ page }) => {
+  test('publishes the Phase 6 AI category with beta labels', async ({ page }) => {
     await page.goto('/categories/ai-tools');
-    await expect(page.getByText('This category is on the roadmap')).toBeVisible();
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
-    await expect(page.locator('.tool-card')).toHaveCount(0);
+    await expect(page.getByText('4 published tools in this category')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Business Name Assistant' })).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content', /noindex/);
+    await expect(page.locator('.tool-card')).toHaveCount(4);
   });
 
   test('calculator metadata and canonical identify the same tool', async ({ page }) => {
