@@ -24,6 +24,22 @@ describe('calculator form integration', () => {
     expect(screen.getAllByRole('alert').length).toBeGreaterThanOrEqual(2);
   });
 
+  it('renders a long-horizon negative CAGR without crashing the page', async () => {
+    const user = userEvent.setup();
+    render(<CalculatorForm kind="cagr" tool={cagrTool} />);
+
+    await user.clear(screen.getByRole('textbox', { name: /Beginning value/ }));
+    await user.type(screen.getByRole('textbox', { name: /Beginning value/ }), '100000');
+    await user.clear(screen.getByRole('textbox', { name: /Ending value/ }));
+    await user.type(screen.getByRole('textbox', { name: /Ending value/ }), '16105');
+    await user.clear(screen.getByRole('textbox', { name: /Duration in years/ }));
+    await user.type(screen.getByRole('textbox', { name: /Duration in years/ }), '50');
+    await user.click(screen.getByRole('button', { name: 'Calculate result' }));
+
+    expect(await screen.findByText('-3.59%')).toBeInTheDocument();
+    expect(screen.getByText('Smoothed annual change across the period.')).toBeInTheDocument();
+  });
+
   it('renders the ROI result after a valid submission', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="roi" tool={roiTool} />);

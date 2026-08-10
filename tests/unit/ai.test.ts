@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   fallbackAssistant,
   buildAssistantPrompt,
+  getAssistantNumericAuthority,
   mergeProviderDraft,
   redactAssistantInput,
   validateAssistantInput,
@@ -236,6 +237,44 @@ describe('Phase 6 AI assistant foundation', () => {
     );
     expect(merged.provider).toBe('groq');
     expect(merged.summary).toContain('₹1,111.11');
+  });
+
+  it('accepts a concise business-plan draft with structural phases and user-owned numbers', () => {
+    const input = {
+      businessName: 'FreshBox Foods',
+      industry: 'Food and beverage',
+      targetCustomer: 'Busy urban professionals',
+      problem: 'Healthy snacks are hard to order consistently during workdays.',
+      solution: 'Weekly pre-portioned snack boxes delivered to offices.',
+      region: 'Bengaluru',
+      revenueModel: 'Monthly subscription',
+      firstYearGoal: 'Reach 100 recurring customers',
+      milestones: 'Pilot, repeat-order test, local launch',
+      constraints: '',
+    };
+    const fallback = fallbackAssistant('business-plan-assistant', input);
+    const merged = mergeProviderDraft(
+      fallback,
+      {
+        title: 'FreshBox Foods plan',
+        summary: 'A concise plan grounded in the supplied customer, problem and solution brief.',
+        suggestions: [
+          '1. Validate the problem with customers.',
+          '2) Assign owners to the supplied milestones.',
+        ],
+        sections: [
+          {
+            heading: 'Phase 1: pilot',
+            body: 'Use the supplied milestones and review evidence before expanding.',
+          },
+          { heading: 'First-year goal', body: 'The supplied goal is to reach 100 recurring customers.' },
+        ],
+        warnings: [],
+      },
+      'groq',
+      { approvedNumbers: getAssistantNumericAuthority(input, fallback.metrics) },
+    );
+    expect(merged.provider).toBe('groq');
   });
 
   it('serializes facts as data without an injectable closing delimiter', () => {

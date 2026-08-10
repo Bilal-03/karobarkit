@@ -1,5 +1,6 @@
 export const AI_MAX_INPUT_CHARS = 6000;
 export const AI_MAX_OUTPUT_TOKENS = 700;
+export const AI_BUSINESS_PLAN_OUTPUT_TOKENS = 1200;
 export const AI_RATE_WINDOW_MS = 10 * 60 * 1000;
 export const AI_RATE_LIMIT = 8;
 export const AI_RATE_MAX_BUCKETS = 10_000;

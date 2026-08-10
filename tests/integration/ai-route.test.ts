@@ -119,6 +119,66 @@ describe('Phase 6 AI gateway route', () => {
     expect(body.result.title).toBe('A reviewed wording draft');
   });
 
+  it('gives the business-plan provider enough output room for its structured sections', async () => {
+    process.env.AI_PROVIDER = 'groq';
+    process.env.GROQ_API_KEY = 'server-only-test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        const request = JSON.parse(String(init?.body)) as {
+          max_completion_tokens: number;
+          messages: Array<{ role: string; content: string }>;
+        };
+        expect(request.max_completion_tokens).toBe(1200);
+        expect(request.messages[1]?.content).toContain('business-plan-assistant');
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    title: 'A reviewed business-plan draft',
+                    summary: 'A concise draft based on supplied facts.',
+                    suggestions: ['Validate the supplied milestones with customers.'],
+                    sections: [{ heading: 'Next step', body: 'Review the assumptions before sharing.' }],
+                    warnings: [],
+                  }),
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }),
+    );
+
+    const response = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-plan-assistant',
+          input: {
+            businessName: 'FreshBox',
+            industry: 'Food',
+            targetCustomer: 'Urban professionals',
+            problem: 'Healthy snacks are hard to order.',
+            solution: 'Weekly snack boxes.',
+            region: 'Delhi',
+            revenueModel: 'Subscription',
+            firstYearGoal: 'Reach 100 customers',
+            milestones: 'Pilot, launch',
+            constraints: '',
+          },
+          consent: true,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { result: { provider: string } };
+    expect(body.result.provider).toBe('groq');
+  });
+
   it('supports Gemini structured output through the same server contract', async () => {
     process.env.AI_PROVIDER = 'gemini';
     process.env.GEMINI_API_KEY = 'server-only-test-key';

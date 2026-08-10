@@ -56,12 +56,20 @@ export function parseDecimal(value: DecimalInput): Decimal {
 }
 
 export function decimalToString(value: Decimal, significantDigits = 20): string {
-  const serialized = value.toSignificantDigits(significantDigits).toString();
-  if (!serialized.includes('e')) {
-    return serialized;
+  const safeSignificantDigits = Math.min(MAX_SIGNIFICANT_DIGITS, Math.max(1, Math.floor(significantDigits)));
+  let serialized = value.toSignificantDigits(safeSignificantDigits).toString();
+
+  // Decimal.js uses exponential notation for very small or very large values.
+  // Convert it to plain notation before applying the same decimal-place guard
+  // used for values that already have a decimal point.
+  if (serialized.includes('e')) serialized = value.toSignificantDigits(safeSignificantDigits).toFixed();
+
+  const decimalPlaces = serialized.includes('.') ? (serialized.split('.')[1]?.length ?? 0) : 0;
+  if (decimalPlaces > MAX_DECIMAL_PLACES) {
+    serialized = value.toDecimalPlaces(MAX_DECIMAL_PLACES, Decimal.ROUND_HALF_UP).toFixed(MAX_DECIMAL_PLACES);
   }
 
-  return value.toFixed(Math.min(MAX_DECIMAL_PLACES, significantDigits));
+  return serialized.replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '');
 }
 
 export function decimalIsZero(value: Decimal) {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { calculateCagr, validateCagrInput } from '@/domain/calculations/cagr';
 import { calculateRoi, validateRoiInput } from '@/domain/calculations/roi';
+import { formatPercentage } from '@/domain/formatting/indian';
 
 describe('CAGR calculation', () => {
   it('matches the independent required example', () => {
@@ -13,6 +14,14 @@ describe('CAGR calculation', () => {
   it('accepts Indian grouping and decimal values', () => {
     const result = calculateCagr({ beginningValue: '₹1,00,000.50', endingValue: '161051.25', years: '5.5' });
     expect(Number(result.percentage)).toBeGreaterThan(0);
+  });
+
+  it('keeps long-horizon declines renderable when the rate has many decimals', () => {
+    const result = calculateCagr({ beginningValue: '100000', endingValue: '16105', years: '50' });
+    expect(result.direction).toBe('decline');
+    expect(() => formatPercentage(result.percentage)).not.toThrow();
+    expect(formatPercentage(result.percentage)).toBe('-3.59%');
+    expect(result.percentage.split('.')[1]?.length ?? 0).toBeLessThanOrEqual(18);
   });
 
   it('rejects empty values and zero denominators', () => {

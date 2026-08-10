@@ -18,6 +18,7 @@ import {
 } from './index';
 import {
   AI_GATEWAY_DEADLINE_MS,
+  AI_BUSINESS_PLAN_OUTPUT_TOKENS,
   AI_MAX_OUTPUT_TOKENS,
   AI_PROVIDER_TIMEOUT_MS,
   consumeAIProviderBudget,
@@ -100,6 +101,10 @@ function timeoutSignal(milliseconds: number) {
   return { signal: controller.signal, clear: () => clearTimeout(timeout) };
 }
 
+function outputTokenLimit(kind: AIAssistantKind) {
+  return kind === 'business-plan-assistant' ? AI_BUSINESS_PLAN_OUTPUT_TOKENS : AI_MAX_OUTPUT_TOKENS;
+}
+
 async function readJsonResponse(response: Response) {
   if (!response.ok) {
     throw new Error(`provider_http_${response.status}`);
@@ -155,7 +160,7 @@ async function callGemini(
           contents: [{ parts: [{ text: buildAssistantPrompt(kind, input, deterministic.metrics) }] }],
           generationConfig: {
             temperature: 0.35,
-            maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
+            maxOutputTokens: outputTokenLimit(kind),
             responseFormat: {
               text: {
                 mimeType: 'application/json',
@@ -200,7 +205,7 @@ async function callGroq(
           { role: 'user', content: buildAssistantPrompt(kind, input, deterministic.metrics) },
         ],
         temperature: 0.35,
-        max_completion_tokens: AI_MAX_OUTPUT_TOKENS,
+        max_completion_tokens: outputTokenLimit(kind),
         ...(GROQ_REASONING_MODELS.has(config.model) ? { reasoning_effort: 'low' } : {}),
         response_format: {
           ...(config.groqStructuredMode === 'strict'

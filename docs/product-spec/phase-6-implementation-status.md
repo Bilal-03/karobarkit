@@ -21,7 +21,7 @@ The browser posts to `/api/ai/assist` only after an explicit consent checkbox. T
 
 1. validates the assistant-specific schema and rejects unknown/malformed input;
 2. hashes the request source for eight valid requests per ten minutes by default (with a bounded `AI_RATE_LIMIT_PER_WINDOW` override), using an optional shared atomic counter for multi-instance deployments;
-3. hard-caps the streamed request body at 24 KB, assistant input at 6,000 characters and provider output at 700 tokens;
+3. hard-caps the streamed request body at 24 KB, assistant input at 6,000 characters and provider output at 700 tokens (1,200 for the structured business-plan draft);
 4. redacts known contact/tax-ID patterns and rejects obvious identity, payment and credential data before transmission;
 5. sends an immutable system policy plus a JSON data payload to the configured provider within a bounded total deadline;
 6. validates structured JSON output, rejects provider-created numeric claims (while accepting the deterministic metrics' two-decimal display form) and filters unsafe claims;
