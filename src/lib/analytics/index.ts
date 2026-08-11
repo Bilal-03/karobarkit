@@ -429,7 +429,8 @@ export function trackEvent(event: AnalyticsEventName, properties: SafeAnalyticsP
 
   const safeProperties = sanitizeAnalyticsProperties(properties);
 
-  // The MVP deliberately has no third-party analytics transport. This allowlist is the seam for one later.
+  // Custom product events remain browser-only. Vercel page views are wired separately and never receive
+  // these properties or calculator inputs.
   window.dispatchEvent(
     new CustomEvent('karobarkit:analytics', { detail: { event, properties: safeProperties } }),
   );

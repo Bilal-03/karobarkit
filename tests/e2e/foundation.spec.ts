@@ -175,6 +175,7 @@ test.describe('foundation routes', () => {
 
     await page.goto('/about#creator');
     await expect(page.getByRole('heading', { name: 'Bilal Choudhary' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Bilal Choudhary' })).toBeVisible();
     await expect(page.getByText('Creator and developer of KarobarKit')).toBeVisible();
     await expect(page.getByRole('link', { name: /GitHub/ })).toHaveAttribute(
       'href',
@@ -184,6 +185,8 @@ test.describe('foundation routes', () => {
       'href',
       'https://www.linkedin.com/in/bilal2012/',
     );
+    await expect(page.locator('footer')).not.toContainText('Bilal Choudhary');
+    await expect(page.locator('footer')).toContainText('The Business Toolkit for India');
   });
 
   test('shows useful zero results and a noindex search policy', async ({ page }) => {

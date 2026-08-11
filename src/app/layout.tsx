@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { VercelWebAnalytics } from '@/components/analytics/vercel-web-analytics';
 import { SiteShell } from '@/components/layout/site-shell';
 import { siteConfig } from '@/lib/site';
 
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
-  authors: [{ name: 'Bilal Choudhary', url: 'https://github.com/Bilal-03' }],
-  creator: 'Bilal Choudhary',
+  authors: [{ name: 'KarobarKit' }],
+  creator: 'KarobarKit',
   icons: { icon: '/brand-badge.png', apple: '/brand-badge.png' },
   robots: { index: true, follow: true },
 };
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en-IN" data-scroll-behavior="smooth">
       <body>
         <SiteShell>{children}</SiteShell>
+        <VercelWebAnalytics />
       </body>
     </html>
   );

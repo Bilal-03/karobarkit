@@ -107,15 +107,15 @@ governance, and rendering behavior aligned as the catalogue grows.
 
 KarobarKit separates local features from the few features that require network access.
 
-| Feature                                         | Processing boundary                                                                                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Calculators and estimators                      | Run locally in the browser using deterministic domain functions.                                                                            |
-| Documents, QR codes, barcodes, images, and PDFs | Inputs and artifacts are processed locally in the browser. Files are not uploaded by these tools.                                           |
-| Cross-tool handoffs                             | Use explicit, short-lived browser storage; never query parameters or analytics payloads.                                                    |
-| AI assistants                                   | After explicit consent, declared fields pass through a server gateway to Gemini or Groq. Known sensitive patterns are redacted or rejected. |
-| Currency reference rates                        | The server fetches public reference data from the European Central Bank. User-entered financial context is not sent to the ECB.             |
-| Contact form                                    | Submitted contact details and messages are sent through the server to Resend when delivery is configured.                                   |
-| Analytics                                       | Only allowlisted, non-sensitive metadata is accepted. Financial values, names, URLs, UPI IDs, document text, notes, and files are rejected. |
+| Feature                                         | Processing boundary                                                                                                                                                            |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Calculators and estimators                      | Run locally in the browser using deterministic domain functions.                                                                                                               |
+| Documents, QR codes, barcodes, images, and PDFs | Inputs and artifacts are processed locally in the browser. Files are not uploaded by these tools.                                                                              |
+| Cross-tool handoffs                             | Use explicit, short-lived browser storage; never query parameters or analytics payloads.                                                                                       |
+| AI assistants                                   | After explicit consent, declared fields pass through a server gateway to Gemini or Groq. Known sensitive patterns are redacted or rejected.                                    |
+| Currency reference rates                        | The server fetches public reference data from the European Central Bank. User-entered financial context is not sent to the ECB.                                                |
+| Contact form                                    | Submitted contact details and messages are sent through the server to Resend when delivery is configured.                                                                      |
+| Analytics                                       | Vercel receives production page views with query strings and fragments removed. Custom product events remain browser-only and allowlisted; form values and files are rejected. |
 
 Provider keys are server-only. KarobarKit does not intentionally persist AI prompts or drafts, and
 an installation without an AI provider key uses deterministic templates instead. Third-party

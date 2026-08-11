@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 import { InfoPage } from '@/components/layout/info-page';
 import { pageMetadata } from '@/lib/seo';
 
@@ -42,8 +44,15 @@ export default function AboutPage() {
           </p>
         </section>
         <section className="creator-credit" id="creator" aria-labelledby="creator-heading">
-          <div className="creator-credit__identity" aria-hidden="true">
-            <span className="creator-credit__monogram">BC</span>
+          <div className="creator-credit__identity">
+            <Image
+              className="creator-credit__photo"
+              src="/bilal-choudhary.jpg"
+              width={1050}
+              height={1400}
+              sizes="(max-width: 620px) 136px, 150px"
+              alt="Bilal Choudhary"
+            />
             <span className="creator-credit__signal">Built with purpose in India</span>
           </div>
           <div className="creator-credit__content">

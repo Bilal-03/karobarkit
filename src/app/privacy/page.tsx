@@ -31,9 +31,15 @@ export default function PrivacyPage() {
         <section>
           <h2>Analytics boundary</h2>
           <p>
-            The app has a privacy-safe event seam for future aggregate product measurement. Allowed events
-            include tool views, validation codes and completion metadata. Financial values, URLs, names, UPI
-            IDs, amounts, payment notes, logos, QR payloads and document contents are forbidden properties.
+            The production site uses Vercel Web Analytics for aggregate page-view measurement. Query strings
+            and URL fragments are removed before a page view is sent, so search text and other URL details are
+            excluded. Analytics data is not sent in local development.
+          </p>
+          <p>
+            KarobarKit&apos;s separate product-event boundary remains browser-only and accepts only
+            allowlisted, low-cardinality metadata such as a tool ID, category, export format or validation
+            code. Financial values, names, UPI IDs, amounts, payment notes, logos, QR payloads, document
+            contents and file data are forbidden properties and are not forwarded to Vercel Analytics.
           </p>
         </section>
         <section>
