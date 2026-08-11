@@ -2827,7 +2827,7 @@ p {
   border-radius: 28px;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
   object-fit: cover;
-  object-position: center 45%;
+  object-position: center top;
   transform: rotate(-3deg);
 }
 .creator-credit__signal {
