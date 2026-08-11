@@ -14,5 +14,7 @@ export function removeAnalyticsUrlDetails(event: BeforeSendEvent): BeforeSendEve
 }
 
 export function VercelWebAnalytics() {
+  if (process.env.NODE_ENV !== 'production') return null;
+
   return <Analytics beforeSend={removeAnalyticsUrlDetails} />;
 }
