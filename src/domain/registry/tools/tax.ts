@@ -83,6 +83,7 @@ function createTaxTool(config: TaxToolConfig): ToolDefinition<TaxCalculatorInput
       reviewerStatus: 'pending',
       lifecycle: 'beta',
       featureFlag: TAX_FEATURE_FLAG,
+      capabilities: ['print-a4'],
     }),
     inputSchema: taxCalculatorInputSchema,
     defaultValues,

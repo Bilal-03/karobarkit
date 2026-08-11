@@ -2,6 +2,19 @@
 
 ## Active Business Toolkit plan
 
+- `everyday-tools-expansion-implementation-plan.md` — active execution plan for the scale-safe platform refactor, 28 approved everyday tools, four new categories, default-visible waves, file/QR/document safeguards, testing gates and coding-agent handoff.
+- `everyday_tools_catalogue.csv` — machine-readable baseline, visible-by-default waves, separately governed policy tools, deferred demand and explicit exclusions.
+- `everyday-tools-expansion-baseline-2026-08-10.md` — WP-0 command results, baseline commit and known timeout evidence.
+- `everyday-tools-expansion-wp1-1-completion-report-2026-08-10.md` — metadata-only discovery implementation, boundary tests and verification results.
+- `everyday-tools-expansion-wp1-2-1-3-completion-report-2026-08-10.md` — typed capability declarations, dynamic renderer registry and verification results.
+- `everyday-tools-expansion-wp1-4-completion-report-2026-08-10.md` — registry-driven category copy, four roadmap categories and verification results.
+- `everyday-tools-expansion-wp1-5-completion-report-2026-08-10.md` — capped directory results, URL-backed filter history, multi-token discovery and verification results.
+- `everyday-tools-expansion-wp1-6-completion-report-2026-08-10.md` — runtime analytics allowlist, sensitive-field rejection and verification results.
+- `everyday-tools-expansion-wp2-completion-report-2026-08-10.md` — nine visible-by-default Everyday Utilities tools, local calculation engines and verification results.
+- `everyday-tools-expansion-wp3-completion-report-2026-08-10.md` — ten visible-by-default sharing, QR and file utilities, local file safeguards and verification results.
+- `everyday-tools-expansion-wp4-completion-report-2026-08-11.md` — nine visible-by-default retail, logistics, workplace document and policy-estimate tools, shared print profiles and verification results.
+- `everyday-tools-expansion-wp5-completion-report-2026-08-11.md` — six visible-by-default but separately governed data-backed and regulated utilities, effective-date freshness controls, official-source allowlisting, explicit currency fallback and verification results.
+- `everyday-tools-expansion-remediation-report-2026-08-11.md` — final cross-wave audit, corrected calculations and sources, completed interaction/file/document work, verification evidence and remaining external acceptance checks.
 - `Business_Toolkit_for_India_Implementation_Plan_2026-08-09.md` — approved phased product and technical plan.
 - `phase-0-product-contract.md` — positioning, accepted decisions, categories, risk tiers, roles, language, privacy, and phase exit.
 - `business_toolkit_catalogue.csv` — frozen 48-tool canonical catalogue.

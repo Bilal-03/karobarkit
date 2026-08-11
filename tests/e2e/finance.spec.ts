@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 3 finance foundation', () => {
   test('calculates EMI, exposes the amortization output and links its sources', async ({ page }) => {
     await page.goto('/tools/emi-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
     await expect(page.getByText('Finance · Local-first · Beta')).toBeVisible();
     await page.getByRole('button', { name: 'Calculate scenario' }).click();

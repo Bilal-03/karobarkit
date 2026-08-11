@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { categoryRegistry } from '@/domain/registry/categories';
+
 import { MobileNav } from './mobile-nav';
 import { BrandLockup } from './brand-lockup';
 
@@ -12,7 +14,7 @@ export function Header() {
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
           <Link href="/tools">All tools</Link>
-          <Link href="/categories">8 categories</Link>
+          <Link href="/categories">{categoryRegistry.length} categories</Link>
           <Link href="/methodology">Methodology</Link>
           <Link href="/sources">Sources</Link>
         </nav>

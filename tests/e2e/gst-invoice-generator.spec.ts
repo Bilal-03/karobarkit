@@ -28,6 +28,7 @@ test.describe('GST invoice generator', () => {
       window.print = () => document.body.setAttribute('data-print-called', 'true');
     });
     await page.goto('/tools/gst-invoice-generator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await fillMinimumInvoice(page);
 
     await page.getByRole('button', { name: 'Create GST invoice draft' }).click();
@@ -52,6 +53,7 @@ test.describe('GST invoice generator', () => {
   test('keeps long invoices on separate A4 preview pages and rejects unsafe input', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto('/tools/gst-invoice-generator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await fillMinimumInvoice(page);
     await page.locator('[id="items.0.unitPrice"]').fill('1.234');
     await page.getByRole('button', { name: 'Create GST invoice draft' }).click();

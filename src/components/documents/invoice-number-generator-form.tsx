@@ -34,9 +34,12 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
   const [values, setValues] = useState<InvoiceNumberInput>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
   const [result, setResult] = useState<InvoiceNumberResult | null>(null);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
+    return () => window.cancelAnimationFrame(frame);
   }, [tool.category, tool.id]);
   useEffect(() => {
     if (!errors.length) return;
@@ -87,7 +90,7 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           <InputField
             id="prefix"

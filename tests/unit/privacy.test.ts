@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, type SafeAnalyticsProperties } from '@/lib/analytics';
 
 describe('privacy-safe analytics boundary', () => {
   it('removes calculator values from browser analytics events', () => {
@@ -69,12 +69,57 @@ describe('privacy-safe analytics boundary', () => {
       completedYears: '5',
       vehicleType: 'non-heavy',
       policyDate: '2026-08-09',
+      text: 'private Hindi text',
+      password: 'private-password',
+      taskText: 'private todo item',
+      fileName: 'private-identity.pdf',
+      fileBytes: 'binary payload',
+      imageData: 'data:image/png;base64,private',
+      pdfBytes: 'private PDF bytes',
+      barcodeValue: 'private barcode',
+      searchQuery: 'private search phrase',
+      wifiPassword: 'private wifi password',
     });
 
     const event = handler.mock.calls[0]?.[0] as CustomEvent;
     expect(event.detail.properties).toEqual({
       toolId: 'roi-calculator',
       category: 'financial-calculators',
+    });
+
+    window.removeEventListener('karobarkit:analytics', handler);
+  });
+
+  it('rejects unknown keys and malformed metadata without dropping valid fields', () => {
+    const handler = vi.fn();
+    window.addEventListener('karobarkit:analytics', handler);
+
+    trackEvent('result_downloaded', {
+      toolId: 'invoice-generator',
+      format: 'pdf',
+      debugToken: 'do-not-send',
+      sourcePath: '/private/customer-record',
+    });
+    trackEvent('result_downloaded', {
+      toolId: 'invoice-generator',
+      format: 'private' as SafeAnalyticsProperties['format'],
+      debugToken: 'do-not-send',
+    });
+    trackEvent('result_downloaded', {
+      toolId: 'photo-resizer-compressor',
+      format: 'webp',
+    });
+
+    expect((handler.mock.calls[0]?.[0] as CustomEvent).detail.properties).toEqual({
+      toolId: 'invoice-generator',
+      format: 'pdf',
+    });
+    expect((handler.mock.calls[1]?.[0] as CustomEvent).detail.properties).toEqual({
+      toolId: 'invoice-generator',
+    });
+    expect((handler.mock.calls[2]?.[0] as CustomEvent).detail.properties).toEqual({
+      toolId: 'photo-resizer-compressor',
+      format: 'webp',
     });
 
     window.removeEventListener('karobarkit:analytics', handler);

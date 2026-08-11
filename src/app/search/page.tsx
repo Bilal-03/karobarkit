@@ -1,5 +1,6 @@
 import { Container } from '@/components/ui/container';
 import { LiveToolSearch } from '@/components/search/live-tool-search';
+import { toolDiscoveryIndex } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = {
@@ -26,7 +27,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="eyebrow">Search</p>
           <h1>Find the right tool for the job</h1>
           <p className="lede">Search by a tool name, a business task or a phrase like “returns over time”.</p>
-          <LiveToolSearch key={query} id="search-page-input" initialQuery={query} variant="page" />
+          <LiveToolSearch
+            key={query}
+            id="search-page-input"
+            tools={toolDiscoveryIndex}
+            initialQuery={query}
+            variant="page"
+          />
         </Container>
       </section>
     </>

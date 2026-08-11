@@ -31,6 +31,7 @@ export const businessCardTool: ToolDefinition<BusinessCardInput, BusinessCardDoc
     reviewCadenceDays: 365,
     method: 'Deterministic mapping of entered identity and contact details into a print-ready A4 card sheet.',
     lastVerified: DOCUMENT_LAST_REVIEWED,
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary: 'Create a private print-ready business card sheet with local logo processing and no account.',
   inputSchema: businessCardInputSchema,

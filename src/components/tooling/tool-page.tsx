@@ -2,15 +2,6 @@ import Link from 'next/link';
 
 import { formatIndianDate } from '@/domain/formatting/indian';
 import { getRelatedTools } from '@/domain/registry';
-import type {
-  SourceReference,
-  ToolExecutionMode,
-  ToolGovernance,
-  ToolKind,
-  ToolLifecycle,
-  ToolTrustMetadata,
-  ToolUiAdapter,
-} from '@/domain/registry/types';
 
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { Container, Section } from '@/components/ui/container';
@@ -20,194 +11,19 @@ import { SourceReferenceBlock } from '@/components/ui/source-reference';
 import { JsonLd } from '@/components/seo/json-ld';
 import { faqStructuredData, toolStructuredData } from '@/lib/structured-data';
 import { ToolTrustPanel } from '@/components/trust/tool-trust-panel';
+import { ToolInteraction } from './tool-renderers';
+import type { SupportedTool, ToolInteractionTool } from './tool-types';
 
-import { CalculatorForm } from './calculator-form';
-import { BusinessCalculatorForm } from './business-calculator-form';
-import { FinanceCalculatorForm } from './finance-calculator-form';
-import { TaxCalculatorForm } from './tax-calculator-form';
-import { Phase5CalculatorForm } from './phase5-calculator-form';
-import { AIAssistantForm } from './ai-assistant-form';
-import { GstCalculatorForm } from './gst-calculator-form';
-import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
-import { GstInvoiceGeneratorForm } from '@/components/documents/gst-invoice-generator-form';
-import { QuotationGeneratorForm } from '@/components/documents/quotation-generator-form';
-import { InvoiceGeneratorForm } from '@/components/documents/invoice-generator-form';
-import { BusinessCardGeneratorForm } from '@/components/documents/business-card-generator-form';
-import { InvoiceNumberGeneratorForm } from '@/components/documents/invoice-number-generator-form';
-import { GeneratorForm } from './generator-form';
-
-interface SupportedTool {
-  id: string;
-  slug: string;
-  kind: ToolKind;
-  generatorKind?: 'qr' | 'document' | 'sequence';
-  ui: ToolUiAdapter;
-  name: string;
-  category: string;
-  categoryLabel: string;
-  summary: string;
-  defaultValues: unknown;
-  relatedToolIds: string[];
-  howToUse: string[];
-  formula: string;
-  workedExample: string;
-  resultInterpretation: string;
-  limitations: string[];
-  edgeCases: string[];
-  privacyNote: string;
-  lastReviewed: string;
-  sources: SourceReference[];
-  faqs: { question: string; answer: string }[];
-  disclaimer?: string;
-  lifecycle: ToolLifecycle;
-  executionMode: ToolExecutionMode;
-  governance: ToolGovernance;
-  trust: ToolTrustMetadata;
-}
-
-function ToolInteraction({ tool }: { tool: SupportedTool }) {
-  switch (tool.ui.adapter) {
-    case 'gst-calculator':
-      return (
-        <GstCalculatorForm
-          tool={{
-            id: tool.id,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-            sources: tool.sources,
-          }}
-        />
-      );
-    case 'gst-invoice-generator':
-      return (
-        <GstInvoiceGeneratorForm
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'quotation-generator':
-      return (
-        <QuotationGeneratorForm
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'invoice-generator':
-      return (
-        <InvoiceGeneratorForm
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'business-card-generator':
-      return (
-        <BusinessCardGeneratorForm
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'invoice-number-generator':
-      return (
-        <InvoiceNumberGeneratorForm
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'calculator':
-      return (
-        <CalculatorForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'business-calculator':
-      return (
-        <BusinessCalculatorForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            name: tool.name,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'finance-calculator':
-      return (
-        <FinanceCalculatorForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            name: tool.name,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'tax-calculator':
-      return (
-        <TaxCalculatorForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            name: tool.name,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'phase5-calculator':
-      return (
-        <Phase5CalculatorForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            name: tool.name,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'ai-assistant':
-      return (
-        <AIAssistantForm
-          kind={tool.ui.variant}
-          tool={{
-            id: tool.id,
-            name: tool.name,
-            category: tool.category,
-            defaultValues: tool.defaultValues,
-            privacyNote: tool.privacyNote,
-          }}
-        />
-      );
-    case 'document-generator':
-      return (
-        <DocumentGeneratorForm
-          kind={tool.ui.variant}
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'qr-generator':
-      return (
-        <GeneratorForm
-          kind={tool.ui.variant}
-          tool={{ id: tool.id, category: tool.category, defaultValues: tool.defaultValues }}
-        />
-      );
-    case 'unavailable':
-      return (
-        <div className="state-block state-block--empty">
-          <strong>This interface is not available yet</strong>
-          <p>The tool remains unavailable until its task-specific interface passes release review.</p>
-        </div>
-      );
-  }
+function toToolInteraction(tool: SupportedTool): ToolInteractionTool {
+  return {
+    id: tool.id,
+    name: tool.name,
+    category: tool.category,
+    defaultValues: tool.defaultValues,
+    privacyNote: tool.privacyNote,
+    sources: tool.sources,
+    ui: tool.ui,
+  };
 }
 
 export function ToolPage({ tool }: { tool: SupportedTool }) {
@@ -247,7 +63,7 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
         </Container>
       </section>
       <Container>
-        <ToolInteraction tool={tool} />
+        <ToolInteraction tool={toToolInteraction(tool)} />
       </Container>
       <Container narrow>
         <ToolTrustPanel

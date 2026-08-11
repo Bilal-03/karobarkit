@@ -212,6 +212,11 @@ const AUTHORITY_HOSTS: Record<SourceAuthority, readonly string[]> = {
   GST_COUNCIL: ['gstcouncil.gov.in', 'www.gstcouncil.gov.in'],
   GST_PORTAL: ['gst.gov.in', 'www.gst.gov.in'],
   INCOME_TAX_DEPARTMENT: ['incometax.gov.in', 'www.incometax.gov.in'],
+  MCA: ['mca.gov.in', 'www.mca.gov.in'],
+  MAHAGST: ['mahagst.gov.in', 'www.mahagst.gov.in'],
+  MSME: ['msme.gov.in', 'www.msme.gov.in', 'ramp.msme.gov.in'],
+  RBI: ['rbi.org.in', 'www.rbi.org.in'],
+  ECB: ['ecb.europa.eu', 'data.ecb.europa.eu'],
   OTHER_GOVERNMENT: ['pib.gov.in', 'www.pib.gov.in', 'static.pib.gov.in'],
 };
 

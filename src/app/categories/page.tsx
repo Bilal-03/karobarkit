@@ -1,13 +1,12 @@
 import Link from 'next/link';
 
 import { Container } from '@/components/ui/container';
-import { categoryRegistry, getToolsByCategory } from '@/domain/registry';
+import { categoryNames, categoryRegistry, getToolsByCategory } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
   title: 'Business toolkit categories for India',
-  description:
-    'Browse KarobarKit across Business, GST & Tax, Startup, Finance, E-commerce, HR & Salary, Generators and AI Tools.',
+  description: `Browse KarobarKit across ${categoryNames}.`,
   path: '/categories',
 });
 
@@ -19,8 +18,8 @@ export default function CategoriesPage() {
           <p className="eyebrow">Categories</p>
           <h1>Browse tools by business task</h1>
           <p className="lede">
-            Eight clear areas form the product architecture. Published counts are explicit, and roadmap
-            categories do not publish placeholder tool pages.
+            {categoryRegistry.length} task-focused areas form the product architecture. Published counts are
+            explicit, and roadmap categories do not publish placeholder tool pages.
           </p>
         </Container>
       </section>

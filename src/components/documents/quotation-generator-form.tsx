@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import type { FieldError } from '@/domain/calculations/types';
 import { DOCUMENT_ACCENTS } from '@/domain/documents/constants';
@@ -52,6 +53,7 @@ function hasValues(values: QuotationInput) {
 }
 
 export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
+  const router = useRouter();
   const initialValues = useMemo(() => cloneQuotationInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<QuotationInput>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -61,12 +63,15 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'quotation-document-print-area';
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
+    return () => window.cancelAnimationFrame(frame);
   }, [tool.category, tool.id]);
 
   useEffect(() => {
@@ -193,7 +198,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
       );
       return;
     }
-    window.location.href = '/tools/gst-invoice-generator';
+    router.push('/tools/gst-invoice-generator');
   }
 
   function continueToCommercialInvoice() {
@@ -210,7 +215,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
       );
       return;
     }
-    window.location.href = '/tools/invoice-generator';
+    router.push('/tools/invoice-generator');
   }
 
   return (
@@ -223,7 +228,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           <fieldset className="document-form-section">
             <legend>Business identity</legend>

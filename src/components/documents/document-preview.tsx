@@ -4,6 +4,7 @@ import { formatIndianCurrency, formatIndianNumber } from '@/domain/formatting/in
 import type {
   BusinessCardDocument,
   BusinessDocument,
+  LegacyBusinessDocument,
   InvoiceDocument,
   LetterheadDocument,
   PaymentReceiptDocument,
@@ -11,8 +12,11 @@ import type {
   QuotationLine,
 } from '@/domain/documents/types';
 import type { GstInvoiceDocument, GstInvoiceLine } from '@/domain/invoices/types';
+import { isWorkplaceDocument } from '@/domain/documents/workplace';
 
-function Logo({ document }: { document: BusinessDocument }) {
+import { WorkplaceDocumentPreview } from './workplace-document-preview';
+
+function Logo({ document }: { document: LegacyBusinessDocument }) {
   if (!document.logo) return null;
   return (
     <Image
@@ -26,7 +30,7 @@ function Logo({ document }: { document: BusinessDocument }) {
   );
 }
 
-function IdentityHeader({ document }: { document: BusinessDocument }) {
+function IdentityHeader({ document }: { document: LegacyBusinessDocument }) {
   const contact = [
     document.identity.contact.phone,
     document.identity.contact.email,
@@ -60,7 +64,7 @@ function IdentityHeader({ document }: { document: BusinessDocument }) {
   );
 }
 
-function DocumentFooter({ document }: { document: BusinessDocument }) {
+function DocumentFooter({ document }: { document: LegacyBusinessDocument }) {
   return (
     <footer className="document-footer">
       <p>
@@ -83,7 +87,7 @@ function TemplatePage({
   children,
   pageNumber,
 }: {
-  document: BusinessDocument;
+  document: LegacyBusinessDocument;
   children: React.ReactNode;
   pageNumber?: number;
 }) {
@@ -813,6 +817,10 @@ function GstInvoicePage({
 }
 
 export function DocumentPreview({ document, targetId }: { document: BusinessDocument; targetId: string }) {
+  if (isWorkplaceDocument(document)) {
+    return <WorkplaceDocumentPreview document={document} targetId={targetId} />;
+  }
+
   const pages =
     document.type === 'letterhead'
       ? document.bodyPages.map((body, index) => (

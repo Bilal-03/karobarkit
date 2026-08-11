@@ -5,15 +5,18 @@ import {
   categoryRegistry,
   getRelatedTools,
   getToolBySlug,
+  toolDiscoveryIndex,
   toolMetadataIndex,
   toolRegistry,
+  validateToolRegistry,
   PHASE6_EVALUATION_FIXTURE_MANIFEST,
   validatePhase6FixtureManifest,
+  validateRegulatedUtilitiesGoldenFixtureManifest,
 } from '@/domain/registry';
 import { getToolPageRouteContract } from '@/lib/route-contract';
 
 describe('tool registry contract', () => {
-  it('contains the published foundation, business, finance, Phase 4 and Phase 5 beta tools', () => {
+  it('contains the published foundation, business, finance, Phase 4/5 and visible WP-5 beta tools', () => {
     expect(toolRegistry.map((tool) => tool.slug)).toEqual([
       'cagr-calculator',
       'roi-calculator',
@@ -63,6 +66,40 @@ describe('tool registry contract', () => {
       'pricing-assistant',
       'startup-cost-estimator',
       'business-plan-assistant',
+      'percentage-calculator',
+      'discount-calculator',
+      'area-converter',
+      'business-days-calculator',
+      'fuel-expense-calculator',
+      'volumetric-weight-calculator',
+      'word-character-counter',
+      'password-toolkit',
+      'todo-checklist',
+      'whatsapp-link-generator',
+      'vcard-qr-generator',
+      'wifi-qr-generator',
+      'barcode-generator',
+      'qr-barcode-scanner',
+      'photo-resizer-compressor',
+      'pdf-merge-split',
+      'email-signature-generator',
+      'review-request-builder',
+      'favicon-app-icon-generator',
+      'price-tag-generator',
+      'delivery-challan-generator',
+      'shipping-label-generator',
+      'purchase-order-generator',
+      'menu-generator',
+      'wage-slip-generator',
+      'rent-receipt-generator',
+      'notice-period-calculator',
+      'leave-balance-calculator',
+      'hsn-sac-finder',
+      'gst-filing-due-date-calendar',
+      'depreciation-calculator',
+      'professional-tax-calculator',
+      'msme-late-payment-interest-calculator',
+      'currency-converter',
     ]);
     expect(categoryRegistry.map((category) => category.slug)).toEqual([
       'business',
@@ -73,7 +110,26 @@ describe('tool registry contract', () => {
       'hr-salary',
       'generators',
       'ai-tools',
+      'daily-utilities',
+      'retail-logistics',
+      'marketing-digital',
+      'media-files',
     ]);
+  });
+
+  it('keeps the expansion category metadata stable while waves are enabled', () => {
+    const expansionCategories = categoryRegistry.filter((category) =>
+      ['daily-utilities', 'retail-logistics', 'marketing-digital', 'media-files'].includes(category.slug),
+    );
+
+    expect(expansionCategories).toHaveLength(4);
+    expect(expansionCategories.map((category) => category.name)).toEqual([
+      'Everyday Utilities',
+      'Retail & Logistics',
+      'Marketing & Digital',
+      'Media & Files',
+    ]);
+    expect(expansionCategories.every((category) => category.searchTerms.length > 0)).toBe(true);
   });
 
   it('declares sources, review dates, calculations and privacy policy for every tool', () => {
@@ -91,6 +147,14 @@ describe('tool registry contract', () => {
       expect(tool.governance.reviewCadenceDays).toBeGreaterThan(0);
       expect(tool.trust.method).toBeTruthy();
       expect(tool.trust.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
+      expect(tool.capabilities).toBeInstanceOf(Array);
+      expect(tool.analyticsPolicy.allowedProperties).toEqual([
+        'toolId',
+        'category',
+        'format',
+        'pageSize',
+        'errorCodes',
+      ]);
       expect(['not-required', 'pending', 'approved']).toContain(tool.trust.reviewer.status);
       expect(tool.analyticsPolicy.forbiddenProperties).toContain('rawInput');
       expect(['calculator', 'comparison', 'generator', 'worksheet', 'data-backed', 'ai-assisted']).toContain(
@@ -102,14 +166,57 @@ describe('tool registry contract', () => {
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(48);
+    expect(allToolDefinitions).toHaveLength(82);
+    expect(allToolDefinitions.filter((tool) => tool.featureFlag === 'regulated-utilities-wave')).toHaveLength(
+      6,
+    );
+    expect(validateRegulatedUtilitiesGoldenFixtureManifest()).toBe(true);
+    expect(
+      allToolDefinitions
+        .filter((tool) => tool.featureFlag === 'regulated-utilities-wave')
+        .every((tool) => tool.lifecycle === 'beta' && tool.trust.reviewer.status === 'pending'),
+    ).toBe(true);
+    expect(allToolDefinitions.filter((tool) => tool.featureFlag === 'everyday-utilities-wave')).toHaveLength(
+      9,
+    );
+    expect(
+      allToolDefinitions
+        .filter((tool) => tool.featureFlag === 'everyday-utilities-wave')
+        .every((tool) => tool.lifecycle === 'beta'),
+    ).toBe(true);
+    expect(
+      allToolDefinitions.filter((tool) => tool.featureFlag === 'sharing-file-utilities-wave'),
+    ).toHaveLength(10);
+    expect(
+      allToolDefinitions
+        .filter((tool) => tool.featureFlag === 'sharing-file-utilities-wave')
+        .every((tool) => tool.lifecycle === 'beta' && tool.executionMode === 'local-only'),
+    ).toBe(true);
+    expect(allToolDefinitions.filter((tool) => tool.featureFlag === 'retail-workplace-wave')).toHaveLength(9);
+    expect(
+      allToolDefinitions
+        .filter((tool) => tool.featureFlag === 'retail-workplace-wave')
+        .every((tool) => tool.lifecycle === 'beta' && tool.executionMode === 'local-only'),
+    ).toBe(true);
     expect(toolMetadataIndex).toHaveLength(toolRegistry.length);
+    expect(toolDiscoveryIndex).toBe(toolMetadataIndex);
+    expect(JSON.parse(JSON.stringify(toolDiscoveryIndex))).toEqual(toolDiscoveryIndex);
     for (const metadata of toolMetadataIndex) {
       expect(metadata).not.toHaveProperty('defaultValues');
       expect(metadata).not.toHaveProperty('calculate');
       expect(metadata).not.toHaveProperty('renderResult');
       expect(metadata.lastVerified).toMatch(/^2026-\d{2}-\d{2}$/);
+      expect(metadata.capabilities).toEqual(expect.any(Array));
     }
+    expect(toolDiscoveryIndex.find((tool) => tool.id === 'url-qr-generator')?.capabilities).toEqual([
+      'qr-output',
+      'download-png',
+      'print-a4',
+    ]);
+    expect(toolDiscoveryIndex.find((tool) => tool.id === 'amazon-fees-calculator')?.capabilities).toEqual([
+      'download-csv',
+      'bundled-data',
+    ]);
   });
 
   it('does not imply external approval for regulated tools while review is pending', () => {
@@ -127,6 +234,13 @@ describe('tool registry contract', () => {
       'pf-calculator',
       'gratuity-calculator',
       'esop-calculator',
+      'wage-slip-generator',
+      'rent-receipt-generator',
+      'hsn-sac-finder',
+      'gst-filing-due-date-calendar',
+      'depreciation-calculator',
+      'professional-tax-calculator',
+      'msme-late-payment-interest-calculator',
     ]);
     for (const tool of regulated) {
       expect(tool.trust.reviewer.status).toBe('pending');
@@ -185,5 +299,9 @@ describe('tool registry contract', () => {
         expect.arrayContaining(tool.relatedToolIds),
       );
     }
+  });
+
+  it('keeps full runtime validation on the server-side registry boundary', () => {
+    expect(validateToolRegistry()).toEqual([]);
   });
 });

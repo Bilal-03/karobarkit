@@ -102,6 +102,26 @@ const metadataRoutes = [
     title: 'AI Tools tools',
     h1: 'AI Tools',
   },
+  {
+    path: '/categories/daily-utilities',
+    title: 'Everyday Utilities tools',
+    h1: 'Everyday Utilities',
+  },
+  {
+    path: '/categories/retail-logistics',
+    title: 'Retail & Logistics tools',
+    h1: 'Retail & Logistics',
+  },
+  {
+    path: '/categories/marketing-digital',
+    title: 'Marketing & Digital tools',
+    h1: 'Marketing & Digital',
+  },
+  {
+    path: '/categories/media-files',
+    title: 'Media & Files tools',
+    h1: 'Media & Files',
+  },
   { path: '/search', title: 'Search business tools', h1: 'Find the right tool for the job' },
   {
     path: '/methodology',
@@ -161,6 +181,29 @@ test.describe('foundation routes', () => {
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toHaveCount(0);
   });
 
+  test('caps directory cards, resets the window and preserves filter history', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'desktop-1440',
+      'Run the directory scaling journey once at the reference desktop width.',
+    );
+
+    await page.goto('/tools');
+    await expect(page.getByText(/Showing 24 of \d+ matching tools/)).toBeVisible();
+    await expect(page.locator('.tool-card')).toHaveCount(24);
+
+    await page.getByRole('button', { name: 'Show more tools' }).click();
+    await expect(page.getByText(/Showing 48 of \d+ matching tools/)).toBeVisible();
+    await expect(page.locator('.tool-card')).toHaveCount(48);
+
+    await page.getByLabel('Category').selectOption('business');
+    await expect(page).toHaveURL(/category=business/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/tools(?:\?|$)/);
+    await expect(page.getByLabel('Category')).toHaveValue('all');
+    await expect(page.getByText(/Showing 24 of \d+ matching tools/)).toBeVisible();
+    await expect(page.locator('.tool-card')).toHaveCount(24);
+  });
+
   test('publishes the Phase 6 AI category with beta labels', async ({ page }) => {
     await page.goto('/categories/ai-tools');
     await expect(page.getByText('4 published tools in this category')).toBeVisible();
@@ -195,6 +238,7 @@ test.describe('foundation routes', () => {
 
   test('ROI keyboard journey reports a complete loss safely', async ({ page }) => {
     await page.goto('/tools/roi-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
     await page.getByLabel('Investment cost').fill('100000');
     await page.getByLabel('Final value (not profit)').fill('0');
@@ -249,6 +293,7 @@ test.describe('foundation routes', () => {
 
   test('invalid input is announced and linked to its field', async ({ page }) => {
     await page.goto('/tools/cagr-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
     await page.getByLabel('Beginning value').fill('0');
     await page.getByRole('button', { name: 'Calculate result' }).click();

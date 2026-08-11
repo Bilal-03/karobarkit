@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import type { FieldError } from '@/domain/calculations/types';
 import { DOCUMENT_ACCENTS } from '@/domain/documents/constants';
@@ -94,6 +95,7 @@ function importQuotationValues(transfer: LocalScenarioTransfer, current: Invoice
 }
 
 export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
+  const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<InvoiceInput>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -104,12 +106,15 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const [quotationTransfer, setQuotationTransfer] = useState<LocalScenarioTransfer | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'invoice-document-print-area';
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
+    return () => window.cancelAnimationFrame(frame);
   }, [tool.category, tool.id]);
 
   useEffect(() => {
@@ -275,7 +280,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The receipt handoff could not be stored. Enter the receipt details manually.');
       return;
     }
-    window.location.href = '/tools/payment-receipt-generator';
+    router.push('/tools/payment-receipt-generator');
   }
 
   function continueToUpi() {
@@ -290,7 +295,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The UPI handoff could not be stored. Enter the amount and note manually.');
       return;
     }
-    window.location.href = '/tools/upi-standee';
+    router.push('/tools/upi-standee');
   }
 
   return (
@@ -303,7 +308,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {quotationTransfer ? (
             <div className="local-handoff-banner" role="status">

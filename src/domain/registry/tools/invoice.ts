@@ -32,6 +32,7 @@ export const invoiceTool: ToolDefinition<InvoiceInput, InvoiceDocument> = {
     method:
       'Deterministic line-item arithmetic and controlled A4 document templates; GST classification and tax arithmetic are intentionally outside this tool.',
     lastVerified: DOCUMENT_LAST_REVIEWED,
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary: 'Create a private A4 invoice with item totals, payment terms and explicit non-GST draft language.',
   inputSchema: invoiceInputSchema,

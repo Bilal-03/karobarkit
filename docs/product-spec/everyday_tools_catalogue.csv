@@ -1,0 +1,91 @@
+tool_id,name,canonical_slug,primary_category,secondary_categories,kind,capabilities,execution_mode,risk_tier,wave,status,feature_flag,policy_family,reviewer_role
+margin-calculator,Margin Calculator,margin-calculator,business,,calculator,download-csv,local-only,A,baseline,covered,none,business-methods,domain-engine-reviewer
+markup-calculator,Markup Calculator,markup-calculator,business,,calculator,download-csv,local-only,A,baseline,covered,none,business-methods,domain-engine-reviewer
+break-even-calculator,Break-even Calculator,break-even-calculator,business,,calculator,download-csv,local-only,A,baseline,covered,none,business-methods,domain-engine-reviewer
+roi-calculator,ROI Calculator,roi-calculator,business,,calculator,none,local-only,A,baseline,covered,none,business-methods,domain-engine-reviewer
+pricing-calculator,Pricing Calculator,pricing-calculator,business,ecommerce,worksheet,download-csv,local-only,B,baseline,covered,none,business-methods,business-domain-reviewer
+cash-flow-calculator,Cash Flow Calculator,cash-flow-calculator,business,startup,worksheet,download-csv,local-only,B,baseline,covered,none,business-methods,business-domain-reviewer
+runway-calculator,Runway Calculator,runway-calculator,startup,business,calculator,download-csv,local-only,B,baseline,covered,none,startup-metrics,business-domain-reviewer
+gst-calculator,GST Calculator,gst-calculator,gst-tax,,calculator,none,local-only,D,baseline,covered,none,gst,ca-tax-reviewer
+income-tax-calculator,Income Tax Calculator,income-tax-calculator,gst-tax,hr-salary,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,income-tax,ca-tax-reviewer
+tds-calculator,TDS Calculator,tds-calculator,gst-tax,hr-salary,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,income-tax,ca-tax-reviewer
+hra-calculator,HRA Calculator,hra-calculator,hr-salary,gst-tax,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,income-tax,ca-tax-reviewer
+corporate-tax-calculator,Corporate Tax Calculator,corporate-tax-calculator,gst-tax,business,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,income-tax,ca-tax-reviewer
+presumptive-tax-calculator,Presumptive Tax Calculator,presumptive-tax-calculator,gst-tax,business,worksheet,print-a4,local-only,D,baseline,covered,phase4-tax-review,income-tax,ca-tax-reviewer
+burn-rate-calculator,Burn Rate Calculator,burn-rate-calculator,startup,business,calculator,download-csv,local-only,B,baseline,covered,none,startup-metrics,business-domain-reviewer
+cac-calculator,CAC Calculator,cac-calculator,startup,ecommerce,calculator,download-csv,local-only,B,baseline,covered,phase5-startup-marketplace,startup-metrics,startup-metrics-reviewer
+ltv-calculator,LTV Calculator,ltv-calculator,startup,ecommerce,calculator,download-csv,local-only,B,baseline,covered,phase5-startup-marketplace,startup-metrics,startup-metrics-reviewer
+startup-valuation-calculator,Startup Valuation Calculator,startup-valuation-calculator,startup,,worksheet,download-csv,local-only,B,baseline,covered,phase5-startup-marketplace,corporate-scenarios,corporate-legal-reviewer
+equity-dilution-calculator,Equity Dilution Calculator,equity-dilution-calculator,startup,,calculator,download-csv,local-only,B,baseline,covered,phase5-startup-marketplace,corporate-scenarios,corporate-legal-reviewer
+saas-metrics-calculator,SaaS Metrics Calculator,saas-metrics-calculator,startup,business,worksheet,download-csv,local-only,B,baseline,covered,phase5-startup-marketplace,startup-metrics,startup-metrics-reviewer
+emi-calculator,EMI Calculator,emi-calculator,finance,,calculator,download-csv,local-only,B,baseline,covered,none,consumer-finance,finance-method-reviewer
+sip-calculator,SIP Calculator,sip-calculator,finance,,calculator,download-csv,local-only,B,baseline,covered,none,consumer-finance,finance-method-reviewer
+fd-calculator,FD Calculator,fd-calculator,finance,,calculator,download-csv,local-only,B,baseline,covered,none,consumer-finance,finance-method-reviewer
+cagr-calculator,CAGR Calculator,cagr-calculator,finance,business,calculator,none,local-only,A,baseline,covered,none,business-methods,domain-engine-reviewer
+xirr-calculator,XIRR Calculator,xirr-calculator,finance,startup,calculator,download-csv,local-only,B,baseline,covered,none,consumer-finance,finance-method-reviewer
+loan-comparison,Loan Comparison,loan-comparison,finance,business,comparison,download-csv,local-only,B,baseline,covered,none,consumer-finance,finance-method-reviewer
+amazon-fees-calculator,Amazon Fees Calculator,amazon-fees-calculator,ecommerce,,data-backed,download-csv|bundled-data,local-with-bundled-data,C,baseline,covered,phase5-marketplace,marketplace-fees,marketplace-policy-reviewer
+flipkart-fees-calculator,Flipkart Fees Calculator,flipkart-fees-calculator,ecommerce,,data-backed,download-csv|bundled-data,local-with-bundled-data,C,baseline,covered,phase5-marketplace,marketplace-fees,marketplace-policy-reviewer
+marketplace-margin-calculator,Marketplace Margin Calculator,marketplace-margin-calculator,ecommerce,business,calculator,download-csv,local-only,B,baseline,covered,none,business-methods,ecommerce-domain-reviewer
+roas-calculator,ROAS Calculator,roas-calculator,ecommerce,business,calculator,download-csv,local-only,B,baseline,covered,none,business-methods,ecommerce-domain-reviewer
+cod-cost-calculator,COD Cost Calculator,cod-cost-calculator,ecommerce,business,worksheet,download-csv,local-only,B,baseline,covered,none,business-methods,ecommerce-domain-reviewer
+ctc-calculator,CTC Calculator,ctc-calculator,hr-salary,business,worksheet,print-a4,local-only,D,baseline,covered,phase4-tax-review,payroll-labour,payroll-labour-reviewer
+in-hand-salary-calculator,In-hand Salary Calculator,in-hand-salary-calculator,hr-salary,gst-tax,worksheet,print-a4,local-only,D,baseline,covered,phase4-tax-review,payroll-labour,payroll-labour-reviewer
+pf-calculator,PF Calculator,pf-calculator,hr-salary,gst-tax,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,payroll-labour,payroll-labour-reviewer
+gratuity-calculator,Gratuity Calculator,gratuity-calculator,hr-salary,gst-tax,calculator,print-a4,local-only,D,baseline,covered,phase4-tax-review,payroll-labour,payroll-labour-reviewer
+esop-calculator,ESOP Calculator,esop-calculator,hr-salary,startup,worksheet,download-csv,local-only,D,baseline,covered,phase5-startup-marketplace,corporate-scenarios,corporate-legal-reviewer
+invoice-generator,Invoice Generator,invoice-generator,generators,business,generator,download-pdf|print-a4,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+quotation-generator,Quotation Generator,quotation-generator,generators,business,generator,download-pdf|print-a4,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+gst-invoice-generator,GST Invoice Generator,gst-invoice-generator,generators,gst-tax,generator,download-pdf|print-a4,local-only,D,baseline,covered,none,gst,ca-tax-reviewer
+url-qr-generator,URL QR Generator,url-qr,generators,,generator,qr-output|download-png|print-a4,local-only,B,baseline,covered,none,technical-standards,security-reviewer
+business-card-generator,Business Card Generator,business-card-generator,generators,business,generator,download-pdf|print-a4,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+invoice-number-generator,Invoice Number Generator,invoice-number-generator,generators,business,generator,none,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+business-name-generator,Business Name Assistant,business-name-generator,ai-tools,startup,ai-assisted,download-csv|network-data,network-required,B,baseline,covered,phase6-ai-assistants,ai-governance,ai-safety-reviewer
+pricing-assistant,Pricing Assistant,pricing-assistant,ai-tools,business,ai-assisted,download-csv|network-data,network-required,B,baseline,covered,phase6-ai-assistants,ai-governance,ai-safety-reviewer
+startup-cost-estimator,Startup Cost Estimator,startup-cost-estimator,ai-tools,startup,ai-assisted,download-csv|network-data,network-required,B,baseline,covered,phase6-ai-assistants,ai-governance,ai-safety-reviewer
+business-plan-assistant,Business Plan Assistant,business-plan-assistant,ai-tools,startup,ai-assisted,download-csv|network-data,network-required,B,baseline,covered,phase6-ai-assistants,ai-governance,ai-safety-reviewer
+upi-standee,UPI Standee Generator,upi-standee,generators,business,generator,qr-output|download-png|print-a4,local-only,B,baseline,covered,none,technical-standards,security-reviewer
+letterhead-generator,Letterhead Generator,letterhead-generator,generators,business,generator,download-pdf|print-a4,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+payment-receipt-generator,Payment Receipt Generator,payment-receipt-generator,generators,business,generator,download-pdf|print-a4,local-only,B,baseline,covered,none,document-standards,document-standards-reviewer
+percentage-calculator,Percentage Calculator,percentage-calculator,daily-utilities,,calculator,none,local-only,A,wave-2,approved-new,everyday-utilities-wave,utility-methods,domain-engine-reviewer
+discount-calculator,Discount Calculator,discount-calculator,daily-utilities,ecommerce,calculator,session-handoff,local-only,A,wave-2,approved-new,everyday-utilities-wave,pricing-methods,business-domain-reviewer
+area-converter,Area Converter,area-converter,daily-utilities,,calculator,converter,local-only,B,wave-2,approved-new,everyday-utilities-wave,unit-conversion,domain-engine-reviewer
+business-days-calculator,Business Days Calculator,business-days-calculator,daily-utilities,hr-salary,calculator,none,local-only,B,wave-2,approved-new,everyday-utilities-wave,calendar-rules,domain-engine-reviewer
+fuel-expense-calculator,Fuel Expense Calculator,fuel-expense-calculator,retail-logistics,ecommerce,calculator,session-handoff,local-only,B,wave-2,approved-new,everyday-utilities-wave,transport-costs,business-domain-reviewer
+volumetric-weight-calculator,Volumetric Weight Calculator,volumetric-weight-calculator,retail-logistics,ecommerce,calculator,none,local-only,B,wave-2,approved-new,everyday-utilities-wave,shipping-methods,logistics-domain-reviewer
+word-character-counter,Word and Character Counter,word-character-counter,daily-utilities,,calculator,none,local-only,A,wave-2,approved-new,everyday-utilities-wave,text-processing,privacy-security-reviewer
+password-toolkit,Password Toolkit,password-toolkit,daily-utilities,,generator,none,local-only,C,wave-2,approved-new,everyday-utilities-wave,password-safety,security-reviewer
+todo-checklist,To-do Checklist,todo-checklist,daily-utilities,,worksheet,download-pdf|download-csv|print-a4,local-only,B,wave-2,approved-new,everyday-utilities-wave,productivity,privacy-security-reviewer
+whatsapp-link-generator,WhatsApp Link Generator,whatsapp-link-generator,marketing-digital,,generator,qr-output,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,link-safety,security-reviewer
+vcard-qr-generator,vCard QR Generator,vcard-qr-generator,marketing-digital,generators,generator,qr-output|download-png|download-svg|download-vcf,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,qr-security,security-reviewer
+wifi-qr-generator,Wi-Fi QR Generator,wifi-qr-generator,marketing-digital,,generator,qr-output|download-png|download-svg,local-only,C,wave-3,approved-new,sharing-file-utilities-wave,qr-security,security-reviewer
+barcode-generator,Barcode Generator,barcode-generator,retail-logistics,ecommerce,generator,barcode-output|download-png|download-svg,local-only,C,wave-3,approved-new,sharing-file-utilities-wave,barcode-standards,security-reviewer
+qr-barcode-scanner,QR & Barcode Scanner,qr-barcode-scanner,marketing-digital,retail-logistics,worksheet,camera|file-upload|image-processing,local-only,C,wave-3,approved-new,sharing-file-utilities-wave,scanner-safety,security-reviewer
+photo-resizer-compressor,Photo Resizer & Compressor,photo-resizer-compressor,media-files,ecommerce,generator,file-upload|image-processing|download-png,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,media-processing,privacy-security-reviewer
+pdf-merge-split,PDF Merge & Split,pdf-merge-split,media-files,,generator,file-upload|pdf-processing|download-pdf,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,pdf-processing,privacy-security-reviewer
+email-signature-generator,Email Signature Generator,email-signature-generator,marketing-digital,generators,generator,download-html|download-text,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,html-safety,security-reviewer
+review-request-builder,Review Request Builder,review-request-builder,marketing-digital,,generator,qr-output,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,link-safety,security-reviewer
+favicon-app-icon-generator,Favicon & App Icon Generator,favicon-app-icon-generator,media-files,generators,generator,file-upload|image-processing|download-png|download-zip,local-only,B,wave-3,approved-new,sharing-file-utilities-wave,media-processing,privacy-security-reviewer
+price-tag-generator,Price Tag Generator,price-tag-generator,retail-logistics,ecommerce,generator,barcode-output|download-pdf|print-label-sheet|print-thermal-58|print-thermal-80,local-only,C,wave-4,approved-new,retail-workplace-wave,retail-labels,document-standards-reviewer
+delivery-challan-generator,Delivery Challan Generator,delivery-challan-generator,retail-logistics,generators,generator,download-pdf|print-a4|print-thermal-58|print-thermal-80,local-only,C,wave-4,approved-new,retail-workplace-wave,document-standards,document-standards-reviewer
+shipping-label-generator,Shipping Label Generator,shipping-label-generator,retail-logistics,ecommerce,generator,barcode-output|download-pdf|print-label-4x6,local-only,C,wave-4,approved-new,retail-workplace-wave,shipping-labels,logistics-domain-reviewer
+purchase-order-generator,Purchase Order Generator,purchase-order-generator,retail-logistics,business,generator,download-pdf|print-a4,local-only,B,wave-4,approved-new,retail-workplace-wave,document-standards,document-standards-reviewer
+menu-generator,Menu Generator,menu-generator,marketing-digital,generators,generator,download-pdf|print-a4|qr-output,local-only,B,wave-4,approved-new,retail-workplace-wave,document-standards,document-standards-reviewer
+wage-slip-generator,Wage Slip Generator,wage-slip-generator,hr-salary,generators,generator,download-pdf|print-thermal-58|print-thermal-80,local-only,D,wave-4,approved-new,retail-workplace-wave,payroll-documents,payroll-labour-reviewer
+rent-receipt-generator,Rent Receipt Generator,rent-receipt-generator,hr-salary,generators,generator,download-pdf|print-a4|print-thermal-58|print-thermal-80,local-only,D,wave-4,approved-new,retail-workplace-wave,rent-documents,payroll-labour-reviewer
+notice-period-calculator,Notice Period Calculator,notice-period-calculator,hr-salary,,calculator,none,local-only,C,wave-4,approved-new,retail-workplace-wave,workplace-policy,hr-policy-reviewer
+leave-balance-calculator,Leave Balance Calculator,leave-balance-calculator,hr-salary,,calculator,none,local-only,C,wave-4,approved-new,retail-workplace-wave,workplace-policy,hr-policy-reviewer
+hsn-sac-finder,HSN/SAC Reference Samples,hsn-sac-finder,gst-tax,ecommerce,data-backed,bundled-data,local-with-bundled-data,D,wave-5,visible-beta,regulated-utilities-wave,gst-classification,ca-tax-reviewer
+gst-filing-due-date-calendar,GST Filing Due-date Calendar,gst-filing-due-date-calendar,gst-tax,,data-backed,bundled-data,local-with-bundled-data,D,wave-5,visible-beta,regulated-utilities-wave,gst-calendar,ca-tax-reviewer
+depreciation-calculator,Depreciation Calculator,depreciation-calculator,gst-tax,business,calculator,bundled-data,local-with-bundled-data,D,wave-5,visible-beta,regulated-utilities-wave,depreciation-policy,ca-tax-reviewer
+professional-tax-calculator,Maharashtra Professional Tax Calculator,professional-tax-calculator,hr-salary,gst-tax,data-backed,bundled-data,local-with-bundled-data,D,wave-5,visible-beta,regulated-utilities-wave,professional-tax,payroll-labour-reviewer
+msme-late-payment-interest-calculator,MSME Late-payment Interest Calculator,msme-late-payment-interest-calculator,business,gst-tax,calculator,bundled-data,local-with-bundled-data,D,wave-5,visible-beta,regulated-utilities-wave,late-payment-interest,ca-tax-reviewer
+currency-converter,Currency Converter,currency-converter,finance,,data-backed,network-data,network-required,C,wave-5,visible-beta,regulated-utilities-wave,currency-rates,finance-method-reviewer
+maintenance-invoice,Maintenance Invoice,maintenance-invoice,generators,business,generator,download-pdf,local-only,B,deferred,deferred-demand,none,document-standards,document-standards-reviewer
+social-post-generator,Social Post Generator,social-post-generator,marketing-digital,,ai-assisted,none,network-required,C,deferred,deferred-demand,none,ai-governance,ai-safety-reviewer
+ebitda-calculator,EBITDA Calculator,ebitda-calculator,business,,calculator,none,local-only,B,deferred,deferred-demand,none,business-methods,domain-engine-reviewer
+gst-margin-calculator,GST Margin Calculator,gst-margin-calculator,business,gst-tax,calculator,none,local-only,D,deferred,deferred-demand,none,gst,ca-tax-reviewer
+salary-calculator,Salary Calculator,salary-calculator,hr-salary,gst-tax,calculator,none,local-only,D,deferred,deferred-demand,none,payroll-labour,payroll-labour-reviewer
+electricity-bill-simulator,Electricity Bill Simulator,electricity-bill-simulator,gst-tax,,generator,download-pdf,local-only,D,deferred,excluded-misuse,none,realistic-document-risk,security-reviewer
+mobile-bill-simulator,Mobile Bill Simulator,mobile-bill-simulator,gst-tax,,generator,download-pdf,local-only,D,deferred,excluded-misuse,none,realistic-document-risk,security-reviewer
+broadband-bill-simulator,Broadband Bill Simulator,broadband-bill-simulator,gst-tax,,generator,download-pdf,local-only,D,deferred,excluded-misuse,none,realistic-document-risk,security-reviewer

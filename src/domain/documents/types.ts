@@ -1,6 +1,8 @@
 import type { ValidationResult } from '@/domain/calculations/types';
 import type { GstInvoiceDocument } from '@/domain/invoices/types';
 
+import type { WorkplaceDocument } from './workplace';
+
 export type DocumentTemplateId = 'editorial' | 'formal';
 export type DocumentAccent = 'teal' | 'navy' | 'ochre';
 export type LogoAlignment = 'left' | 'center' | 'right';
@@ -277,6 +279,9 @@ export type BusinessDocument =
   | QuotationDocument
   | InvoiceDocument
   | BusinessCardDocument
-  | GstInvoiceDocument;
+  | GstInvoiceDocument
+  | WorkplaceDocument;
+
+export type LegacyBusinessDocument = Exclude<BusinessDocument, WorkplaceDocument>;
 
 export type DocumentValidationResult<T> = ValidationResult<T>;

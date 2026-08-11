@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import type { FieldError } from '@/domain/calculations/types';
 import { GST_CUSTOM_RATE_ID, GST_POLICY_AS_OF, getActiveGstPolicy } from '@/domain/policies/gst';
@@ -80,6 +81,7 @@ function policySummary(invoiceDate: string) {
 }
 
 export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
+  const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<GstInvoiceInput>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -88,6 +90,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const [quotationTransfer, setQuotationTransfer] = useState<LocalScenarioTransfer | null>(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
@@ -96,7 +99,9 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const rateOptions = getInvoiceRateOptions(values.invoiceDate || INVOICE_LAST_REVIEWED);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
+    return () => window.cancelAnimationFrame(frame);
   }, [tool.category, tool.id]);
 
   useEffect(() => {
@@ -371,7 +376,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The receipt handoff could not be stored. Enter the receipt details manually.');
       return;
     }
-    window.location.href = '/tools/payment-receipt-generator';
+    router.push('/tools/payment-receipt-generator');
   }
 
   function continueToUpi() {
@@ -386,7 +391,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The UPI handoff could not be stored. Enter the amount and note manually.');
       return;
     }
-    window.location.href = '/tools/upi-standee';
+    router.push('/tools/upi-standee');
   }
 
   function renderPartyFields(party: 'supplier' | 'recipient') {
@@ -527,7 +532,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {quotationTransfer ? (
             <div className="local-handoff-banner" role="status">

@@ -12,6 +12,7 @@ import {
   getToolsByCategory,
   letterheadTool,
   paymentReceiptTool,
+  toolDiscoveryIndex,
   upiStandeeTool,
   urlQrTool,
 } from '@/domain/registry';
@@ -26,7 +27,7 @@ export const metadata = pageMetadata({
 });
 
 export default function HomePage() {
-  const featuredTools = getFeaturedTools();
+  const featuredTools = getFeaturedTools(toolDiscoveryIndex);
   return (
     <>
       <JsonLd data={websiteStructuredData()} />
@@ -83,7 +84,7 @@ export default function HomePage() {
         </Container>
       </section>
       <div className="container home-search">
-        <LiveToolSearch id="home-search" variant="home" />
+        <LiveToolSearch id="home-search" tools={toolDiscoveryIndex} variant="home" />
       </div>
       <div className="container proof-bar" aria-label="Product promises">
         <span>No account required</span>

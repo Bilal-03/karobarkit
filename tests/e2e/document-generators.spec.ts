@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+async function waitForInteractive(page: import('@playwright/test').Page) {
+  await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
+}
+
 const onePixelPng = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
@@ -14,6 +18,7 @@ test.describe('document generators', () => {
       };
     });
     await page.goto('/tools/letterhead-generator');
+    await waitForInteractive(page);
 
     await page.getByLabel('Business name').fill('नमस्ते Studio');
     await page.getByLabel('Business address').fill('12 Market Road\nPune, Maharashtra');
@@ -56,6 +61,7 @@ test.describe('document generators', () => {
   test('letterhead keeps long plain text on multiple A4 pages', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto('/tools/letterhead-generator');
+    await waitForInteractive(page);
     await page.getByLabel('Business name').fill('Long Letter Co');
     await page.getByLabel('Business address').fill('A long address');
     await page.getByLabel('Layout').selectOption('formal');
@@ -71,6 +77,7 @@ test.describe('document generators', () => {
   }) => {
     test.setTimeout(120_000);
     await page.goto('/tools/payment-receipt-generator');
+    await waitForInteractive(page);
     await page.getByLabel('Business name').fill('Ravi & Sons');
     await page.getByLabel('Business address').fill('Market Road, Pune');
     await page.getByLabel('Receipt number').fill('RCPT/2026-001');
@@ -101,6 +108,7 @@ test.describe('document generators', () => {
 
   test('payment receipt rejects invalid amount and resets from the keyboard journey', async ({ page }) => {
     await page.goto('/tools/payment-receipt-generator');
+    await waitForInteractive(page);
     await page.getByLabel('Business name').fill('Keyboard Shop');
     await page.getByLabel('Business address').fill('Address');
     await page.getByLabel('Receipt number').fill('RCPT/1');

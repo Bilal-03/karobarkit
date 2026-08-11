@@ -44,6 +44,7 @@ export const gstTool: ToolDefinition<GstInput, GstResult> = {
     effectiveFrom: '2025-09-22',
     reviewerRole: 'Independent CA or tax reviewer',
     reviewerStatus: 'pending',
+    capabilities: ['session-handoff'],
   }),
   summary: 'Calculate GST on an exclusive or inclusive amount with an explicit tax-component choice.',
   inputSchema: gstInputSchema,

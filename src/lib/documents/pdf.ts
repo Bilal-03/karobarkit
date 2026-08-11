@@ -8,10 +8,12 @@ import latinBoldUrl from '@fontsource/noto-sans-devanagari/files/noto-sans-devan
 import latinRegularUrl from '@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-latin-400-normal.woff2';
 
 import { DocumentExportError } from '@/domain/documents/errors';
+import { isWorkplaceDocument } from '@/domain/documents/workplace';
 import { addressToText } from '@/domain/invoices/calculation';
 import type {
   BusinessCardDocument,
   BusinessDocument,
+  LegacyBusinessDocument,
   InvoiceDocument,
   LetterheadDocument,
   PaymentReceiptDocument,
@@ -205,7 +207,10 @@ function drawLogo(
   page.drawImage(logo.image, { x, y: y - height, width, height });
 }
 
-async function embedLogo(pdf: PDFDocument, document: BusinessDocument): Promise<PdfImageSource | undefined> {
+async function embedLogo(
+  pdf: PDFDocument,
+  document: LegacyBusinessDocument,
+): Promise<PdfImageSource | undefined> {
   if (!document.logo) return undefined;
   try {
     const bytes = dataUrlBytes(document.logo.dataUrl);
@@ -220,7 +225,7 @@ async function embedLogo(pdf: PDFDocument, document: BusinessDocument): Promise<
   }
 }
 
-function drawTemplateFrame(page: PDFPage, document: BusinessDocument) {
+function drawTemplateFrame(page: PDFPage, document: LegacyBusinessDocument) {
   const accent = accentColor(document.branding.accent);
   page.drawRectangle({ x: 0, y: 0, width: A4_WIDTH, height: A4_HEIGHT, color: PAPER });
   if (document.branding.template === 'editorial') {
@@ -240,7 +245,7 @@ function drawTemplateFrame(page: PDFPage, document: BusinessDocument) {
 
 function drawIdentityHeader(
   page: PDFPage,
-  document: BusinessDocument,
+  document: LegacyBusinessDocument,
   fonts: PdfFonts,
   logo: PdfImageSource | undefined,
 ) {
@@ -301,7 +306,7 @@ function drawIdentityHeader(
   return contactCursor - (document.branding.headerDivider ? 26 : 18);
 }
 
-function drawFooter(page: PDFPage, document: BusinessDocument, fonts: PdfFonts) {
+function drawFooter(page: PDFPage, document: LegacyBusinessDocument, fonts: PdfFonts) {
   const margin = document.layout.marginLeftMm * MM;
   const contentWidth = A4_WIDTH - (document.layout.marginLeftMm + document.layout.marginRightMm) * MM;
   const footerY = document.layout.marginBottomMm * MM;
@@ -1050,6 +1055,11 @@ function drawBusinessCardPage(
 export async function createDocumentPdf(document: BusinessDocument): Promise<Blob> {
   if (typeof window === 'undefined') {
     throw new DocumentExportError('pdf_failed', 'PDF downloads are available in your browser.');
+  }
+
+  if (isWorkplaceDocument(document)) {
+    const { createWorkplaceDocumentPdf } = await import('./workplace-pdf');
+    return createWorkplaceDocumentPdf(document);
   }
 
   try {

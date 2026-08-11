@@ -32,6 +32,7 @@ export const paymentReceiptTool: ToolDefinition<PaymentReceiptInput, PaymentRece
     lastVerified: DOCUMENT_LAST_REVIEWED,
     reviewerRole: 'Business document reviewer',
     reviewerStatus: 'pending',
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary: 'Create a clear A4 acknowledgement of a declared payment without an account or server storage.',
   inputSchema: paymentReceiptInputSchema,

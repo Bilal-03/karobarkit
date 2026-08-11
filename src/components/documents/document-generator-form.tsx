@@ -67,10 +67,16 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const [handoffTransfer, setHandoffTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = `${kind}-document-print-area`;
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -220,7 +226,12 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+          inert={!isInteractive}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {handoffTransfer && !isLetterhead ? (
             <div className="local-handoff-banner" role="status">

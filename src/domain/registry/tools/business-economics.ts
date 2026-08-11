@@ -80,6 +80,7 @@ function createBusinessTool(
       method: config.method,
       lastVerified: BUSINESS_TOOL_LAST_REVIEWED,
       lifecycle: 'beta',
+      capabilities: ['download-csv', 'session-handoff'],
     }),
     inputSchema: businessCalculatorInputSchema,
     defaultValues,

@@ -109,6 +109,7 @@ function createFinanceTool(
       lifecycle: 'beta',
       reviewerRole: 'Finance-method review',
       reviewerStatus: 'pending',
+      capabilities: ['download-csv'],
     }),
     inputSchema: financeCalculatorInputSchema,
     defaultValues,

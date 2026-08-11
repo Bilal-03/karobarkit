@@ -32,6 +32,7 @@ export const quotationTool: ToolDefinition<QuotationInput, QuotationDocument> = 
     method:
       'Deterministic line-item arithmetic and controlled A4 document templates; tax treatment is intentionally outside this tool.',
     lastVerified: DOCUMENT_LAST_REVIEWED,
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary:
     'Create a private A4 quotation with transparent line totals, validity dates and an optional GST invoice handoff.',

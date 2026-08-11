@@ -1,6 +1,7 @@
-import { allToolDefinitions, categoryRegistry, toolRegistry } from '@/domain/registry';
+import { categoryRegistry } from '@/domain/registry/categories';
+import type { ToolDiscoveryRecord } from '@/domain/registry/types';
 
-export type Tool = (typeof toolRegistry)[number];
+export type Tool = ToolDiscoveryRecord;
 
 export function normalizeSearchQuery(value: string) {
   return value
@@ -27,6 +28,37 @@ function categorySearchValues(tool: Tool) {
     .flatMap((category) => [category.name, category.shortDescription, ...category.searchTerms]);
 }
 
+function allTokensMatch(values: readonly string[], tokens: readonly string[]) {
+  return tokens.every((token) => values.some((value) => normalizeSearchQuery(value).includes(token)));
+}
+
+function scoreMultiTokenIntent(
+  tool: Tool,
+  tokens: readonly string[],
+  names: readonly string[],
+  categoryValues: readonly string[],
+) {
+  if (tokens.length < 2) return 0;
+
+  // Keep multi-token intent below the existing exact/starts-with tiers. This
+  // lets exact names and exact synonyms remain the strongest matches while
+  // still handling natural phrases assembled from several metadata fields.
+  const fields = [
+    { values: names, score: 78 },
+    { values: tool.searchTerms, score: 68 },
+    { values: tool.tags, score: 58 },
+    { values: categoryValues, score: 38 },
+    { values: [tool.summary], score: 20 },
+  ] as const;
+
+  for (const field of fields) {
+    if (allTokensMatch(field.values, tokens)) return field.score;
+  }
+
+  const allSearchValues = fields.flatMap((field) => field.values);
+  return allTokensMatch(allSearchValues, tokens) ? 34 : 0;
+}
+
 export function scoreTool(tool: Tool, rawQuery: string) {
   const query = normalizeSearchQuery(rawQuery);
   if (!query) return 0;
@@ -38,17 +70,19 @@ export function scoreTool(tool: Tool, rawQuery: string) {
   if (exact(tool.tags, query)) return 70;
   const categoryValues = categorySearchValues(tool);
   if (exact(categoryValues, query)) return 60;
+  const multiTokenScore = scoreMultiTokenIntent(tool, query.split(' '), names, categoryValues);
+  if (multiTokenScore > 0) return multiTokenScore;
   if (includes([...names, ...tool.searchTerms, ...tool.tags], query)) return 50;
   if (includes(categoryValues, query)) return 40;
   if (normalizeSearchQuery(tool.summary).includes(query)) return 20;
   return 0;
 }
 
-export function searchTools(rawQuery: string) {
+export function searchTools(tools: readonly Tool[], rawQuery: string) {
   const query = normalizeSearchQuery(rawQuery);
-  if (!query) return [...toolRegistry];
+  if (!query) return [...tools];
 
-  return toolRegistry
+  return tools
     .map((tool) => ({ tool, score: scoreTool(tool, query) }))
     .filter((result) => result.score > 0)
     .sort(
@@ -61,9 +95,9 @@ export function searchTools(rawQuery: string) {
     .map(({ tool }) => tool);
 }
 
-export function filterTools(categorySlug?: string) {
-  if (!categorySlug || categorySlug === 'all') return [...toolRegistry];
-  return toolRegistry.filter(
+export function filterTools(tools: readonly Tool[], categorySlug?: string) {
+  if (!categorySlug || categorySlug === 'all') return [...tools];
+  return tools.filter(
     (tool) => tool.category === categorySlug || tool.secondaryCategories.includes(categorySlug),
   );
 }
@@ -100,20 +134,29 @@ export function filterToolDirectory(tools: readonly Tool[], filters: ToolDirecto
   });
 }
 
-export function getFeaturedTools() {
-  return toolRegistry
+export function getFeaturedTools(tools: readonly Tool[]) {
+  return tools
     .filter((tool) => tool.featured)
     .sort(
       (a, b) => (a.launchPriority ?? Number.MAX_SAFE_INTEGER) - (b.launchPriority ?? Number.MAX_SAFE_INTEGER),
     );
 }
 
-export function validateDiscoveryRegistry() {
-  const toolIds = new Set(allToolDefinitions.map((tool) => tool.id));
+/**
+ * Validate the serializable records used by discovery and the client directory.
+ * Runtime calculation/source/policy validation remains owned by the full registry.
+ */
+export function validateDiscoveryRegistry(tools: readonly Tool[]) {
   const categoryIds = new Set<string>(categoryRegistry.map((category) => category.id));
+  const toolIds = new Set<string>();
+  const slugs = new Set<string>();
   const errors: string[] = [];
 
-  for (const tool of allToolDefinitions) {
+  for (const tool of tools) {
+    if (toolIds.has(tool.id)) errors.push(`${tool.id}: duplicate discovery tool id`);
+    toolIds.add(tool.id);
+    if (slugs.has(tool.slug)) errors.push(`${tool.id}: duplicate discovery slug ${tool.slug}`);
+    slugs.add(tool.slug);
     if (!categoryIds.has(tool.category)) errors.push(`${tool.id}: missing category ${tool.category}`);
     for (const secondaryCategory of tool.secondaryCategories) {
       if (!categoryIds.has(secondaryCategory)) {
@@ -123,35 +166,12 @@ export function validateDiscoveryRegistry() {
         errors.push(`${tool.id}: primary category repeated as secondary category`);
       }
     }
-    if (tool.lifecycle !== 'live' && tool.lifecycle !== 'beta' && tool.lifecycle !== 'internal') {
-      errors.push(`${tool.id}: non-public lifecycle leaked into public registry`);
+    if (tool.lifecycle !== 'live' && tool.lifecycle !== 'beta') {
+      errors.push(`${tool.id}: non-public lifecycle leaked into discovery index`);
     }
-    if (tool.ui.adapter === 'unavailable') {
-      errors.push(`${tool.id}: public tool is missing a released UI adapter`);
-    }
-    if (!tool.trust.lastVerified) errors.push(`${tool.id}: missing last-verified date`);
-    if (!tool.governance.owner) errors.push(`${tool.id}: missing owner`);
-    if (
-      tool.governance.riskTier === 'D' &&
-      tool.sources.every((source) => source.evidenceLevel !== 'official')
-    ) {
-      errors.push(`${tool.id}: Tier D tool requires an official source`);
-    }
-    if (
-      (tool.featureFlag === 'phase4-tax-review' ||
-        tool.featureFlag === 'phase5-startup-marketplace' ||
-        tool.featureFlag === 'phase5-marketplace' ||
-        tool.featureFlag === 'phase6-ai-assistants') &&
-      (tool.governance.goldenFixtureIds?.length ?? 0) === 0
-    ) {
-      errors.push(`${tool.id}: controlled-beta tool requires golden fixture IDs before release`);
-    }
-    if (new Set(tool.relatedToolIds).size !== tool.relatedToolIds.length)
-      errors.push(`${tool.id}: duplicate related tool`);
-    for (const relatedId of tool.relatedToolIds) {
-      if (relatedId === tool.id) errors.push(`${tool.id}: self-related tool`);
-      if (!toolIds.has(relatedId)) errors.push(`${tool.id}: missing related tool ${relatedId}`);
-    }
+    if (tool.uiAdapter === 'unavailable')
+      errors.push(`${tool.id}: unavailable tool leaked into discovery index`);
+    if (!tool.lastVerified) errors.push(`${tool.id}: missing last-verified date`);
   }
   return errors;
 }

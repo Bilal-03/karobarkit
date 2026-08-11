@@ -15,6 +15,11 @@ import {
   type GstResult,
 } from '@/domain/gst';
 import { trackEvent } from '@/lib/analytics';
+import {
+  clearLocalScenarioTransfer,
+  readLocalScenarioTransfer,
+  type LocalScenarioTransfer,
+} from '@/domain/workflows/local-scenario-transfer';
 
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
@@ -64,12 +69,29 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
   const [result, setResult] = useState<GstResult | null>(null);
   const [calculationError, setCalculationError] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
+  const [discountTransfer, setDiscountTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
   }, [tool.category, tool.id]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const transfer = readLocalScenarioTransfer();
+      if (transfer?.sourceKind === 'discount-to-gst' && transfer.values.amount) {
+        setDiscountTransfer(transfer);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     if (errors.length === 0) return;
@@ -86,6 +108,16 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
 
   function reset() {
     setValues({ ...initialValues });
+    setErrors([]);
+    setResult(null);
+    setCalculationError(null);
+  }
+
+  function importDiscountResult() {
+    if (!discountTransfer?.values.amount) return;
+    setValues((current) => ({ ...current, amount: discountTransfer.values.amount! }));
+    setDiscountTransfer(null);
+    clearLocalScenarioTransfer();
     setErrors([]);
     setResult(null);
     setCalculationError(null);
@@ -114,8 +146,8 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
 
         const nextResult = calculateGstTool(validation.data, defaultPolicyContext);
         setResult(nextResult);
-        trackEvent('tool_completed', { toolId: tool.id, policyVersion: nextResult.policyVersion });
-        trackEvent('result_generated', { toolId: tool.id, policyVersion: nextResult.policyVersion });
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
       } catch (error) {
         setCalculationError(
           error instanceof Error ? error.message : 'We could not safely calculate that input. Try again.',
@@ -156,8 +188,34 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
             </p>
           </div>
         ) : null}
-        <form onSubmit={onSubmit} noValidate>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+          inert={!isInteractive}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          {discountTransfer ? (
+            <div className="scenario-transfer" role="status">
+              <strong>A final price is ready from {discountTransfer.sourceToolName}</strong>
+              <p>Import only the amount, then choose the GST rate, mode and supply type yourself.</p>
+              <div className="inline-actions">
+                <Button type="button" variant="secondary" onClick={importDiscountResult}>
+                  Import final price
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setDiscountTransfer(null);
+                    clearLocalScenarioTransfer();
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <InputField
             id="amount"
             name="amount"

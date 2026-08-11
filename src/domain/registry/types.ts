@@ -7,7 +7,16 @@ import type { ValidationResult } from '@/domain/calculations/types';
 export type EvidenceLevel = 'official' | 'authoritative' | 'editorial';
 
 export type SourceAuthority =
-  'CBIC' | 'GST_COUNCIL' | 'GST_PORTAL' | 'INCOME_TAX_DEPARTMENT' | 'OTHER_GOVERNMENT';
+  | 'CBIC'
+  | 'GST_COUNCIL'
+  | 'GST_PORTAL'
+  | 'INCOME_TAX_DEPARTMENT'
+  | 'MCA'
+  | 'MAHAGST'
+  | 'MSME'
+  | 'RBI'
+  | 'ECB'
+  | 'OTHER_GOVERNMENT';
 
 export type SourceDocumentType =
   | 'notification'
@@ -45,11 +54,38 @@ export interface FaqItem {
 
 export interface AnalyticsPolicy {
   allowedEvents: string[];
+  allowedProperties: string[];
   forbiddenProperties: string[];
 }
 
 export type ToolKind =
   'calculator' | 'generator' | 'worksheet' | 'comparison' | 'data-backed' | 'ai-assisted';
+
+export type ToolCapability =
+  | 'converter'
+  | 'scanner'
+  | 'camera'
+  | 'file-upload'
+  | 'image-processing'
+  | 'pdf-processing'
+  | 'qr-output'
+  | 'barcode-output'
+  | 'download-png'
+  | 'download-svg'
+  | 'download-pdf'
+  | 'download-csv'
+  | 'download-vcf'
+  | 'download-zip'
+  | 'download-html'
+  | 'download-text'
+  | 'print-a4'
+  | 'print-thermal-58'
+  | 'print-thermal-80'
+  | 'print-label-4x6'
+  | 'print-label-sheet'
+  | 'session-handoff'
+  | 'bundled-data'
+  | 'network-data';
 
 export type ToolExecutionMode =
   'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
@@ -91,6 +127,30 @@ export interface ToolCategoryDefinition {
   description: string;
   searchTerms: string[];
   roadmapPhase: number;
+}
+
+export interface ToolDiscoveryRecord {
+  id: string;
+  slug: string;
+  kind: ToolKind;
+  uiAdapter: ToolUiAdapter['adapter'];
+  name: string;
+  shortName?: string;
+  category: string;
+  categoryLabel: string;
+  secondaryCategories: readonly string[];
+  tags: readonly string[];
+  searchTerms: readonly string[];
+  summary: string;
+  capabilities: readonly ToolCapability[];
+  featured: boolean;
+  launchPriority?: number;
+  lifecycle: ToolLifecycle;
+  featureFlag?: string;
+  executionMode: ToolExecutionMode;
+  riskTier: ToolRiskTier;
+  regulatory: boolean;
+  lastVerified: string;
 }
 
 export type ToolUiAdapter =
@@ -150,6 +210,45 @@ export type ToolUiAdapter =
       adapter: 'ai-assistant';
       variant: 'business-name' | 'pricing-assistant' | 'startup-cost-estimator' | 'business-plan-assistant';
     }
+  | {
+      adapter: 'utility-calculator';
+      variant: 'percentage' | 'discount' | 'area' | 'business-days' | 'fuel-expense' | 'volumetric-weight';
+    }
+  | { adapter: 'text-utility'; variant: 'word-counter' | 'password-toolkit' }
+  | { adapter: 'todo-checklist' }
+  | {
+      adapter: 'qr-barcode-generator';
+      variant: 'whatsapp-link' | 'vcard' | 'wifi' | 'barcode' | 'scanner';
+    }
+  | {
+      adapter: 'file-utility';
+      variant: 'photo-resizer-compressor' | 'pdf-merge-split' | 'favicon-app-icon';
+    }
+  | {
+      adapter: 'business-document';
+      variant:
+        | 'email-signature'
+        | 'review-request'
+        | 'price-tag'
+        | 'delivery-challan'
+        | 'shipping-label'
+        | 'purchase-order'
+        | 'menu'
+        | 'wage-slip'
+        | 'rent-receipt'
+        | 'notice-period'
+        | 'leave-balance';
+    }
+  | {
+      adapter: 'regulated-utility';
+      variant:
+        | 'hsn-sac'
+        | 'gst-due-date'
+        | 'depreciation'
+        | 'professional-tax'
+        | 'msme-interest'
+        | 'currency-converter';
+    }
   | { adapter: 'unavailable' };
 
 export interface ToolDefinition<TInput, TResult> {
@@ -166,6 +265,7 @@ export interface ToolDefinition<TInput, TResult> {
   tags: string[];
   searchTerms: string[];
   summary: string;
+  capabilities: readonly ToolCapability[];
   audience?: string[];
   featured?: boolean;
   launchPriority?: number;

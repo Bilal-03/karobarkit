@@ -35,6 +35,7 @@ export const urlQrTool: ToolDefinition<UrlQrInput, UrlQrResult> = {
     reviewCadenceDays: 365,
     method: 'Deterministic URL normalization followed by standards-based QR encoding.',
     lastVerified: TOOL_LAST_REVIEWED,
+    capabilities: ['qr-output', 'download-png', 'print-a4'],
   }),
   summary: 'Turn a safe HTTP or HTTPS URL into a downloadable, print-ready QR code.',
   inputSchema: urlQrInputSchema,

@@ -138,8 +138,14 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
   const [result, setResult] = useState<FinanceCalculationResult | null>(null);
   const [calculationError, setCalculationError] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -207,7 +213,12 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+          inert={!isInteractive}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {fields.map((field) => renderField(field, values, errors, updateValue))}
           <Button type="submit" fullWidth disabled={isCalculating}>

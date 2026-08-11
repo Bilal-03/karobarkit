@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getSitemapPaths } from '@/app/sitemap';
-import { categoryRegistry, getToolsByCategory, toolRegistry } from '@/domain/registry';
+import { categoryNames, categoryRegistry, getToolsByCategory, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 import {
   breadcrumbStructuredData,
@@ -32,6 +32,12 @@ describe('SEO discovery contracts', () => {
         expect(paths).not.toContain(`/categories/${category.slug}`);
       }
     }
+  });
+
+  it('derives the category directory copy from the registry', () => {
+    expect(categoryNames).toContain('Everyday Utilities');
+    expect(categoryNames.split(', ')).toHaveLength(categoryRegistry.length);
+    for (const category of categoryRegistry) expect(categoryNames).toContain(category.name);
   });
 
   it('generates accurate breadcrumb, application and visible FAQ data', () => {

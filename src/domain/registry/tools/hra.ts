@@ -56,6 +56,7 @@ export const hraTool: ToolDefinition<HraCalculatorInput, HraCalculationResult> =
     reviewerStatus: 'pending',
     lifecycle: 'beta',
     featureFlag: 'phase4-tax-review',
+    capabilities: ['print-a4'],
   }),
   summary:
     'Estimate HRA exemption for AY 2026-27 with explicit regime, rented-period, salary-definition and named-city limits.',

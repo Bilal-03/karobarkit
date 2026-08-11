@@ -156,6 +156,7 @@ function createPhase6Tool(config: Phase6ToolConfig): ToolDefinition<AIAssistantI
       featureFlag: PHASE6_FEATURE_FLAG,
       privacyClassification: 'network-required',
       executionMode: 'network-required',
+      capabilities: ['download-csv', 'network-data'],
     }),
     inputSchema: aiAssistantInputSchema,
     defaultValues,

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const allowedEventNames = [
   'tool_viewed',
   'tool_started',
@@ -19,6 +21,55 @@ export const allowedEventNames = [
 
 export type AnalyticsEventName = (typeof allowedEventNames)[number];
 export type SafeAnalyticsProperties = Record<string, string | number | boolean | string[] | undefined>;
+
+/**
+ * Analytics is intentionally limited to generic, low-cardinality metadata.
+ * Keep this schema independent from the runtime registry so the client bundle
+ * cannot pull calculation inputs, policies or React definitions into the
+ * analytics boundary.
+ */
+export const analyticsPayloadSchema = z
+  .object({
+    toolId: z
+      .string()
+      .trim()
+      .min(1)
+      .max(120)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    category: z
+      .string()
+      .trim()
+      .min(1)
+      .max(80)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    format: z.enum(['pdf', 'png', 'jpeg', 'webp', 'svg', 'csv', 'vcf', 'zip', 'html', 'text']),
+    pageSize: z.enum([
+      'a4',
+      'summary',
+      'qr',
+      'standee',
+      'thermal-58',
+      'thermal-80',
+      'label-4x6',
+      'label-sheet',
+    ]),
+    errorCodes: z
+      .array(
+        z
+          .string()
+          .trim()
+          .min(1)
+          .max(80)
+          .regex(/^[a-z0-9._-]+$/i),
+      )
+      .max(20),
+  })
+  .partial()
+  .strict();
+
+export type AnalyticsPayload = z.infer<typeof analyticsPayloadSchema>;
+
+const allowedAnalyticsPropertyNames = new Set(['toolId', 'category', 'format', 'pageSize', 'errorCodes']);
 
 const forbiddenPropertyNames = new Set([
   'amount',
@@ -323,16 +374,60 @@ const forbiddenPropertyNames = new Set([
   'metrics',
   'redactedFields',
   'transmittedFields',
+  'query',
+  'kind',
+  'returnType',
+  'taxpayerType',
+  'period',
+  'assetCost',
+  'residualValue',
+  'usefulLifeYears',
+  'openingWdv',
+  'daysInService',
+  'method',
+  'salaryAmount',
+  'salaryPeriod',
+  'salaryDefinition',
+  'gender',
+  'month',
+  'principal',
+  'invoiceDate',
+  'acceptedDate',
+  'agreedPaymentDays',
+  'bankRatePercent',
+  'bankRateEffectiveOn',
+  'enterpriseType',
+  'fromCurrency',
+  'toCurrency',
+  'manualRate',
 ]);
 
-export function trackEvent(event: AnalyticsEventName, properties: SafeAnalyticsProperties = {}) {
-  if (typeof window === 'undefined') {
-    return;
-  }
+function sanitizeAnalyticsProperties(properties: SafeAnalyticsProperties): AnalyticsPayload {
+  if (!properties || typeof properties !== 'object' || Array.isArray(properties)) return {};
 
-  const safeProperties = Object.fromEntries(
-    Object.entries(properties).filter(([key]) => !forbiddenPropertyNames.has(key)),
+  const candidate = Object.fromEntries(
+    Object.entries(properties).filter(
+      ([key, value]) =>
+        value !== undefined && allowedAnalyticsPropertyNames.has(key) && !forbiddenPropertyNames.has(key),
+    ),
   );
+  const parsed = analyticsPayloadSchema.safeParse(candidate);
+  if (parsed.success) return parsed.data;
+
+  // Keep valid generic metadata when one field is malformed, but never let a
+  // rejected value through and never forward unknown keys.
+  const validEntries: Array<[string, unknown]> = [];
+  for (const key of Object.keys(candidate)) {
+    const result = analyticsPayloadSchema.safeParse({ [key]: candidate[key] });
+    if (result.success) validEntries.push([key, result.data[key as keyof AnalyticsPayload]]);
+  }
+  return Object.fromEntries(validEntries) as AnalyticsPayload;
+}
+
+export function trackEvent(event: AnalyticsEventName, properties: SafeAnalyticsProperties = {}) {
+  if (typeof window === 'undefined' || !allowedEventNames.includes(event)) return;
+
+  const safeProperties = sanitizeAnalyticsProperties(properties);
 
   // The MVP deliberately has no third-party analytics transport. This allowlist is the seam for one later.
   window.dispatchEvent(

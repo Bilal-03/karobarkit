@@ -1,9 +1,15 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { GstCalculatorForm } from '@/components/tooling/gst-calculator-form';
 import { gstTool } from '@/domain/registry';
+import {
+  clearLocalScenarioTransfer,
+  saveLocalScenarioTransfer,
+} from '@/domain/workflows/local-scenario-transfer';
+
+afterEach(() => clearLocalScenarioTransfer());
 
 describe('GST calculator form integration', () => {
   it('calculates the exclusive default and announces the result', async () => {
@@ -58,5 +64,21 @@ describe('GST calculator form integration', () => {
     await user.click(screen.getByRole('button', { name: 'Reset form' }));
     expect(amount).toHaveValue('1000');
     expect(screen.queryByText('Amount must be greater than zero.')).not.toBeInTheDocument();
+  });
+
+  it('requires an explicit import before using a discounted final price', async () => {
+    saveLocalScenarioTransfer({
+      sourceToolId: 'discount-calculator',
+      sourceToolName: 'Discount Calculator',
+      sourceKind: 'discount-to-gst',
+      values: { amount: '855' },
+    });
+    const user = userEvent.setup();
+    render(<GstCalculatorForm tool={gstTool} />);
+
+    expect(await screen.findByText(/final price is ready from Discount Calculator/i)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveValue('1000');
+    await user.click(screen.getByRole('button', { name: 'Import final price' }));
+    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveValue('855');
   });
 });

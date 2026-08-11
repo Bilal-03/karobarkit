@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('GST Calculator', () => {
   test('supports current preset, exclusive calculation and source context', async ({ page }) => {
     await page.goto('/tools/gst-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
     await expect(page.getByText('Active policy: gst-general-rates-2025-09-22-v1')).toBeVisible();
     await page.getByRole('button', { name: 'Calculate GST' }).click();
@@ -20,6 +21,7 @@ test.describe('GST Calculator', () => {
 
   test('completes an inclusive inter-state calculation from the keyboard', async ({ page }) => {
     await page.goto('/tools/gst-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
     await page.getByLabel('Amount').fill('1050');
     await page.getByRole('radio', { name: '5% · current headline rate' }).check();
@@ -28,7 +30,7 @@ test.describe('GST Calculator', () => {
     await page.getByRole('button', { name: 'Calculate GST' }).press('Enter');
 
     await expect(
-      page.locator('.gst-breakdown').getByRole('cell', { name: '₹1,000.00', exact: true }),
+      page.locator('.gst-breakdown').getByRole('cell', { name: '₹1,000.00', exact: true }).first(),
     ).toBeVisible();
     await expect(
       page
@@ -57,6 +59,7 @@ test.describe('GST Calculator', () => {
     });
 
     await page.goto('/tools/gst-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await page.getByRole('radio', { name: 'Custom rate · not policy-verified' }).check();
     await page.getByLabel('Custom GST rate (%)').fill('5.5');
     await page.getByLabel('Amount').fill('1234.56');
@@ -70,6 +73,7 @@ test.describe('GST Calculator', () => {
 
   test('has no serious or critical axe violations', async ({ page }) => {
     await page.goto('/tools/gst-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     const results = await new AxeBuilder({ page }).analyze();
     const seriousOrCritical = results.violations.filter((violation) =>
       ['serious', 'critical'].includes(violation.impact ?? ''),

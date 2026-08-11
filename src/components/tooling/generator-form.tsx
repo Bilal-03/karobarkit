@@ -56,6 +56,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const [handoffTransfer, setHandoffTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,11 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
   const qrSize = urlResult?.size ?? 512;
   const qrImage = useQrImage(result?.payload ?? '', qrSize);
   const printTargetId = isUrl ? 'url-qr-print-area' : 'upi-standee-print-area';
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -205,7 +211,12 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+          inert={!isInteractive}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {handoffTransfer && !isUrl ? (
             <div className="local-handoff-banner" role="status">

@@ -37,6 +37,7 @@ export const gstInvoiceTool: ToolDefinition<GstInvoiceInput, GstInvoiceDocument>
     effectiveFrom: '2025-09-22',
     reviewerRole: 'Independent CA or tax reviewer',
     reviewerStatus: 'pending',
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary:
     'Prepare a private A4 GST tax invoice draft with source-backed rate choices and reconciled totals.',

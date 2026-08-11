@@ -1,5 +1,5 @@
 import { DOCUMENT_LAST_REVIEWED } from '@/domain/documents/constants';
-import type { SourceReference } from './types';
+import type { SourceReference, ToolCapability } from './types';
 
 export const TOOL_LAST_REVIEWED = '2026-08-08';
 
@@ -15,6 +15,7 @@ export function liveLocalMetadata({
   lifecycle = 'live',
   featureFlag,
   goldenFixtureIds = [],
+  capabilities = [],
   privacyClassification = 'local-only',
   executionMode = privacyClassification,
 }: {
@@ -29,11 +30,13 @@ export function liveLocalMetadata({
   lifecycle?: 'internal' | 'beta' | 'live' | 'stale-disabled' | 'retired';
   featureFlag?: string;
   goldenFixtureIds?: string[];
+  capabilities?: readonly ToolCapability[];
   privacyClassification?:
     'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
   executionMode?: 'local-only' | 'local-with-bundled-data' | 'network-required' | 'optional-cloud-sync';
 }) {
   return {
+    capabilities,
     privacyClassification,
     executionMode,
     lifecycle,
@@ -115,6 +118,10 @@ export const sharedAnalyticsPolicy = {
     'result_shared',
     'related_tool_opened',
   ],
+  // Runtime analytics validation lives in src/lib/analytics and deliberately
+  // does not import the registry. Keep this metadata list synchronized with
+  // that small client-side schema for documentation and release validation.
+  allowedProperties: ['toolId', 'category', 'format', 'pageSize', 'errorCodes'],
   forbiddenProperties: [
     'beginningValue',
     'endingValue',
@@ -132,6 +139,15 @@ export const sharedAnalyticsPolicy = {
     'upiId',
     'payeeName',
     'note',
+    'wifiPassword',
+    'ssid',
+    'message',
+    'fullName',
+    'organization',
+    'reviewUrl',
+    'originalName',
+    'fileContents',
+    'splitPages',
     'businessName',
     'businessAddress',
     'phone',
@@ -394,6 +410,34 @@ export const sharedAnalyticsPolicy = {
     'metrics',
     'redactedFields',
     'transmittedFields',
+    'query',
+    'kind',
+    'returnType',
+    'taxpayerType',
+    'period',
+    'mode',
+    'assetCost',
+    'residualValue',
+    'usefulLifeYears',
+    'openingWdv',
+    'ratePercent',
+    'daysInService',
+    'method',
+    'salaryAmount',
+    'salaryPeriod',
+    'salaryDefinition',
+    'gender',
+    'month',
+    'principal',
+    'invoiceDate',
+    'acceptedDate',
+    'agreedPaymentDays',
+    'bankRatePercent',
+    'bankRateEffectiveOn',
+    'enterpriseType',
+    'fromCurrency',
+    'toCurrency',
+    'manualRate',
   ],
 };
 

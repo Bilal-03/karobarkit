@@ -81,9 +81,67 @@ export const categoryRegistry = [
     searchTerms: ['business name', 'pricing assistant', 'startup cost estimator', 'business plan assistant'],
     roadmapPhase: 6,
   },
+  {
+    id: 'daily-utilities',
+    slug: 'daily-utilities',
+    name: 'Everyday Utilities',
+    shortDescription: 'Common calculations, conversions and lightweight productivity tools.',
+    description:
+      'Handle everyday calculations, conversions and small productivity tasks locally, with clear assumptions and no account required.',
+    searchTerms: [
+      'percentage',
+      'discount',
+      'area converter',
+      'business days',
+      'word counter',
+      'password',
+      'checklist',
+    ],
+    roadmapPhase: 2,
+  },
+  {
+    id: 'retail-logistics',
+    slug: 'retail-logistics',
+    name: 'Retail & Logistics',
+    shortDescription: 'Store, packaging, delivery and procurement workflows.',
+    description:
+      'Prepare practical retail, packaging, delivery and procurement outputs with declared assumptions, print profiles and clear limits.',
+    searchTerms: [
+      'barcode',
+      'price tag',
+      'fuel expense',
+      'volumetric weight',
+      'delivery challan',
+      'shipping label',
+      'purchase order',
+    ],
+    roadmapPhase: 4,
+  },
+  {
+    id: 'marketing-digital',
+    slug: 'marketing-digital',
+    name: 'Marketing & Digital',
+    shortDescription: 'Customer sharing, business identity and communication tools.',
+    description:
+      'Create safe share links, QR-based contact assets and lightweight communication materials locally, without automatic sending or publishing.',
+    searchTerms: ['whatsapp link', 'vcard', 'wifi qr', 'email signature', 'review request', 'menu'],
+    roadmapPhase: 3,
+  },
+  {
+    id: 'media-files',
+    slug: 'media-files',
+    name: 'Media & Files',
+    shortDescription: 'Browser-local image, PDF and asset operations.',
+    description:
+      'Resize, compress, merge and prepare local media or documents in the browser, with explicit file limits and cleanup behavior.',
+    searchTerms: ['photo resize', 'compress image', 'pdf merge', 'pdf split', 'favicon', 'app icon'],
+    roadmapPhase: 3,
+  },
 ] as const satisfies readonly ToolCategoryDefinition[];
 
 export type ToolCategory = (typeof categoryRegistry)[number];
+
+export const categoryNames = categoryRegistry.map((category) => category.name).join(', ');
 
 export function getCategoryBySlug(slug: string) {
   return categoryRegistry.find((category) => category.slug === slug);

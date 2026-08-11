@@ -13,26 +13,30 @@ function field(id: string) {
   return element;
 }
 
-async function fillMinimumInvoice() {
-  const user = userEvent.setup();
-  await user.type(field('invoiceNumber'), 'INV-001');
-  await user.type(field('supplier.legalName'), 'Supplier Private Limited');
-  await user.type(field('supplier.gstin'), '27ABCDE1234F1Z5');
-  await user.type(field('supplier.address.line1'), '12 Market Road');
-  await user.type(field('supplier.address.city'), 'Pune');
-  await user.type(field('supplier.address.state'), 'Maharashtra');
-  await user.type(field('supplier.address.stateCode'), '27');
-  await user.type(field('supplier.address.postalCode'), '411001');
-  await user.type(field('recipient.legalName'), 'Recipient Private Limited');
-  await user.type(field('recipient.gstin'), '29ABCDE1234F1Z5');
-  await user.type(field('recipient.address.line1'), '44 Business Park');
-  await user.type(field('recipient.address.city'), 'Bengaluru');
-  await user.type(field('recipient.address.state'), 'Karnataka');
-  await user.type(field('recipient.address.stateCode'), '29');
-  await user.type(field('recipient.address.postalCode'), '560001');
-  await user.type(field('items.0.description'), 'Consulting service');
-  await user.type(field('items.0.unitPrice'), '1000');
-  return user;
+function fillMinimumInvoice() {
+  const values: Record<string, string> = {
+    invoiceNumber: 'INV-001',
+    'supplier.legalName': 'Supplier Private Limited',
+    'supplier.gstin': '27ABCDE1234F1Z5',
+    'supplier.address.line1': '12 Market Road',
+    'supplier.address.city': 'Pune',
+    'supplier.address.state': 'Maharashtra',
+    'supplier.address.stateCode': '27',
+    'supplier.address.postalCode': '411001',
+    'recipient.legalName': 'Recipient Private Limited',
+    'recipient.gstin': '29ABCDE1234F1Z5',
+    'recipient.address.line1': '44 Business Park',
+    'recipient.address.city': 'Bengaluru',
+    'recipient.address.state': 'Karnataka',
+    'recipient.address.stateCode': '29',
+    'recipient.address.postalCode': '560001',
+    'items.0.description': 'Consulting service',
+    'items.0.unitPrice': '1000',
+  };
+
+  for (const [id, value] of Object.entries(values)) {
+    fireEvent.change(field(id), { target: { value } });
+  }
 }
 
 describe('GST invoice generator form', () => {
@@ -40,13 +44,13 @@ describe('GST invoice generator form', () => {
     render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
 
     expect(screen.getByText(/applies to 2026-08-08/iu)).toBeInTheDocument();
-    const user = await fillMinimumInvoice();
+    fillMinimumInvoice();
     const invoiceDate = document.getElementById('invoiceDate');
     if (!invoiceDate) throw new Error('Invoice date field not found.');
     fireEvent.change(invoiceDate, { target: { value: '2024-01-01' } });
     expect(screen.getByText('The reviewed GST policy is unavailable.')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
     expect(await screen.findAllByText(/No active GST policy covers the requested date/iu)).not.toHaveLength(
       0,
     );
@@ -73,15 +77,15 @@ describe('GST invoice generator form', () => {
 
   it('adds and removes an item and creates the minimum valid invoice preview', async () => {
     render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
-    const user = await fillMinimumInvoice();
+    fillMinimumInvoice();
 
-    await user.click(screen.getByRole('button', { name: 'Add item' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add item' }));
     expect(screen.getByText('Item 2')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Remove item/iu })).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Remove item 2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove item 2' }));
     expect(screen.queryByText('Item 2')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
     expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
     expect(screen.getByText('Tax Invoice')).toBeInTheDocument();
     expect(screen.getAllByText('₹1,180.00').length).toBeGreaterThan(0);

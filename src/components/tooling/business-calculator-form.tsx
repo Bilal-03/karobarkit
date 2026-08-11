@@ -96,8 +96,14 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
     (LocalScenarioTransfer & { sharedValues: Record<string, string> }) | null
   >(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -197,7 +203,12 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+          inert={!isInteractive}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {pendingTransfer ? (
             <div className="scenario-transfer" role="status">

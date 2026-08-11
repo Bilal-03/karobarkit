@@ -14,8 +14,13 @@ export function downloadDocumentBlob(blob: Blob, filename: string) {
     link.href = objectUrl;
     link.download = filename;
     link.rel = 'noreferrer';
+    link.hidden = true;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(objectUrl);
+    window.setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
   } catch {
     throw new DocumentExportError('download_failed', 'We could not start the download. Try Print instead.');
   }

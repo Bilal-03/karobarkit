@@ -30,6 +30,7 @@ export const letterheadTool: ToolDefinition<LetterheadInput, LetterheadDocument>
     reviewCadenceDays: 365,
     method: 'Deterministic mapping of entered content into controlled A4 document templates.',
     lastVerified: DOCUMENT_LAST_REVIEWED,
+    capabilities: ['download-pdf', 'print-a4'],
   }),
   summary: 'Create an original, print-ready A4 letterhead with local logo processing and simple layouts.',
   inputSchema: letterheadInputSchema,

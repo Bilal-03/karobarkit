@@ -159,6 +159,10 @@ function createPhase5Tool(
           : PHASE5_FEATURE_FLAG),
       privacyClassification: config.executionMode ?? 'local-only',
       executionMode: config.executionMode ?? 'local-only',
+      capabilities: [
+        'download-csv',
+        ...(config.executionMode === 'local-with-bundled-data' ? ['bundled-data' as const] : []),
+      ],
     }),
     inputSchema: phase5CalculatorInputSchema,
     defaultValues,

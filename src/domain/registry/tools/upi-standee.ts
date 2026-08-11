@@ -37,6 +37,7 @@ export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
     lastVerified: TOOL_LAST_REVIEWED,
     reviewerRole: 'Payments workflow reviewer',
     reviewerStatus: 'pending',
+    capabilities: ['qr-output', 'download-png', 'print-a4'],
   }),
   summary: 'Create a local, print-ready UPI payment QR standee with an optional fixed amount and note.',
   inputSchema: upiInputSchema,

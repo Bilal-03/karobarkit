@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 
 import { DirectoryToolSearch } from '@/components/search/live-tool-search';
 import { Container } from '@/components/ui/container';
-import { toolRegistry } from '@/domain/registry';
+import { toolDiscoveryIndex, toolRegistry } from '@/domain/registry';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -40,7 +40,7 @@ export default function ToolsPage() {
               </div>
             }
           >
-            <DirectoryToolSearch id="directory-search" />
+            <DirectoryToolSearch id="directory-search" tools={toolDiscoveryIndex} />
           </Suspense>
         </div>
       </Container>

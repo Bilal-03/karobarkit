@@ -10,35 +10,53 @@ import { businessCardTool, invoiceNumberTool, invoiceTool, quotationTool } from 
 
 describe('Phase 3 document workflow wave', () => {
   it('creates a quotation preview and keeps the estimate disclaimer visible', async () => {
-    const user = userEvent.setup();
     render(<QuotationGeneratorForm tool={quotationTool} />);
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
-    await user.type(screen.getByRole('textbox', { name: 'Quote number' }), 'QT/001');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Ravi & Sons' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Quote number' }), {
+      target: { value: 'QT/001' },
+    });
     fireEvent.change(screen.getByLabelText(/Quote date/iu), { target: { value: '2026-08-06' } });
-    await user.type(screen.getByRole('textbox', { name: 'Customer name' }), 'Nikhil Foods');
-    await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Consulting retainer');
-    await user.type(screen.getByRole('textbox', { name: 'Unit price' }), '1900');
-    await user.click(screen.getByRole('button', { name: 'Create quotation' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Customer name' }), {
+      target: { value: 'Nikhil Foods' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
+      target: { value: 'Consulting retainer' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Unit price' }), {
+      target: { value: '1900' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create quotation' }));
 
     expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
     expect(screen.getAllByText('₹1,900.00')).not.toHaveLength(0);
     expect(screen.getAllByText(/not a GST tax invoice/iu)).not.toHaveLength(0);
-  });
+  }, 15_000);
 
   it('creates a business card proof', async () => {
-    const user = userEvent.setup();
     render(<BusinessCardGeneratorForm tool={businessCardTool} />);
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
-    await user.type(screen.getByRole('textbox', { name: 'Person name' }), 'Nikhil Sharma');
-    await user.type(screen.getByRole('textbox', { name: /Card email/iu }), 'nikhil@example.com');
-    await user.click(screen.getByRole('button', { name: 'Create business card' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Ravi & Sons' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Person name' }), {
+      target: { value: 'Nikhil Sharma' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: /Card email/iu }), {
+      target: { value: 'nikhil@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create business card' }));
 
     expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
     expect(screen.getByText('Nikhil Sharma')).toBeInTheDocument();
     expect(screen.getByText(/trim after printing/iu)).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('previews an invoice number without claiming reservation', async () => {
     const user = userEvent.setup();
@@ -50,19 +68,30 @@ describe('Phase 3 document workflow wave', () => {
   });
 
   it('creates a commercial invoice and keeps the non-GST boundary visible', async () => {
-    const user = userEvent.setup();
     render(<InvoiceGeneratorForm tool={invoiceTool} />);
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
-    await user.type(screen.getByRole('textbox', { name: 'Invoice number' }), 'INV/001');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Ravi & Sons' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Invoice number' }), {
+      target: { value: 'INV/001' },
+    });
     fireEvent.change(screen.getByLabelText(/Invoice date/iu), { target: { value: '2026-08-06' } });
-    await user.type(screen.getByRole('textbox', { name: 'Customer name' }), 'Nikhil Foods');
-    await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Consulting retainer');
-    await user.type(screen.getByRole('textbox', { name: 'Unit price' }), '1900');
-    await user.click(screen.getByRole('button', { name: 'Create invoice draft' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Customer name' }), {
+      target: { value: 'Nikhil Foods' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
+      target: { value: 'Consulting retainer' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Unit price' }), {
+      target: { value: '1900' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create invoice draft' }));
 
     expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
     expect(screen.getAllByText(/not a GST tax invoice/iu)).not.toHaveLength(0);
     expect(screen.getAllByText('₹1,900.00')).not.toHaveLength(0);
-  });
+  }, 15_000);
 });

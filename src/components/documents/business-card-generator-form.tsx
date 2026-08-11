@@ -48,12 +48,15 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'business-card-document-print-area';
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
+    return () => window.cancelAnimationFrame(frame);
   }, [tool.category, tool.id]);
   useEffect(() => {
     if (!errors.length) return;
@@ -141,7 +144,7 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           <fieldset className="document-form-section">
             <legend>Business identity</legend>
