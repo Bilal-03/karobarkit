@@ -130,10 +130,10 @@ flowchart LR
     R --> D["Pure domain engines"]
     D --> O["Local results and exports"]
 
-    UI -->|"explicit consent"| API["Server API routes"]
-    API -->|"redacted draft request"| AI["Gemini or Groq"]
-    API -->|"public reference rate"| ECB["ECB data service"]
-    API -->|"contact submission"| MAIL["Resend"]
+    UI -->|explicit consent| API["Server API routes"]
+    API -->|redacted draft request| AI["Gemini or Groq"]
+    API -->|public reference rate| ECB["ECB data service"]
+    API -->|contact submission| MAIL["Resend"]
 ```
 
 The domain layer owns calculation and validation logic; React components focus on interaction and
