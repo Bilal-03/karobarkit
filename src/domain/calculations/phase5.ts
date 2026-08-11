@@ -487,15 +487,15 @@ export const phase5CalculatorFields: Record<Phase5CalculatorKind, Phase5FieldCon
     {
       name: 'referralFeePercent',
       label: 'Category referral fee override',
-      help: 'Enter the current category percentage from Seller Central. A value of 0% is not a universal category claim.',
-      defaultValue: '',
+      help: 'Enter the current category percentage from Seller Central. The prefilled 10% is illustrative; it is not a universal category claim.',
+      defaultValue: '10',
       format: 'percentage',
     },
     {
       name: 'shippingFee',
       label: 'Weight-handling / shipping fee',
-      help: 'Enter the rate-card amount for your packed weight, size and distance.',
-      defaultValue: '',
+      help: 'Enter the rate-card amount for your packed weight, size and distance. The prefilled ₹60 is illustrative.',
+      defaultValue: '60',
       format: 'money',
     },
     {
@@ -574,22 +574,22 @@ export const phase5CalculatorFields: Record<Phase5CalculatorKind, Phase5FieldCon
     {
       name: 'commissionFeePercent',
       label: 'Category commission override',
-      help: 'Enter the current category commission from your seller dashboard; no universal rate is assumed.',
-      defaultValue: '',
+      help: 'Enter the current category commission from your seller dashboard. The prefilled 5% is illustrative; no universal rate is assumed.',
+      defaultValue: '5',
       format: 'percentage',
     },
     {
       name: 'collectionFeePercent',
       label: 'Collection fee override',
-      help: 'Enter the current prepaid or COD collection percentage from your seller dashboard.',
-      defaultValue: '',
+      help: 'Enter the current prepaid or COD collection percentage from your seller dashboard. The prefilled 2% is illustrative.',
+      defaultValue: '2',
       format: 'percentage',
     },
     {
       name: 'shippingFee',
       label: 'Shipping fee',
-      help: 'Enter packed-weight and destination shipping from your current rate card.',
-      defaultValue: '',
+      help: 'Enter packed-weight and destination shipping from your current rate card. The prefilled ₹80 is illustrative.',
+      defaultValue: '80',
       format: 'money',
     },
     {

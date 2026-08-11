@@ -12,8 +12,11 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
+    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'नमस्ते Studio');
+    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
     await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road\nPune');
+    await user.clear(screen.getByRole('textbox', { name: 'Letter body (optional)' }));
     await user.type(screen.getByRole('textbox', { name: 'Letter body (optional)' }), '<script>no</script>');
     await user.click(screen.getByRole('button', { name: 'Create letterhead' }));
 
@@ -28,7 +31,9 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
+    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Long Letter Co');
+    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
     await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'A long address');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Layout' }), 'formal');
     fireEvent.change(screen.getByRole('textbox', { name: 'Letter body (optional)' }), {
@@ -45,12 +50,18 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="payment-receipt" tool={paymentReceiptTool} />);
 
+    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
+    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
     await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
+    await user.clear(screen.getByRole('textbox', { name: 'Receipt number' }));
     await user.type(screen.getByRole('textbox', { name: 'Receipt number' }), 'RCPT/001');
     fireEvent.change(screen.getByLabelText(/Receipt date/), { target: { value: '2026-08-06' } });
+    await user.clear(screen.getByRole('textbox', { name: 'Received from' }));
     await user.type(screen.getByRole('textbox', { name: 'Received from' }), 'Nikhil');
+    await user.clear(screen.getByRole('textbox', { name: 'Amount received' }));
     await user.type(screen.getByRole('textbox', { name: 'Amount received' }), '1250.50');
+    await user.clear(screen.getByRole('textbox', { name: 'Payment purpose' }));
     await user.type(screen.getByRole('textbox', { name: 'Payment purpose' }), 'Consulting retainer');
     await user.click(screen.getByRole('button', { name: 'Create receipt' }));
 
@@ -64,12 +75,18 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="payment-receipt" tool={paymentReceiptTool} />);
 
+    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
+    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
     await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
+    await user.clear(screen.getByRole('textbox', { name: 'Receipt number' }));
     await user.type(screen.getByRole('textbox', { name: 'Receipt number' }), 'RCPT/001');
     fireEvent.change(screen.getByLabelText(/Receipt date/), { target: { value: '2026-08-06' } });
+    await user.clear(screen.getByRole('textbox', { name: 'Received from' }));
     await user.type(screen.getByRole('textbox', { name: 'Received from' }), 'Nikhil');
+    await user.clear(screen.getByRole('textbox', { name: 'Amount received' }));
     await user.type(screen.getByRole('textbox', { name: 'Amount received' }), '-1');
+    await user.clear(screen.getByRole('textbox', { name: 'Payment purpose' }));
     await user.type(screen.getByRole('textbox', { name: 'Payment purpose' }), 'Consulting');
     await user.click(screen.getByRole('button', { name: 'Create receipt' }));
 
@@ -84,13 +101,15 @@ describe('document generator form integration', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
+    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Reset Co');
+    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
     await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Address');
     await user.click(screen.getByRole('button', { name: 'Create letterhead' }));
     await screen.findByTestId('document-preview');
     await user.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(screen.getByRole('textbox', { name: 'Business name' })).toHaveValue('');
-    expect(screen.queryByTestId('document-preview')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Business name' })).toHaveValue('KarobarKit Demo');
+    expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
   });
 });

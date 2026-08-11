@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface BusinessCardToolProps {
   id: string;
@@ -33,18 +34,9 @@ function fieldError(errors: FieldError[], field: string) {
 function cloneInput(value: unknown): BusinessCardInput {
   return { ...((value as BusinessCardInput | undefined) ?? businessCardDefaultValues) };
 }
-function hasValues(values: BusinessCardInput) {
-  return Boolean(
-    values.businessName.trim() || values.businessAddress.trim() || values.personName.trim() || values.logo,
-  );
-}
-
 export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProps }) {
   const initialValues = useMemo(() => cloneInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<BusinessCardInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<BusinessCardDocument | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -52,6 +44,32 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'business-card-document-print-area';
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
+    BusinessCardInput,
+    BusinessCardDocument
+  >({
+    values,
+    validate: (input) => {
+      const validation = validateBusinessCardInput(input);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateBusinessCard(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -65,45 +83,25 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
   }, [errors]);
 
   function clearResult() {
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
   }
   function updateValue(field: keyof BusinessCardInput, value: unknown) {
     setValues((current) => ({ ...current, [field]: value }) as BusinessCardInput);
-    setErrors((current) => current.filter((error) => error.field !== field));
+    clearFieldError(field);
     clearResult();
   }
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
     clearResult();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateBusinessCardInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    try {
-      const next = calculateBusinessCard(validation.data);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(error instanceof Error ? error.message : 'We could not prepare that business card.');
-    }
+    submit();
   }
   function resetForm() {
-    if ((hasValues(values) || result) && !window.confirm('Clear the entered card details and preview?'))
-      return;
+    const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
+    if (isDirty && !window.confirm('Clear the entered card details and preview?')) return;
     setValues(cloneInput(initialValues));
-    setErrors([]);
+    clearErrors();
     clearResult();
   }
   async function downloadPdf() {
@@ -329,9 +327,9 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
         tabIndex={-1}
         aria-labelledby="business-card-result-title"
       >
-        {generationError ? (
+        {calculationError ? (
           <StateBlock titleId="business-card-result-title" title="We could not create that card" tone="error">
-            {generationError}
+            {calculationError}
           </StateBlock>
         ) : result ? (
           <>
@@ -340,7 +338,7 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="business-card-result-title">Your business card is ready</h2>
               </div>
-              <span className="result-status">Ready · proof</span>
+              <span className="result-status">Live · proof</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (

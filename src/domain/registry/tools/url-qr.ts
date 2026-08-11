@@ -39,7 +39,7 @@ export const urlQrTool: ToolDefinition<UrlQrInput, UrlQrResult> = {
   }),
   summary: 'Turn a safe HTTP or HTTPS URL into a downloadable, print-ready QR code.',
   inputSchema: urlQrInputSchema,
-  defaultValues: { url: '', size: '512' },
+  defaultValues: { url: 'https://example.com', size: '512' },
   validate: validateUrlQrInput,
   calculate: calculateUrlQr,
   renderResult: (result) => result.normalizedUrl,

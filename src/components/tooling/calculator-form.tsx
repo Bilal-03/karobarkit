@@ -15,6 +15,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 type CalculatorKind = 'cagr' | 'roi';
 
@@ -45,13 +46,35 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
   }, [kind, tool]);
 
   const [values, setValues] = useState<CagrInput | RoiInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<CalculatorResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, isCalculating, clearFieldError, submit } = useLiveCalculation<
+    CagrInput | RoiInput,
+    CalculatorResult
+  >({
+    values,
+    validate: (input) =>
+      kind === 'cagr' ? validateCagrInput(input as CagrInput) : validateRoiInput(input as RoiInput),
+    calculate: (input) =>
+      kind === 'cagr' ? calculateCagr(input as CagrInput) : calculateRoi(input as RoiInput),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -73,62 +96,13 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
 
   function updateValue(field: string, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    window.setTimeout(() => {
-      try {
-        if (kind === 'cagr') {
-          const input = values as CagrInput;
-          const validation = validateCagrInput(input);
-          if (!validation.success) {
-            setErrors(validation.errors);
-            trackEvent('tool_validation_failed', {
-              toolId: tool.id,
-              errorCodes: validation.errors.map((error) => error.code),
-            });
-            setIsCalculating(false);
-            return;
-          }
-          const nextResult = calculateCagr(validation.data);
-          setResult(nextResult);
-          trackEvent('tool_completed', { toolId: tool.id });
-          trackEvent('result_generated', { toolId: tool.id });
-        } else {
-          const input = values as RoiInput;
-          const validation = validateRoiInput(input);
-          if (!validation.success) {
-            setErrors(validation.errors);
-            trackEvent('tool_validation_failed', {
-              toolId: tool.id,
-              errorCodes: validation.errors.map((error) => error.code),
-            });
-            setIsCalculating(false);
-            return;
-          }
-          const nextResult = calculateRoi(validation.data);
-          setResult(nextResult);
-          trackEvent('tool_completed', { toolId: tool.id });
-          trackEvent('result_generated', { toolId: tool.id });
-        }
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely calculate that input. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   const isCagr = kind === 'cagr';
@@ -253,8 +227,8 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
                 <p className="eyebrow">Your result</p>
                 <h2 id="calculator-result-title">A clearer view of the number</h2>
               </div>
-              <span className="result-status" aria-label="Calculation complete">
-                Complete
+              <span className="result-status" aria-label="Live calculation complete">
+                Live
               </span>
             </div>
             {isCagr && cagrResult ? (

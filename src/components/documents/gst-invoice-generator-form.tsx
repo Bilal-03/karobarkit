@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface InvoiceToolProps {
   id: string;
@@ -55,22 +56,6 @@ function fieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
 }
 
-function hasInvoiceValues(values: GstInvoiceInput) {
-  return Boolean(
-    values.invoiceNumber.trim() ||
-    values.dueDate.trim() ||
-    values.supplier.legalName.trim() ||
-    values.supplier.gstin.trim() ||
-    values.recipient.legalName.trim() ||
-    values.recipient.gstin.trim() ||
-    values.items.some((item) => item.description.trim() || item.unitPrice.trim() || item.hsnOrSac.trim()) ||
-    values.notes.trim() ||
-    values.terms.trim() ||
-    values.paymentDetails.trim() ||
-    values.logo,
-  );
-}
-
 function policySummary(invoiceDate: string) {
   try {
     const policy = getActiveGstPolicy(invoiceDate || GST_POLICY_AS_OF);
@@ -84,9 +69,6 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<GstInvoiceInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<GstInvoiceDocument | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -97,6 +79,32 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'gst-invoice-document-print-area';
   const rateOptions = getInvoiceRateOptions(values.invoiceDate || INVOICE_LAST_REVIEWED);
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
+    GstInvoiceInput,
+    GstInvoiceDocument
+  >({
+    values,
+    validate: (input) => {
+      const validation = validateGstInvoiceInput(input);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateGstInvoice(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -119,8 +127,6 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }, [errors]);
 
   function clearResult() {
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
     setHandoffError(null);
@@ -177,7 +183,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       },
       items: importedItems.length ? importedItems : current.items,
     }));
-    setErrors([]);
+    clearErrors();
     clearResult();
     clearLocalScenarioTransfer();
     setQuotationTransfer(null);
@@ -186,7 +192,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
 
   function updateValue(field: keyof GstInvoiceInput, value: unknown) {
     setValues((current) => ({ ...current, [field]: value }) as GstInvoiceInput);
-    setErrors((current) => current.filter((error) => error.field !== field));
+    clearFieldError(String(field));
     clearResult();
   }
 
@@ -198,7 +204,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           [party]: { ...current[party], [field]: value },
         }) as GstInvoiceInput,
     );
-    setErrors((current) => current.filter((error) => error.field !== `${party}.${field}`));
+    clearFieldError(`${party}.${field}`);
     clearResult();
   }
 
@@ -213,13 +219,13 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           },
         }) as GstInvoiceInput,
     );
-    setErrors((current) => current.filter((error) => error.field !== `${party}.address.${field}`));
+    clearFieldError(`${party}.address.${field}`);
     clearResult();
   }
 
   function updatePlaceOfSupply(field: 'state' | 'stateCode', value: string) {
     setValues((current) => ({ ...current, placeOfSupply: { ...current.placeOfSupply, [field]: value } }));
-    setErrors((current) => current.filter((error) => error.field !== `placeOfSupply.${field}`));
+    clearFieldError(`placeOfSupply.${field}`);
     clearResult();
   }
 
@@ -230,7 +236,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
         itemIndex === index ? { ...item, [field]: value } : item,
       ),
     }));
-    setErrors((current) => current.filter((error) => error.field !== `items.${index}.${field}`));
+    clearFieldError(`items.${index}.${field}`);
     clearResult();
   }
 
@@ -272,37 +278,19 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
     clearResult();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateGstInvoiceInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    try {
-      const nextResult = calculateGstInvoice(validation.data);
-      setResult(nextResult);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(error instanceof Error ? error.message : 'We could not prepare that invoice.');
-    }
+    submit();
   }
 
   function resetForm() {
     if (
-      (hasInvoiceValues(values) || result) &&
+      JSON.stringify(values) !== JSON.stringify(initialValues) &&
       !window.confirm('Clear the entered invoice details and preview?')
     )
       return;
     setValues(cloneInvoiceInput(initialValues));
-    setErrors([]);
+    clearErrors();
     clearResult();
   }
 
@@ -859,13 +847,13 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
         tabIndex={-1}
         aria-labelledby="gst-invoice-result-title"
       >
-        {generationError ? (
+        {calculationError ? (
           <StateBlock
             titleId="gst-invoice-result-title"
             title="We could not create that invoice"
             tone="error"
           >
-            {generationError}
+            {calculationError}
           </StateBlock>
         ) : result ? (
           <>
@@ -874,7 +862,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="gst-invoice-result-title">Your GST invoice draft is ready</h2>
               </div>
-              <span className="result-status">Ready · review</span>
+              <span className="result-status">Live · review</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (

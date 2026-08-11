@@ -26,6 +26,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, RadioGroup } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 interface GstCalculatorToolProps {
   id: string;
@@ -65,14 +66,32 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
   const policy = useMemo(() => getActiveGstPolicy(defaultPolicyContext.asOf), []);
   const freshness = useMemo(() => getGstPolicyFreshness(policy), [policy]);
   const [values, setValues] = useState<GstInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<GstResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const [discountTransfer, setDiscountTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, isCalculating, clearFieldError, clearErrors, submit } =
+    useLiveCalculation<GstInput, GstResult>({
+      values,
+      validate: (input) => validateGstInput(input, defaultPolicyContext.asOf),
+      calculate: (input) => calculateGstTool(input, defaultPolicyContext),
+      onResult: (_nextResult, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_completed', { toolId: tool.id });
+          trackEvent('result_generated', { toolId: tool.id });
+          window.requestAnimationFrame(() => resultRef.current?.focus());
+        }
+      },
+      onValidationFailure: (validationErrors, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_validation_failed', {
+            toolId: tool.id,
+            errorCodes: validationErrors.map((error) => error.code),
+          });
+        }
+      },
+    });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -101,16 +120,12 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
 
   function updateValue(field: keyof GstInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
   }
 
   function reset() {
     setValues({ ...initialValues });
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
+    clearErrors();
   }
 
   function importDiscountResult() {
@@ -118,44 +133,13 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
     setValues((current) => ({ ...current, amount: discountTransfer.values.amount! }));
     setDiscountTransfer(null);
     clearLocalScenarioTransfer();
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
+    clearErrors();
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    window.setTimeout(() => {
-      try {
-        const validation = validateGstInput(values, defaultPolicyContext.asOf);
-        if (!validation.success) {
-          setErrors(validation.errors);
-          trackEvent('tool_validation_failed', {
-            toolId: tool.id,
-            errorCodes: validation.errors.map((error) => error.code),
-          });
-          setIsCalculating(false);
-          return;
-        }
-
-        const nextResult = calculateGstTool(validation.data, defaultPolicyContext);
-        setResult(nextResult);
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely calculate that input. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   const selectedRateIsCustom = values.ratePresetId === GST_CUSTOM_RATE_ID;
@@ -306,8 +290,8 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
                 <p className="eyebrow">Your result</p>
                 <h2 id="gst-result-title">GST calculation</h2>
               </div>
-              <span className="result-status" aria-label="GST calculation complete">
-                Complete
+              <span className="result-status" aria-label="Live GST calculation complete">
+                Live
               </span>
             </div>
             <ResultPanel

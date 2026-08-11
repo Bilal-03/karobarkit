@@ -21,6 +21,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 interface FinanceCalculatorFormProps {
   kind: FinanceCalculatorKind;
@@ -134,13 +135,34 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
     [fields, tool.defaultValues],
   );
   const [values, setValues] = useState<FinanceCalculatorInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<FinanceCalculationResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, isCalculating, clearFieldError, submit } = useLiveCalculation<
+    FinanceCalculatorInput,
+    FinanceCalculationResult
+  >({
+    values,
+    debounceMs: kind === 'emi' || kind === 'loan-comparison' ? 80 : 0,
+    validate: (input) => validateFinanceCalculatorInput(kind, input),
+    calculate: (input) => calculateFinance(kind, input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -159,9 +181,7 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
 
   function updateValue(field: string, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
   }
 
   function printScenario() {
@@ -171,36 +191,8 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    window.setTimeout(() => {
-      try {
-        const validation = validateFinanceCalculatorInput(kind, values);
-        if (!validation.success) {
-          setErrors(validation.errors);
-          trackEvent('tool_validation_failed', {
-            toolId: tool.id,
-            errorCodes: validation.errors.map((error) => error.code),
-          });
-          setIsCalculating(false);
-          return;
-        }
-        const nextResult = calculateFinance(kind, validation.data);
-        setResult(nextResult);
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely calculate that scenario. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   return (
@@ -248,8 +240,8 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
                 <p className="eyebrow">Your scenario</p>
                 <h2 id="finance-calculator-result-title">A transparent finance view</h2>
               </div>
-              <span className="result-status" aria-label="Calculation complete">
-                Complete
+              <span className="result-status" aria-label="Live calculation complete">
+                Live
               </span>
             </div>
             <ResultPanel

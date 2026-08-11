@@ -52,12 +52,12 @@ export const businessCardInputSchema = commonDocumentSchema
   });
 
 export const businessCardDefaultValues: BusinessCardInput = {
-  businessName: '',
-  businessAddress: '',
-  phone: '',
-  email: '',
-  website: '',
-  tagline: '',
+  businessName: 'KarobarKit Demo',
+  businessAddress: 'India',
+  phone: '+91 9876543210',
+  email: 'hello@example.com',
+  website: 'https://example.com',
+  tagline: 'Simple tools for small businesses',
   gstin: '',
   cin: '',
   registrationNumber: '',
@@ -70,14 +70,14 @@ export const businessCardDefaultValues: BusinessCardInput = {
   logoAlignment: 'left',
   headerDivider: false,
   footerDivider: false,
-  personName: '',
-  designation: '',
-  cardPhone: '',
-  cardEmail: '',
-  cardWebsite: '',
-  cardAddress: '',
-  cardTagline: '',
-  cardNote: '',
+  personName: 'KarobarKit Demo',
+  designation: 'Business owner',
+  cardPhone: '+91 9876543210',
+  cardEmail: 'hello@example.com',
+  cardWebsite: 'https://example.com',
+  cardAddress: 'India',
+  cardTagline: 'Simple tools for small businesses',
+  cardNote: 'Sample proof — replace with your details.',
 };
 
 export function validateBusinessCardInput(input: BusinessCardInput): ValidationResult<BusinessCardInput> {

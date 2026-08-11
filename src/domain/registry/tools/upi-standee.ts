@@ -41,7 +41,12 @@ export const upiStandeeTool: ToolDefinition<UpiInput, UpiResult> = {
   }),
   summary: 'Create a local, print-ready UPI payment QR standee with an optional fixed amount and note.',
   inputSchema: upiInputSchema,
-  defaultValues: { payeeName: '', upiId: '', amount: '', note: '' },
+  defaultValues: {
+    payeeName: 'KarobarKit Demo',
+    upiId: 'demo@upi',
+    amount: '250',
+    note: 'Sample payment',
+  },
   validate: validateUpiInput,
   calculate: calculateUpi,
   renderResult: (result) => result.payload,

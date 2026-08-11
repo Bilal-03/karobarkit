@@ -21,6 +21,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 export type WorkplaceCalculatorKind = 'notice-period' | 'leave-balance';
 
@@ -191,6 +192,14 @@ function resultTitle(kind: WorkplaceCalculatorKind) {
   return kind === 'notice-period' ? 'Notice-period estimate' : 'Leave-balance estimate';
 }
 
+function validateWorkplaceInput(kind: WorkplaceCalculatorKind, values: CalculatorValues) {
+  const validation =
+    kind === 'notice-period'
+      ? validateNoticePeriodInput(values as unknown as NoticePeriodInput)
+      : validateLeaveBalanceInput(values as unknown as LeaveBalanceInput);
+  return validation.success ? { success: true as const, data: values } : validation;
+}
+
 export function WorkplaceCalculatorForm({
   kind,
   tool,
@@ -200,51 +209,52 @@ export function WorkplaceCalculatorForm({
 }) {
   const initialValues = useMemo(() => (tool.defaultValues as CalculatorValues) ?? {}, [tool.defaultValues]);
   const [values, setValues] = useState<CalculatorValues>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<CalculatorResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  const {
+    result,
+    errors,
+    calculationError,
+    clearFieldError,
+    clearErrors,
+    submit: evaluate,
+  } = useLiveCalculation<CalculatorValues, CalculatorResult>({
+    values,
+    debounceMs: kind === 'notice-period' ? 80 : 0,
+    validate: (input) => validateWorkplaceInput(kind, input),
+    calculate: (input) =>
+      kind === 'notice-period'
+        ? calculateNoticePeriod(input as unknown as NoticePeriodInput)
+        : calculateLeaveBalance(input as unknown as LeaveBalanceInput),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+        window.requestAnimationFrame(() => errorRef.current?.focus());
+      }
+    },
+  });
+
   function update(name: string, value: unknown) {
     setValues((current) => ({ ...current, [name]: value }));
-    setErrors((current) => current.filter((error) => error.field !== name));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(name);
   }
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    const validation =
-      kind === 'notice-period'
-        ? validateNoticePeriodInput(values as unknown as NoticePeriodInput)
-        : validateLeaveBalanceInput(values as unknown as LeaveBalanceInput);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      window.requestAnimationFrame(() => errorRef.current?.focus());
-      return;
-    }
-    try {
-      const next =
-        kind === 'notice-period'
-          ? calculateNoticePeriod(validation.data as NoticePeriodInput)
-          : calculateLeaveBalance(validation.data as LeaveBalanceInput);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setCalculationError(error instanceof Error ? error.message : 'We could not calculate this estimate.');
-    }
+    evaluate();
   }
 
   const noticeResult = kind === 'notice-period' && result ? (result as NoticePeriodResult) : null;
@@ -278,9 +288,7 @@ export function WorkplaceCalculatorForm({
               fullWidth
               onClick={() => {
                 setValues(initialValues);
-                setErrors([]);
-                setResult(null);
-                setCalculationError(null);
+                clearErrors();
               }}
             >
               Clear form
@@ -302,7 +310,7 @@ export function WorkplaceCalculatorForm({
               {result ? 'Result ready' : 'Your result will appear here'}
             </h2>
           </div>
-          {result ? <span className="result-status">Local estimate</span> : null}
+          {result ? <span className="result-status">Live · local estimate</span> : null}
         </div>
         {noticeResult ? (
           <>

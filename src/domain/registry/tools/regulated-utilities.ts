@@ -264,7 +264,7 @@ export const hsnSacFinderTool = createRegulatedTool<HsnInput, HsnResult>({
   capabilities: ['bundled-data'],
   executionMode: 'local-with-bundled-data',
   policyKey: 'hsn',
-  defaultValues: { query: '', kind: 'all' },
+  defaultValues: { query: 'wheat', kind: 'all' },
   inputSchema: hsnInputSchema,
   validate: validateHsnInput,
   calculate: (input) => calculateHsn(input),

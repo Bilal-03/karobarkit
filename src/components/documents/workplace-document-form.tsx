@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField, CheckboxField } from '@/components/ui/form-field';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 export type WorkplaceDocumentKind =
   | 'price-tag'
@@ -525,6 +526,11 @@ function validateDocument(kind: WorkplaceDocumentKind, input: unknown) {
   return validateRentReceiptInput(input as RentReceiptInput);
 }
 
+function validateWorkplaceDocument(kind: WorkplaceDocumentKind, values: WorkplaceValues) {
+  const validation = validateDocument(kind, toCalculationInput(kind, values));
+  return validation.success ? { success: true as const, data: values } : validation;
+}
+
 function titleFor(kind: WorkplaceDocumentKind) {
   return {
     'price-tag': 'price tag',
@@ -546,9 +552,6 @@ export function WorkplaceDocumentForm({
 }) {
   const initialValues = useMemo(() => (tool.defaultValues as WorkplaceValues) ?? {}, [tool.defaultValues]);
   const [values, setValues] = useState<WorkplaceValues>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<WorkplaceDocument | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -556,44 +559,49 @@ export function WorkplaceDocumentForm({
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = `${kind}-workplace-print-area`;
+  const {
+    result,
+    errors,
+    calculationError,
+    clearFieldError,
+    clearErrors,
+    submit: evaluate,
+  } = useLiveCalculation<WorkplaceValues, WorkplaceDocument>({
+    values,
+    debounceMs: 80,
+    validate: (input) => validateWorkplaceDocument(kind, input),
+    calculate: (input) => calculateDocument(kind, toCalculationInput(kind, input)),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+        window.requestAnimationFrame(() => errorRef.current?.focus());
+      }
+    },
+  });
 
   function update(name: string, value: unknown) {
     setValues((current) => ({ ...current, [name]: value }));
-    setErrors((current) => current.filter((error) => !error.field.startsWith(name)));
-    setResult(null);
-    setGenerationError(null);
+    clearFieldError(name);
     setExportError(null);
     setExportStatus(null);
   }
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
     trackEvent('tool_started', { toolId: tool.id });
-    const input = toCalculationInput(kind, values);
-    const validation = validateDocument(kind, input);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      window.requestAnimationFrame(() => errorRef.current?.focus());
-      return;
-    }
-    try {
-      const next = calculateDocument(kind, validation.data);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(error instanceof Error ? error.message : 'We could not prepare this document.');
-    }
+    evaluate();
   }
 
   async function downloadPdf() {
@@ -638,9 +646,9 @@ export function WorkplaceDocumentForm({
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorRef} errors={errors} />
           <WorkplaceFields kind={kind} values={values} errors={errors} update={update} />
-          {generationError ? (
+          {calculationError ? (
             <StateBlock title="Check the entered values" tone="error">
-              {generationError}
+              {calculationError}
             </StateBlock>
           ) : null}
           <div className="document-form__actions">
@@ -653,9 +661,9 @@ export function WorkplaceDocumentForm({
               fullWidth
               onClick={() => {
                 setValues(initialValues);
-                setErrors([]);
-                setResult(null);
-                setGenerationError(null);
+                clearErrors();
+                setExportError(null);
+                setExportStatus(null);
               }}
             >
               Clear form
@@ -677,7 +685,7 @@ export function WorkplaceDocumentForm({
               {result ? `Your ${titleFor(kind)} is ready` : 'Your preview will appear here'}
             </h2>
           </div>
-          {result ? <span className="result-status">Draft</span> : null}
+          {result ? <span className="result-status">Live · draft</span> : null}
         </div>
         {result ? (
           <>

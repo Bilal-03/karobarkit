@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface InvoiceNumberToolProps {
   id: string;
@@ -32,10 +33,30 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
     [tool.defaultValues],
   );
   const [values, setValues] = useState<InvoiceNumberInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<InvoiceNumberResult | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const { result, errors, clearFieldError, clearErrors, submit } = useLiveCalculation<
+    InvoiceNumberInput,
+    InvoiceNumberResult
+  >({
+    values,
+    validate: (input) => validateInvoiceNumberInput(input),
+    calculate: (input) => createInvoiceNumber(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -48,32 +69,16 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
   }, [errors]);
   function updateValue(field: keyof InvoiceNumberInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
+    clearFieldError(field);
   }
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateInvoiceNumberInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    const next = createInvoiceNumber(validation.data);
-    setResult(next);
-    trackEvent('tool_completed', { toolId: tool.id });
-    trackEvent('result_generated', { toolId: tool.id });
+    submit();
   }
   function reset() {
     setValues({ ...initialValues });
-    setErrors([]);
-    setResult(null);
+    clearErrors();
   }
   async function copy() {
     if (!result || typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -150,7 +155,7 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
                 <p className="eyebrow">Deterministic preview</p>
                 <h2 id="invoice-number-result-title">Your invoice number</h2>
               </div>
-              <span className="result-status">Ready · preview</span>
+              <span className="result-status">Live · preview</span>
             </div>
             <div className="sequence-result">
               <strong data-testid="invoice-number-result">{result.value}</strong>

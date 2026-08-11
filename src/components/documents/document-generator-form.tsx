@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 type DocumentKind = 'letterhead' | 'payment-receipt';
 type DocumentInput = LetterheadInput | PaymentReceiptInput;
@@ -44,14 +45,6 @@ function fieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
 }
 
-function hasDocumentValues(values: DocumentInput) {
-  return Object.entries(values).some(([key, value]) => {
-    if (key === 'logo') return Boolean(value);
-    if (typeof value === 'boolean') return value === false;
-    return typeof value === 'string' && value.trim().length > 0;
-  });
-}
-
 function getInitialValues(kind: DocumentKind, value: unknown): DocumentInput {
   if (kind === 'letterhead') return (value as LetterheadInput) ?? letterheadDefaultValues;
   return (value as PaymentReceiptInput) ?? paymentReceiptDefaultValues;
@@ -61,9 +54,6 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   const isLetterhead = kind === 'letterhead';
   const initialValues = useMemo(() => getInitialValues(kind, tool.defaultValues), [kind, tool.defaultValues]);
   const [values, setValues] = useState<DocumentInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<BusinessDocument | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -72,6 +62,37 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = `${kind}-document-print-area`;
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
+    DocumentInput,
+    BusinessDocument
+  >({
+    values,
+    validate: (input) => {
+      const validation = isLetterhead
+        ? validateLetterheadInput(input as LetterheadInput)
+        : validatePaymentReceiptInput(input as PaymentReceiptInput);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) =>
+      isLetterhead
+        ? calculateLetterhead(input as LetterheadInput)
+        : calculatePaymentReceipt(input as PaymentReceiptInput),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -105,9 +126,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
 
   function updateValue(field: string, value: unknown) {
     setValues((current) => ({ ...current, [field]: value }) as DocumentInput);
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setGenerationError(null);
+    clearFieldError(field);
     setExportError(null);
     setExportStatus(null);
   }
@@ -133,53 +152,24 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
           customerAddress: incoming.customerAddress || (current as PaymentReceiptInput).customerAddress,
         }) as DocumentInput,
     );
-    setErrors([]);
-    setResult(null);
+    clearErrors();
     setHandoffTransfer(null);
     clearLocalScenarioTransfer();
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    try {
-      const validation = isLetterhead
-        ? validateLetterheadInput(values as LetterheadInput)
-        : validatePaymentReceiptInput(values as PaymentReceiptInput);
-      if (!validation.success) {
-        setErrors(validation.errors);
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: validation.errors.map((error) => error.code),
-        });
-        return;
-      }
-
-      const nextDocument = isLetterhead
-        ? calculateLetterhead(validation.data as LetterheadInput)
-        : calculatePaymentReceipt(validation.data as PaymentReceiptInput);
-      setResult(nextDocument);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(error instanceof Error ? error.message : 'We could not prepare that document.');
-    }
+    submit();
   }
 
   function resetForm() {
-    if ((hasDocumentValues(values) || result) && !window.confirm('Clear the entered details and preview?'))
-      return;
+    const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
+    if (isDirty && !window.confirm('Clear the entered details and preview?')) return;
     setValues(initialValues);
-    setErrors([]);
-    setResult(null);
-    setGenerationError(null);
+    clearErrors();
     setExportError(null);
     setExportStatus(null);
   }
@@ -627,13 +617,13 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
         tabIndex={-1}
         aria-labelledby="document-result-title"
       >
-        {generationError ? (
+        {calculationError ? (
           <StateBlock
             titleId="document-result-title"
             title={`We could not create that ${isLetterhead ? 'letterhead' : 'receipt'}`}
             tone="error"
           >
-            {generationError}
+            {calculationError}
           </StateBlock>
         ) : result ? (
           <>
@@ -642,7 +632,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="document-result-title">{resultTitle}</h2>
               </div>
-              <span className="result-status">Ready</span>
+              <span className="result-status">Live · ready</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (

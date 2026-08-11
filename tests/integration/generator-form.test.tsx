@@ -10,11 +10,25 @@ import { GeneratorForm } from '@/components/tooling/generator-form';
 import { upiStandeeTool, urlQrTool } from '@/domain/registry';
 
 describe('generator form integration', () => {
+  it('shows the seeded URL QR preview immediately and refreshes while typing', async () => {
+    const user = userEvent.setup();
+    render(<GeneratorForm kind="url-qr" tool={urlQrTool} />);
+
+    expect(await screen.findByText('https://example.com/')).toBeInTheDocument();
+    const url = screen.getByRole('textbox', { name: 'URL' });
+    await user.clear(url);
+    await user.type(url, 'https://example.org/menu');
+
+    expect(await screen.findByText('https://example.org/menu')).toBeInTheDocument();
+  });
+
   it('announces an unsafe URL protocol and links the error to the field', async () => {
     const user = userEvent.setup();
     render(<GeneratorForm kind="url-qr" tool={urlQrTool} />);
 
-    await user.type(screen.getByRole('textbox', { name: 'URL' }), 'javascript:alert(1)');
+    const url = screen.getByRole('textbox', { name: 'URL' });
+    await user.clear(url);
+    await user.type(url, 'javascript:alert(1)');
     await user.click(screen.getByRole('button', { name: 'Generate QR code' }));
 
     const summary = await screen.findByRole('alert', { name: 'Check the highlighted fields' });
@@ -27,7 +41,9 @@ describe('generator form integration', () => {
     const user = userEvent.setup();
     render(<GeneratorForm kind="url-qr" tool={urlQrTool} />);
 
-    await user.type(screen.getByRole('textbox', { name: 'URL' }), 'example.com/menu');
+    const url = screen.getByRole('textbox', { name: 'URL' });
+    await user.clear(url);
+    await user.type(url, 'example.com/menu');
     await user.click(screen.getByRole('button', { name: 'Generate QR code' }));
 
     expect(await screen.findByTestId('qr-preview')).toBeInTheDocument();
@@ -39,10 +55,18 @@ describe('generator form integration', () => {
     const user = userEvent.setup();
     render(<GeneratorForm kind="upi-standee" tool={upiStandeeTool} />);
 
-    await user.type(screen.getByRole('textbox', { name: 'Payee name' }), 'Ravi & Sons');
-    await user.type(screen.getByRole('textbox', { name: 'UPI ID' }), 'ravi.shop@bank');
-    await user.type(screen.getByRole('textbox', { name: 'Fixed amount (optional)' }), '125.50');
-    await user.type(screen.getByRole('textbox', { name: 'Payment note (optional)' }), 'Order #1 & tea');
+    const payee = screen.getByRole('textbox', { name: 'Payee name' });
+    const upiId = screen.getByRole('textbox', { name: 'UPI ID' });
+    const amount = screen.getByRole('textbox', { name: 'Fixed amount (optional)' });
+    const note = screen.getByRole('textbox', { name: 'Payment note (optional)' });
+    await user.clear(payee);
+    await user.clear(upiId);
+    await user.clear(amount);
+    await user.clear(note);
+    await user.type(payee, 'Ravi & Sons');
+    await user.type(upiId, 'ravi.shop@bank');
+    await user.type(amount, '125.50');
+    await user.type(note, 'Order #1 & tea');
     await user.click(screen.getByRole('button', { name: 'Generate UPI standee' }));
 
     expect(await screen.findByTestId('upi-payment-uri')).toHaveTextContent(
@@ -63,7 +87,7 @@ describe('generator form integration', () => {
     await screen.findByTestId('qr-preview');
     await user.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(url).toHaveValue('');
-    expect(screen.queryByTestId('qr-preview')).not.toBeInTheDocument();
+    expect(url).toHaveValue('https://example.com');
+    expect(await screen.findByTestId('qr-preview')).toBeInTheDocument();
   });
 });

@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 type GeneratorKind = 'url-qr' | 'upi-standee';
 type GeneratorInput = UrlQrInput | UpiInput;
@@ -51,15 +52,45 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
     [isUrl, tool.defaultValues],
   );
   const [values, setValues] = useState<GeneratorInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<GeneratorResult | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const [handoffTransfer, setHandoffTransfer] = useState<LocalScenarioTransfer | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const {
+    result,
+    errors,
+    calculationError,
+    isCalculating: isGenerating,
+    clearFieldError,
+    clearErrors,
+    submit,
+  } = useLiveCalculation<GeneratorInput, GeneratorResult>({
+    values,
+    validate: (input) => {
+      const validation = isUrl
+        ? validateUrlQrInput(input as UrlQrInput)
+        : validateUpiInput(input as UpiInput);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => (isUrl ? calculateUrlQr(input as UrlQrInput) : calculateUpi(input as UpiInput)),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   const urlResult = isUrl ? (result as UrlQrResult | null) : null;
   const upiResult = !isUrl ? (result as UpiResult | null) : null;
@@ -99,9 +130,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
 
   function updateValue(field: string, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setGenerationError(null);
+    clearFieldError(field);
     setExportError(null);
   }
 
@@ -113,61 +142,28 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
       amount: incoming.amount || (current as UpiInput).amount,
       note: incoming.note || (current as UpiInput).note,
     }));
-    setErrors([]);
-    setResult(null);
+    clearErrors();
     setHandoffTransfer(null);
     clearLocalScenarioTransfer();
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsGenerating(true);
-    setErrors([]);
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    try {
-      const validation = isUrl
-        ? validateUrlQrInput(values as UrlQrInput)
-        : validateUpiInput(values as UpiInput);
-      if (!validation.success) {
-        setErrors(validation.errors);
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: validation.errors.map((error) => error.code),
-        });
-        return;
-      }
-
-      const nextResult = isUrl
-        ? calculateUrlQr(validation.data as UrlQrInput)
-        : calculateUpi(validation.data as UpiInput);
-      setResult(nextResult);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(
-        error instanceof Error ? error.message : 'We could not safely generate that QR code. Try again.',
-      );
-    } finally {
-      setIsGenerating(false);
-    }
+    submit();
   }
 
   function resetForm() {
+    const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
     if (
-      (hasValues(values) || result) &&
+      (isDirty || (hasValues(values) && !result)) &&
       !window.confirm('Clear the entered details and generated QR code?')
     ) {
       return;
     }
     setValues(initialValues);
-    setErrors([]);
-    setResult(null);
-    setGenerationError(null);
+    clearErrors();
     setExportError(null);
   }
 
@@ -346,13 +342,13 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
         tabIndex={-1}
         aria-labelledby="generator-result-title"
       >
-        {generationError ? (
+        {calculationError ? (
           <StateBlock
             titleId="generator-result-title"
             title="We could not generate that QR code"
             tone="error"
           >
-            {generationError}
+            {calculationError}
           </StateBlock>
         ) : result ? (
           <>
@@ -361,8 +357,8 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="generator-result-title">{resultTitle}</h2>
               </div>
-              <span className="result-status" aria-label="QR generation complete">
-                Ready
+              <span className="result-status" aria-label="QR preview updates live">
+                Live · ready
               </span>
             </div>
             <div id={printTargetId} className={`qr-output ${isUrl ? 'qr-output--url' : 'qr-output--upi'}`}>

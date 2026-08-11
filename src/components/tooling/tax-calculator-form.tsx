@@ -27,6 +27,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 type TaxKind = 'hra' | TaxCalculatorKind;
 
@@ -63,12 +64,33 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
     [fields, tool.defaultValues],
   );
   const [values, setValues] = useState<HraCalculatorInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<HraCalculationResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, clearFieldError, submit } = useLiveCalculation<
+    HraCalculatorInput,
+    HraCalculationResult
+  >({
+    values,
+    validate: validateHraCalculatorInput,
+    calculate: calculateHra,
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -87,37 +109,13 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
 
   function updateValue(field: keyof HraCalculatorInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateHraCalculatorInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    try {
-      const nextResult = calculateHra(validation.data);
-      setResult(nextResult);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setCalculationError(
-        error instanceof Error ? error.message : 'We could not safely calculate that HRA view.',
-      );
-    }
+    submit();
   }
 
   return (
@@ -204,7 +202,7 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
                 <h2 id="hra-calculator-result-title">HRA exemption illustration</h2>
               </div>
               <span className="result-status">
-                {result.status === 'eligible-rule' ? 'Old regime rule' : 'No exemption'}
+                Live · {result.status === 'eligible-rule' ? 'Old regime rule' : 'No exemption'}
               </span>
             </div>
             <ResultPanel
@@ -319,12 +317,33 @@ function GenericTaxForm({
     [fields, tool.defaultValues],
   );
   const [values, setValues] = useState<TaxCalculatorInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<TaxCalculationResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, clearFieldError, submit } = useLiveCalculation<
+    TaxCalculatorInput,
+    TaxCalculationResult
+  >({
+    values,
+    validate: (input) => validateTaxCalculatorInput(kind, input),
+    calculate: (input) => calculateTax(kind, input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -342,37 +361,13 @@ function GenericTaxForm({
 
   function updateValue(name: string, value: string) {
     setValues((current) => ({ ...current, [name]: value }));
-    setErrors((current) => current.filter((error) => error.field !== name));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(name);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateTaxCalculatorInput(kind, values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    try {
-      const nextResult = calculateTax(kind, validation.data);
-      setResult(nextResult);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setCalculationError(
-        error instanceof Error ? error.message : 'We could not safely calculate that scenario.',
-      );
-    }
+    submit();
   }
 
   return (
@@ -419,7 +414,7 @@ function GenericTaxForm({
                 <p className="eyebrow">Your policy-scoped result</p>
                 <h2 id={`${kind}-calculator-result-title`}>{result.headline.label}</h2>
               </div>
-              <span className="result-status">Estimate</span>
+              <span className="result-status">Live · estimate</span>
             </div>
             <ResultPanel
               label={result.headline.label}

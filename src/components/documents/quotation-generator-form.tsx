@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface QuotationToolProps {
   id: string;
@@ -41,24 +42,10 @@ function fieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
 }
 
-function hasValues(values: QuotationInput) {
-  return Boolean(
-    values.businessName.trim() ||
-    values.businessAddress.trim() ||
-    values.quoteNumber.trim() ||
-    values.customerName.trim() ||
-    values.items.some((item) => item.description.trim() || item.unitPrice.trim()) ||
-    values.logo,
-  );
-}
-
 export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneQuotationInput(tool.defaultValues), [tool.defaultValues]);
   const [values, setValues] = useState<QuotationInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<QuotationDocument | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
@@ -67,6 +54,32 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'quotation-document-print-area';
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
+    QuotationInput,
+    QuotationDocument
+  >({
+    values,
+    validate: (input) => {
+      const validation = validateQuotationInput(input);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateQuotation(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -81,8 +94,6 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   }, [errors]);
 
   function clearResult() {
-    setResult(null);
-    setGenerationError(null);
     setExportError(null);
     setExportStatus(null);
     setHandoffError(null);
@@ -90,7 +101,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
 
   function updateValue(field: keyof QuotationInput, value: unknown) {
     setValues((current) => ({ ...current, [field]: value }) as QuotationInput);
-    setErrors((current) => current.filter((error) => error.field !== field));
+    clearFieldError(String(field));
     clearResult();
   }
 
@@ -101,7 +112,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
         itemIndex === index ? { ...item, [field]: value } : item,
       ),
     }));
-    setErrors((current) => current.filter((error) => error.field !== `items.${index}.${field}`));
+    clearFieldError(`items.${index}.${field}`);
     clearResult();
   }
 
@@ -124,34 +135,16 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
     clearResult();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateQuotationInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((error) => error.code),
-      });
-      return;
-    }
-    try {
-      const document = calculateQuotation(validation.data);
-      setResult(document);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setGenerationError(error instanceof Error ? error.message : 'We could not prepare that quotation.');
-    }
+    submit();
   }
 
   function resetForm() {
-    if ((hasValues(values) || result) && !window.confirm('Clear the entered quotation details and preview?'))
-      return;
+    const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
+    if (isDirty && !window.confirm('Clear the entered quotation details and preview?')) return;
     setValues(cloneQuotationInput(initialValues));
-    setErrors([]);
+    clearErrors();
     clearResult();
   }
 
@@ -548,13 +541,13 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
         tabIndex={-1}
         aria-labelledby="quotation-result-title"
       >
-        {generationError ? (
+        {calculationError ? (
           <StateBlock
             titleId="quotation-result-title"
             title="We could not create that quotation"
             tone="error"
           >
-            {generationError}
+            {calculationError}
           </StateBlock>
         ) : result ? (
           <>
@@ -563,7 +556,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="quotation-result-title">Your quotation is ready</h2>
               </div>
-              <span className="result-status">Ready · estimate</span>
+              <span className="result-status">Live · estimate</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (

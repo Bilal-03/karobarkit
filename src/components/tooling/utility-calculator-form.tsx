@@ -44,6 +44,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 export type UtilityCalculatorKind =
   'percentage' | 'discount' | 'area' | 'business-days' | 'fuel-expense' | 'volumetric-weight';
@@ -56,7 +57,6 @@ interface UtilityCalculatorFormProps {
 type UtilityValues = Record<string, string | boolean>;
 type UtilityResult =
   PercentageResult | DiscountResult | AreaResult | BusinessDaysResult | FuelResult | VolumetricWeightResult;
-type UtilityOutcome = { success: true; result: UtilityResult } | { success: false; errors: FieldError[] };
 
 function getFieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
@@ -71,39 +71,44 @@ function valueAsBoolean(values: UtilityValues, key: string) {
   return values[key] === true;
 }
 
-function calculateUtility(kind: UtilityCalculatorKind, values: UtilityValues): UtilityOutcome {
+function validateUtility(kind: UtilityCalculatorKind, values: UtilityValues) {
   if (kind === 'percentage') {
     const input = values as unknown as PercentageInput;
     const validation = validatePercentageInput(input);
-    return validation.success ? { success: true, result: calculatePercentage(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'discount') {
     const input = values as unknown as DiscountInput;
     const validation = validateDiscountInput(input);
-    return validation.success ? { success: true, result: calculateDiscount(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'area') {
     const input = values as unknown as AreaInput;
     const validation = validateAreaInput(input);
-    return validation.success ? { success: true, result: calculateArea(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'business-days') {
     const input = values as unknown as BusinessDaysInput;
     const validation = validateBusinessDaysInput(input);
-    return validation.success
-      ? { success: true, result: calculateBusinessDays(validation.data) }
-      : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'fuel-expense') {
     const input = values as unknown as FuelInput;
     const validation = validateFuelInput(input);
-    return validation.success ? { success: true, result: calculateFuelExpense(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   const input = values as unknown as VolumetricWeightInput;
   const validation = validateVolumetricWeightInput(input);
-  return validation.success
-    ? { success: true, result: calculateVolumetricWeight(validation.data) }
-    : validation;
+  return validation.success ? { success: true as const, data: values } : validation;
+}
+
+function calculateUtility(kind: UtilityCalculatorKind, values: UtilityValues): UtilityResult {
+  if (kind === 'percentage') return calculatePercentage(values as unknown as PercentageInput);
+  if (kind === 'discount') return calculateDiscount(values as unknown as DiscountInput);
+  if (kind === 'area') return calculateArea(values as unknown as AreaInput);
+  if (kind === 'business-days') return calculateBusinessDays(values as unknown as BusinessDaysInput);
+  if (kind === 'fuel-expense') return calculateFuelExpense(values as unknown as FuelInput);
+  return calculateVolumetricWeight(values as unknown as VolumetricWeightInput);
 }
 
 function UtilityResultView({ kind, result }: { kind: UtilityCalculatorKind; result: UtilityResult }) {
@@ -252,14 +257,35 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
   const router = useRouter();
   const initialValues = useMemo(() => (tool.defaultValues as UtilityValues) ?? {}, [tool.defaultValues]);
   const [values, setValues] = useState<UtilityValues>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<UtilityResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, isCalculating, clearFieldError, submit } = useLiveCalculation<
+    UtilityValues,
+    UtilityResult
+  >({
+    values,
+    debounceMs: kind === 'business-days' ? 80 : 0,
+    validate: (input) => validateUtility(kind, input),
+    calculate: (input) => calculateUtility(kind, input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -275,42 +301,14 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
 
   function updateValue(field: string, value: string | boolean) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
     setHandoffError(null);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    window.setTimeout(() => {
-      try {
-        const outcome = calculateUtility(kind, values);
-        if (!outcome.success) {
-          setErrors(outcome.errors);
-          trackEvent('tool_validation_failed', {
-            toolId: tool.id,
-            errorCodes: outcome.errors.map((error) => error.code),
-          });
-          setIsCalculating(false);
-          return;
-        }
-        setResult(outcome.result);
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely calculate that input. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   const areaUsesRegion =
@@ -755,8 +753,8 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
                 <p className="eyebrow">Your result</p>
                 <h2 id="utility-calculator-result-title">A local answer with assumptions</h2>
               </div>
-              <span className="result-status" aria-label="Calculation complete">
-                Complete
+              <span className="result-status" aria-label="Live calculation complete">
+                Live
               </span>
             </div>
             <UtilityResultView kind={kind} result={result} />

@@ -6,6 +6,19 @@ import { UtilityCalculatorForm } from '@/components/tooling/utility-calculator-f
 import { businessDaysTool, discountTool, percentageTool } from '@/domain/registry';
 
 describe('everyday utility calculator form', () => {
+  it('shows a seeded percentage result and recalculates after an input change', async () => {
+    const user = userEvent.setup();
+    render(<UtilityCalculatorForm kind="percentage" tool={percentageTool} />);
+
+    expect(await screen.findByText('200')).toBeInTheDocument();
+
+    const percentage = screen.getByRole('textbox', { name: 'Percentage' });
+    await user.clear(percentage);
+    await user.type(percentage, '25');
+
+    expect(await screen.findByText('250')).toBeInTheDocument();
+  });
+
   it('calculates percentage-of without changing the existing calculator adapters', async () => {
     const user = userEvent.setup();
     render(<UtilityCalculatorForm kind="percentage" tool={percentageTool} />);

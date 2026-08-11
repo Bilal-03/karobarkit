@@ -6,6 +6,20 @@ import { CalculatorForm } from '@/components/tooling/calculator-form';
 import { cagrTool, roiTool } from '@/domain/registry';
 
 describe('calculator form integration', () => {
+  it('shows the seeded ROI result immediately and updates it while typing', async () => {
+    const user = userEvent.setup();
+    render(<CalculatorForm kind="roi" tool={roiTool} />);
+
+    expect(await screen.findByText('25.00%')).toBeInTheDocument();
+
+    const finalValue = screen.getByRole('textbox', { name: /Final value/ });
+    await user.clear(finalValue);
+    await user.type(finalValue, '150000');
+
+    expect(await screen.findByText('50.00%')).toBeInTheDocument();
+    expect(screen.getByText('₹50,000.00')).toBeInTheDocument();
+  });
+
   it('shows linked validation errors and preserves the entered values', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="cagr" tool={cagrTool} />);

@@ -23,6 +23,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 export type TextUtilityKind = 'word-counter' | 'password-toolkit';
 
@@ -51,16 +52,50 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
     [tool.defaultValues],
   );
   const [values, setValues] = useState<WordOrPasswordValues>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [wordResult, setWordResult] = useState<WordCounterResult | null>(
-    kind === 'word-counter' ? calculateWordCounter(initialValues as unknown as WordCounterInput) : null,
-  );
-  const [passwordResult, setPasswordResult] = useState<PasswordToolkitResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const {
+    result: liveResult,
+    errors,
+    calculationError,
+    isCalculating,
+    clearFieldError,
+    submit,
+  } = useLiveCalculation<WordOrPasswordValues, WordCounterResult | PasswordToolkitResult>({
+    values,
+    validate: (input) => {
+      if (kind === 'word-counter') {
+        const validation = validateWordCounterInput(input as unknown as WordCounterInput);
+        return validation.success ? { success: true as const, data: input } : validation;
+      }
+      const validation = validatePasswordToolkitInput(input as unknown as PasswordToolkitInput);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) =>
+      kind === 'word-counter'
+        ? calculateWordCounter(input as unknown as WordCounterInput)
+        : calculatePasswordToolkit(input as unknown as PasswordToolkitInput),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
+
+  const wordResult = kind === 'word-counter' ? (liveResult as WordCounterResult | null) : null;
+  const passwordResult = kind === 'password-toolkit' ? (liveResult as PasswordToolkitResult | null) : null;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -76,60 +111,13 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
 
   function updateValue(field: string, value: string | boolean) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setCalculationError(null);
-    if (kind === 'word-counter') {
-      const next = { ...values, [field]: value } as unknown as WordCounterInput;
-      const validation = validateWordCounterInput(next);
-      setWordResult(validation.success ? calculateWordCounter(validation.data) : null);
-    } else {
-      setPasswordResult(null);
-    }
+    clearFieldError(field);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    window.setTimeout(() => {
-      try {
-        if (kind === 'word-counter') {
-          const validation = validateWordCounterInput(values as unknown as WordCounterInput);
-          if (!validation.success) {
-            setErrors(validation.errors);
-            trackEvent('tool_validation_failed', {
-              toolId: tool.id,
-              errorCodes: validation.errors.map((error) => error.code),
-            });
-            setIsCalculating(false);
-            return;
-          }
-          setWordResult(calculateWordCounter(validation.data));
-        } else {
-          const validation = validatePasswordToolkitInput(values as unknown as PasswordToolkitInput);
-          if (!validation.success) {
-            setErrors(validation.errors);
-            trackEvent('tool_validation_failed', {
-              toolId: tool.id,
-              errorCodes: validation.errors.map((error) => error.code),
-            });
-            setIsCalculating(false);
-            return;
-          }
-          setPasswordResult(calculatePasswordToolkit(validation.data));
-        }
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely process that input. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   return (
@@ -251,7 +239,7 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
                 <p className="eyebrow">Live count</p>
                 <h2 id="text-utility-result-title">Text summary</h2>
               </div>
-              <span className="result-status">Local</span>
+              <span className="result-status">Live · local</span>
             </div>
             <ResultPanel
               label="Words"
@@ -285,7 +273,7 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
                 <p className="eyebrow">Local assessment</p>
                 <h2 id="text-utility-result-title">Password result</h2>
               </div>
-              <span className="result-status">Not saved</span>
+              <span className="result-status">Live · not saved</span>
             </div>
             {passwordResult.password ? (
               <ResultPanel

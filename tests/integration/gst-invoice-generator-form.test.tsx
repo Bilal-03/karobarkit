@@ -68,6 +68,8 @@ describe('GST invoice generator form', () => {
     const user = userEvent.setup();
     render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
 
+    fireEvent.change(field('invoiceNumber'), { target: { value: '' } });
+
     await user.click(screen.getByRole('button', { name: 'Create GST invoice draft' }));
 
     expect(await screen.findByText('Check the highlighted fields')).toBeInTheDocument();

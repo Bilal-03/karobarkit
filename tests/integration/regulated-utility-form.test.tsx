@@ -12,7 +12,9 @@ describe('regulated utility form', () => {
 
     const form = screen.getByRole('textbox', { name: 'Code or keyword' }).closest('form');
     await waitFor(() => expect(form).toHaveAttribute('data-interactive', 'true'));
-    await user.type(screen.getByRole('textbox', { name: 'Code or keyword' }), 'bread');
+    const query = screen.getByRole('textbox', { name: 'Code or keyword' });
+    await user.clear(query);
+    await user.type(query, 'bread');
     await user.click(screen.getByRole('button', { name: 'Calculate reference result' }));
 
     expect(await screen.findByText(/1905/)).toBeInTheDocument();

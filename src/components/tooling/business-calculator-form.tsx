@@ -27,6 +27,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 interface BusinessCalculatorFormProps {
   kind: BusinessCalculatorKind;
@@ -88,17 +89,35 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
     [fields, tool.defaultValues],
   );
   const [values, setValues] = useState<BusinessCalculatorInput>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<BusinessCalculationResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
   const [transferSaved, setTransferSaved] = useState(false);
   const [pendingTransfer, setPendingTransfer] = useState<
     (LocalScenarioTransfer & { sharedValues: Record<string, string> }) | null
   >(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const { result, errors, calculationError, isCalculating, clearFieldError, clearErrors, submit } =
+    useLiveCalculation<BusinessCalculatorInput, BusinessCalculationResult>({
+      values,
+      validate: (input) => validateBusinessCalculatorInput(kind, input),
+      calculate: (input) => calculateBusinessEconomics(kind, input),
+      onResult: (_nextResult, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_completed', { toolId: tool.id });
+          trackEvent('result_generated', { toolId: tool.id });
+          window.requestAnimationFrame(() => resultRef.current?.focus());
+        }
+      },
+      onValidationFailure: (validationErrors, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_validation_failed', {
+            toolId: tool.id,
+            errorCodes: validationErrors.map((error) => error.code),
+          });
+        }
+      },
+    });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -130,9 +149,7 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
 
   function updateValue(field: string, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
   }
 
   function importScenario() {
@@ -140,8 +157,7 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
     setValues((current) => ({ ...current, ...pendingTransfer.sharedValues }));
     setPendingTransfer(null);
     clearLocalScenarioTransfer();
-    setResult(null);
-    setErrors([]);
+    clearErrors();
   }
 
   function saveScenarioForRelatedTool() {
@@ -161,36 +177,8 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsCalculating(true);
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-
-    window.setTimeout(() => {
-      try {
-        const validation = validateBusinessCalculatorInput(kind, values);
-        if (!validation.success) {
-          setErrors(validation.errors);
-          trackEvent('tool_validation_failed', {
-            toolId: tool.id,
-            errorCodes: validation.errors.map((error) => error.code),
-          });
-          setIsCalculating(false);
-          return;
-        }
-        const nextResult = calculateBusinessEconomics(kind, validation.data);
-        setResult(nextResult);
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-      } catch (error) {
-        setCalculationError(
-          error instanceof Error ? error.message : 'We could not safely calculate that scenario. Try again.',
-        );
-      }
-      setIsCalculating(false);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    }, 120);
+    submit();
   }
 
   return (
@@ -270,8 +258,8 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
                 <p className="eyebrow">Your scenario</p>
                 <h2 id="business-calculator-result-title">A decision-ready view</h2>
               </div>
-              <span className="result-status" aria-label="Calculation complete">
-                Complete
+              <span className="result-status" aria-label="Live calculation complete">
+                Live
               </span>
             </div>
             <ResultPanel

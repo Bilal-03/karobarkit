@@ -56,6 +56,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 export type SharingFileUtilityKind =
   | 'whatsapp-link'
@@ -99,52 +100,56 @@ function resultTitle(kind: SharingFileUtilityKind) {
 function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi'; tool: ToolProps }) {
   const initial = useMemo(() => tool.defaultValues as Record<string, string | boolean>, [tool.defaultValues]);
   const [values, setValues] = useState<Record<string, string | boolean>>(initial);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<WhatsappResult | VcardResult | WifiResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const {
+    result,
+    errors,
+    calculationError: error,
+    clearFieldError,
+    submit,
+  } = useLiveCalculation<Record<string, string | boolean>, WhatsappResult | VcardResult | WifiResult>({
+    values,
+    validate: (input) => {
+      const validation =
+        kind === 'whatsapp-link'
+          ? validateWhatsappInput(input as WhatsappInput)
+          : kind === 'vcard'
+            ? validateVcardInput(input as VcardInput)
+            : validateWifiInput(input as WifiInput);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) =>
+      kind === 'whatsapp-link'
+        ? calculateWhatsapp(input as WhatsappInput)
+        : kind === 'vcard'
+          ? calculateVcard(input as VcardInput)
+          : calculateWifi(input as WifiInput),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((item) => item.code),
+        });
+      }
+    },
+  });
   const qrImage = useQrImage(result?.payload ?? '', 512);
 
   function update(field: string, value: string | boolean) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors([]);
-    setResult(null);
-    setError(null);
+    clearFieldError(field);
     setExportError(null);
-  }
-  function calculate() {
-    const input = values;
-    const validation =
-      kind === 'whatsapp-link'
-        ? validateWhatsappInput(input as WhatsappInput)
-        : kind === 'vcard'
-          ? validateVcardInput(input as VcardInput)
-          : validateWifiInput(input as WifiInput);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((item) => item.code),
-      });
-      return;
-    }
-    try {
-      const next =
-        kind === 'whatsapp-link'
-          ? calculateWhatsapp(validation.data as WhatsappInput)
-          : kind === 'vcard'
-            ? calculateVcard(validation.data as VcardInput)
-            : calculateWifi(validation.data as WifiInput);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'We could not generate that payload.');
-    }
   }
   async function exportSvg() {
     if (!result) return;
@@ -193,7 +198,7 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
           onSubmit={(event) => {
             event.preventDefault();
             trackEvent('tool_started', { toolId: tool.id });
-            calculate();
+            submit();
           }}
           noValidate
           data-interactive={isInteractive ? 'true' : 'false'}
@@ -347,7 +352,7 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="sharing-result-title">{resultTitle(kind)}</h2>
               </div>
-              <span className="result-status">Ready</span>
+              <span className="result-status">Live · ready</span>
             </div>
             <div className="qr-output">
               <QrPreview state={qrImage} size={512} alt={`QR preview for ${tool.id}`} />
@@ -390,36 +395,42 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
 function BarcodeForm({ tool }: { tool: ToolProps }) {
   const initial = useMemo(() => tool.defaultValues as BarcodeInput, [tool.defaultValues]);
   const [values, setValues] = useState<BarcodeInput>(initial);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<BarcodeResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
+
+  const {
+    result,
+    errors,
+    calculationError: error,
+    clearFieldError,
+    submit: evaluate,
+  } = useLiveCalculation<BarcodeInput, BarcodeResult>({
+    values,
+    validate: (input) => validateBarcodeInput(input),
+    calculate: (input) => calculateBarcode(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((item) => item.code),
+        });
+      }
+    },
+  });
+
   function update(field: keyof BarcodeInput, value: string | boolean) {
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors([]);
-    setResult(null);
-    setError(null);
+    clearFieldError(field);
   }
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateBarcodeInput(values);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      trackEvent('tool_validation_failed', {
-        toolId: tool.id,
-        errorCodes: validation.errors.map((item) => item.code),
-      });
-      return;
-    }
-    try {
-      const next = calculateBarcode(validation.data);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'We could not render the barcode.');
-    }
+    evaluate();
   }
   return (
     <div className="calculator-layout">
@@ -487,7 +498,7 @@ function BarcodeForm({ tool }: { tool: ToolProps }) {
                 <p className="eyebrow">Preview</p>
                 <h2 id="barcode-result-title">Barcode ready</h2>
               </div>
-              <span className="result-status">Ready</span>
+              <span className="result-status">Live · ready</span>
             </div>
             <div className="barcode-preview" dangerouslySetInnerHTML={{ __html: renderBarcodeSvg(result) }} />
             <div className="inline-actions">
@@ -1204,30 +1215,36 @@ function FaviconForm({ tool }: { tool: ToolProps }) {
 function EmailSignatureForm({ tool }: { tool: ToolProps }) {
   const initial = useMemo(() => tool.defaultValues as EmailSignatureInput, [tool.defaultValues]);
   const [values, setValues] = useState(initial);
-  const [result, setResult] = useState<EmailSignatureResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
+  const {
+    result,
+    errors,
+    calculationError: error,
+    clearFieldError,
+    submit: evaluate,
+  } = useLiveCalculation<EmailSignatureInput, EmailSignatureResult>({
+    values,
+    validate: (input) => {
+      const validation = validateEmailSignatureInput(input);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateEmailSignature(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+      }
+    },
+  });
+  const visibleError = error ?? errors[0]?.message ?? null;
   function update(field: keyof EmailSignatureInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setResult(null);
-    setError(null);
+    clearFieldError(field);
   }
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateEmailSignatureInput(values);
-    if (!validation.success) {
-      setError(validation.errors[0]?.message ?? 'Check the fields.');
-      return;
-    }
-    try {
-      const next = calculateEmailSignature(validation.data);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'The signature could not be prepared.');
-    }
+    evaluate();
   }
   return (
     <div className="calculator-layout">
@@ -1296,9 +1313,9 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
             <option value="navy">Navy</option>
             <option value="ochre">Ochre</option>
           </SelectField>
-          {error ? (
+          {visibleError ? (
             <p className="field__error" role="alert">
-              {error}
+              {visibleError}
             </p>
           ) : null}
           <Button type="submit" fullWidth>
@@ -1315,7 +1332,7 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
                 <p className="eyebrow">Preview and export</p>
                 <h2 id="signature-result-title">Signature ready</h2>
               </div>
-              <span className="result-status">Local</span>
+              <span className="result-status">Live · local</span>
             </div>
             <div className="signature-preview" dangerouslySetInnerHTML={{ __html: result.html }} />
             <pre className="payload-details">{result.plainText}</pre>
@@ -1354,30 +1371,36 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
 function ReviewRequestForm({ tool }: { tool: ToolProps }) {
   const initial = useMemo(() => tool.defaultValues as ReviewRequestInput, [tool.defaultValues]);
   const [values, setValues] = useState(initial);
-  const [result, setResult] = useState<ReviewRequestResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
+  const {
+    result,
+    errors,
+    calculationError: error,
+    clearFieldError,
+    submit: evaluate,
+  } = useLiveCalculation<ReviewRequestInput, ReviewRequestResult>({
+    values,
+    validate: (input) => {
+      const validation = validateReviewRequestInput(input);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateReviewRequest(input),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+      }
+    },
+  });
+  const visibleError = error ?? errors[0]?.message ?? null;
   function update(field: keyof ReviewRequestInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
-    setResult(null);
-    setError(null);
+    clearFieldError(field);
   }
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     trackEvent('tool_started', { toolId: tool.id });
-    const validation = validateReviewRequestInput(values);
-    if (!validation.success) {
-      setError(validation.errors[0]?.message ?? 'Check the fields.');
-      return;
-    }
-    try {
-      const next = calculateReviewRequest(validation.data);
-      setResult(next);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'The message could not be prepared.');
-    }
+    evaluate();
   }
   return (
     <div className="calculator-layout">
@@ -1429,9 +1452,9 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
             onChange={(event) => update('whatsappPhone', event.target.value)}
             inputMode="tel"
           />
-          {error ? (
+          {visibleError ? (
             <p className="field__error" role="alert">
-              {error}
+              {visibleError}
             </p>
           ) : null}
           <Button type="submit" fullWidth>
@@ -1448,7 +1471,7 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
                 <p className="eyebrow">Draft preview</p>
                 <h2 id="review-result-title">Review request ready</h2>
               </div>
-              <span className="result-status">No auto-send</span>
+              <span className="result-status">Live · no auto-send</span>
             </div>
             <ResultPanel label="Subject" value={result.subject} />
             <pre className="payload-details">{result.message}</pre>

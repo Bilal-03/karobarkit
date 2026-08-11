@@ -42,6 +42,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { useLiveCalculation } from './use-live-calculation';
 
 type RegulatedUtilityKind = Extract<ToolUiAdapter, { adapter: 'regulated-utility' }>['variant'];
 type Values = Record<string, string>;
@@ -52,7 +53,6 @@ type RegulatedResult =
   | ProfessionalTaxResult
   | MsmeInterestResult
   | CurrencyResult;
-type Outcome = { success: true; result: RegulatedResult } | { success: false; errors: FieldError[] };
 
 interface RegulatedUtilityFormProps {
   kind: RegulatedUtilityKind;
@@ -72,43 +72,48 @@ function fieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
 }
 
-function calculate(kind: RegulatedUtilityKind, values: Values, quote?: CurrencyQuote): Outcome {
+function validateRegulated(kind: RegulatedUtilityKind, values: Values) {
   if (kind === 'hsn-sac') {
     const input = values as unknown as HsnInput;
     const validation = validateHsnInput(input);
-    return validation.success ? { success: true, result: calculateHsn(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'gst-due-date') {
     const input = values as unknown as GstDueDateInput;
     const validation = validateGstDueDateInput(input);
-    return validation.success ? { success: true, result: calculateGstDueDate(validation.data) } : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'depreciation') {
     const input = values as unknown as DepreciationInput;
     const validation = validateDepreciationInput(input);
-    return validation.success
-      ? { success: true, result: calculateDepreciation(validation.data) }
-      : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'professional-tax') {
     const input = values as unknown as ProfessionalTaxInput;
     const validation = validateProfessionalTaxInput(input);
-    return validation.success
-      ? { success: true, result: calculateProfessionalTax(validation.data) }
-      : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   if (kind === 'msme-interest') {
     const input = values as unknown as MsmeInterestInput;
     const validation = validateMsmeInterestInput(input);
-    return validation.success
-      ? { success: true, result: calculateMsmeInterest(validation.data) }
-      : validation;
+    return validation.success ? { success: true as const, data: values } : validation;
   }
   const input = values as unknown as CurrencyInput;
   const validation = validateCurrencyInput(input);
-  return validation.success
-    ? { success: true, result: calculateCurrencyConversion(validation.data, quote) }
-    : validation;
+  return validation.success ? { success: true as const, data: values } : validation;
+}
+
+function calculateRegulated(
+  kind: RegulatedUtilityKind,
+  values: Values,
+  quote?: CurrencyQuote,
+): RegulatedResult {
+  if (kind === 'hsn-sac') return calculateHsn(values as unknown as HsnInput);
+  if (kind === 'gst-due-date') return calculateGstDueDate(values as unknown as GstDueDateInput);
+  if (kind === 'depreciation') return calculateDepreciation(values as unknown as DepreciationInput);
+  if (kind === 'professional-tax') return calculateProfessionalTax(values as unknown as ProfessionalTaxInput);
+  if (kind === 'msme-interest') return calculateMsmeInterest(values as unknown as MsmeInterestInput);
+  return calculateCurrencyConversion(values as unknown as CurrencyInput, quote);
 }
 
 function CommonPolicyNote({ result }: { result: RegulatedResultBase }) {
@@ -716,15 +721,44 @@ function FormFields({
 export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) {
   const initialValues = useMemo(() => (tool.defaultValues as Values) ?? {}, [tool.defaultValues]);
   const [values, setValues] = useState<Values>(initialValues);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [result, setResult] = useState<RegulatedResult | null>(null);
-  const [calculationError, setCalculationError] = useState<string | null>(null);
   const [quote, setQuote] = useState<CurrencyQuote | undefined>();
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [isFetchingQuote, setIsFetchingQuote] = useState(false);
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const evaluationValues = useMemo(() => ({ values, quote }), [quote, values]);
+
+  const {
+    result,
+    errors,
+    calculationError,
+    clearFieldError,
+    submit: evaluate,
+  } = useLiveCalculation<{ values: Values; quote?: CurrencyQuote }, RegulatedResult>({
+    values: evaluationValues,
+    debounceMs: kind === 'hsn-sac' ? 120 : 0,
+    validate: (input) => {
+      const validation = validateRegulated(kind, input.values);
+      return validation.success ? { success: true as const, data: input } : validation;
+    },
+    calculate: (input) => calculateRegulated(kind, input.values, input.quote),
+    onResult: (_nextResult, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_completed', { toolId: tool.id });
+        trackEvent('result_generated', { toolId: tool.id });
+        window.requestAnimationFrame(() => resultRef.current?.focus());
+      }
+    },
+    onValidationFailure: (validationErrors, source) => {
+      if (source === 'submit') {
+        trackEvent('tool_validation_failed', {
+          toolId: tool.id,
+          errorCodes: validationErrors.map((error) => error.code),
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -746,9 +780,7 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
       return next;
     });
     if (field === 'fromCurrency' || field === 'toCurrency') setQuote(undefined);
-    setErrors((current) => current.filter((error) => error.field !== field));
-    setResult(null);
-    setCalculationError(null);
+    clearFieldError(field);
     setQuoteError(null);
   }
 
@@ -774,29 +806,8 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors([]);
-    setResult(null);
-    setCalculationError(null);
     trackEvent('tool_started', { toolId: tool.id });
-    try {
-      const outcome = calculate(kind, values, quote);
-      if (!outcome.success) {
-        setErrors(outcome.errors);
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: outcome.errors.map((error) => error.code),
-        });
-        return;
-      }
-      setResult(outcome.result);
-      trackEvent('tool_completed', { toolId: tool.id });
-      trackEvent('result_generated', { toolId: tool.id });
-      window.requestAnimationFrame(() => resultRef.current?.focus());
-    } catch (error) {
-      setCalculationError(
-        error instanceof Error ? error.message : 'We could not safely calculate that input.',
-      );
-    }
+    evaluate();
   }
 
   const isCurrency = kind === 'currency-converter';
@@ -854,7 +865,7 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
                 <p className="eyebrow">Your result</p>
                 <h2 id="regulated-utility-result-title">Reference result with assumptions</h2>
               </div>
-              <span className="result-status">Complete</span>
+              <span className="result-status">Live · reference</span>
             </div>
             <CommonPolicyNote result={result} />
             <ResultView kind={kind} result={result} />
