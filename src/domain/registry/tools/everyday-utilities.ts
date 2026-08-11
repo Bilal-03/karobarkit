@@ -86,6 +86,8 @@ type UtilityConfig<TInput, TResult> = {
   tags: string[];
   searchTerms: string[];
   summary: string;
+  featured?: boolean;
+  launchPriority?: number;
   riskTier: 'A' | 'B' | 'C';
   method: string;
   capabilities?: readonly ToolCapability[];
@@ -125,8 +127,8 @@ function createUtilityTool<TInput, TResult>(
     tags: config.tags,
     searchTerms: config.searchTerms,
     summary: config.summary,
-    featured: false,
-    launchPriority: 90,
+    featured: config.featured ?? false,
+    launchPriority: config.launchPriority ?? 90,
     ...liveLocalMetadata({
       riskTier: config.riskTier,
       reviewCadenceDays: 365,
@@ -171,6 +173,8 @@ export const percentageTool = createUtilityTool<PercentageInput, PercentageResul
   ui: { adapter: 'utility-calculator', variant: 'percentage' },
   name: 'Percentage Calculator',
   shortName: 'Percentage',
+  featured: true,
+  launchPriority: 11,
   category: 'daily-utilities',
   categoryLabel: 'Everyday Utilities',
   secondaryCategories: [],

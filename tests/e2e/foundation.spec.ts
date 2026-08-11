@@ -18,6 +18,7 @@ const overflowRoutes = [
   '/categories/generators',
   '/categories/startup',
   '/sources',
+  '/about',
   '/contact',
   '/report-an-error',
 ];
@@ -153,6 +154,7 @@ function escapeRegExp(value: string) {
 test.describe('foundation routes', () => {
   test('supports homepage, search, category and related-tool discovery', async ({ page }) => {
     await page.goto('/');
+    await expect(page.locator('.tool-card--featured')).toHaveCount(15);
     await page.getByLabel('What do you need to do?').fill('gst bill');
     await page.getByRole('button', { name: 'Search tools' }).click();
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toBeVisible();
@@ -163,6 +165,25 @@ test.describe('foundation routes', () => {
       page.waitForURL(/\/categories\/gst-tax$/, { timeout: 30_000 }),
       page.getByRole('link', { name: 'Browse GST & Tax' }).click(),
     ]);
+  });
+
+  test('credits the creator and links to his professional profiles', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'desktop-1440',
+      'Run the creator-credit check once at the reference desktop width.',
+    );
+
+    await page.goto('/about#creator');
+    await expect(page.getByRole('heading', { name: 'Bilal Choudhary' })).toBeVisible();
+    await expect(page.getByText('Creator and developer of KarobarKit')).toBeVisible();
+    await expect(page.getByRole('link', { name: /GitHub/ })).toHaveAttribute(
+      'href',
+      'https://github.com/Bilal-03',
+    );
+    await expect(page.getByRole('link', { name: /LinkedIn/ })).toHaveAttribute(
+      'href',
+      'https://www.linkedin.com/in/bilal2012/',
+    );
   });
 
   test('shows useful zero results and a noindex search policy', async ({ page }) => {

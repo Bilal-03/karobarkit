@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
-  authors: [{ name: 'KarobarKit' }],
-  creator: 'KarobarKit',
+  authors: [{ name: 'Bilal Choudhary', url: 'https://github.com/Bilal-03' }],
+  creator: 'Bilal Choudhary',
   icons: { icon: '/brand-badge.png', apple: '/brand-badge.png' },
   robots: { index: true, follow: true },
 };

@@ -37,6 +37,8 @@ type BusinessToolInput = {
   tags: string[];
   searchTerms: string[];
   summary: string;
+  featured?: boolean;
+  launchPriority?: number;
   riskTier: 'B' | 'C';
   method: string;
   formula: string;
@@ -72,8 +74,8 @@ function createBusinessTool(
     tags: config.tags,
     searchTerms: config.searchTerms,
     summary: config.summary,
-    featured: false,
-    launchPriority: 20,
+    featured: config.featured ?? false,
+    launchPriority: config.launchPriority ?? 20,
     ...liveLocalMetadata({
       riskTier: config.riskTier,
       reviewCadenceDays: 365,
@@ -123,6 +125,8 @@ export const marginTool = createBusinessTool({
   tags: ['margin', 'profit', 'revenue', 'contribution'],
   searchTerms: ['profit margin', 'contribution margin', 'gross margin calculator'],
   summary: 'Compare revenue with selected costs to understand contribution profit and margin.',
+  featured: true,
+  launchPriority: 8,
   riskTier: 'B',
   method: 'Revenue less selected costs, divided by revenue, using decimal arithmetic.',
   formula: 'Contribution margin = (revenue − total cost) ÷ revenue × 100',

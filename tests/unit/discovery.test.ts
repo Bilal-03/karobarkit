@@ -114,8 +114,13 @@ describe('tool discovery', () => {
 
   it('keeps discovery references and featured ordering valid', () => {
     expect(validateDiscoveryRegistry(toolDiscoveryIndex)).toEqual([]);
-    expect(getFeaturedTools(toolDiscoveryIndex)).toHaveLength(11);
+    expect(getFeaturedTools(toolDiscoveryIndex)).toHaveLength(15);
     expect(getFeaturedTools(toolDiscoveryIndex).every((tool) => tool.featured)).toBe(true);
+    expect(
+      getFeaturedTools(toolDiscoveryIndex)
+        .slice(-4)
+        .map((tool) => tool.id),
+    ).toEqual(['margin-calculator', 'emi-calculator', 'sip-calculator', 'percentage-calculator']);
     expect(new Set(toolDiscoveryIndex.map((tool) => tool.slug)).size).toBe(toolDiscoveryIndex.length);
     expect(new Set(categoryRegistry.map((category) => category.slug)).size).toBe(categoryRegistry.length);
   });

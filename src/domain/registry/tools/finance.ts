@@ -67,6 +67,8 @@ type FinanceToolConfig = {
   tags: string[];
   searchTerms: string[];
   summary: string;
+  featured?: boolean;
+  launchPriority?: number;
   method: string;
   formula: string;
   workedExample: string;
@@ -99,8 +101,8 @@ function createFinanceTool(
     tags: config.tags,
     searchTerms: config.searchTerms,
     summary: config.summary,
-    featured: false,
-    launchPriority: 30,
+    featured: config.featured ?? false,
+    launchPriority: config.launchPriority ?? 30,
     ...liveLocalMetadata({
       riskTier: 'B',
       reviewCadenceDays: 90,
@@ -148,6 +150,8 @@ export const emiTool = createFinanceTool({
   slug: 'emi-calculator',
   name: 'EMI Calculator',
   shortName: 'EMI',
+  featured: true,
+  launchPriority: 9,
   toolKind: 'calculator',
   tags: ['emi', 'loan', 'amortization', 'interest'],
   searchTerms: ['equated monthly instalment', 'loan emi', 'loan repayment', 'amortization schedule'],
@@ -193,6 +197,8 @@ export const sipTool = createFinanceTool({
   slug: 'sip-calculator',
   name: 'SIP Calculator',
   shortName: 'SIP',
+  featured: true,
+  launchPriority: 10,
   toolKind: 'calculator',
   tags: ['sip', 'investment', 'future value', 'returns'],
   searchTerms: ['systematic investment plan', 'monthly investment calculator', 'sip maturity value'],

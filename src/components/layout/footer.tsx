@@ -38,7 +38,9 @@ export function Footer() {
         </div>
       </div>
       <div className="container site-footer__bottom">
-        <span>© 2026 KarobarKit. The Business Toolkit for India.</span>
+        <span>
+          © 2026 KarobarKit · Created by <Link href="/about#creator">Bilal Choudhary</Link>
+        </span>
         <span>
           <Link href="/terms">Terms</Link> · <Link href="/disclaimer">Disclaimer</Link>
         </span>
