@@ -75,7 +75,7 @@ export const invoiceSourceReferences: SourceReference[] = [
 export const invoiceDefaultItem: InvoiceItemInput = {
   id: 'item-1',
   description: 'Sample service',
-  hsnOrSac: '9983',
+  hsnOrSac: '',
   quantity: '1',
   unit: 'unit',
   unitPrice: '1000',

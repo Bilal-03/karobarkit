@@ -68,7 +68,11 @@ describe('shared document formatting', () => {
 
 describe('letterhead validation and mapping', () => {
   it('requires business name and address while preserving Unicode and multiline content', () => {
-    const invalid = validateLetterheadInput(letterheadDefaultValues);
+    const invalid = validateLetterheadInput({
+      ...letterheadDefaultValues,
+      businessName: '',
+      businessAddress: '',
+    });
     expect(invalid.success).toBe(false);
     if (invalid.success) return;
     expect(invalid.errors.map((error) => error.field)).toEqual(
@@ -116,6 +120,7 @@ describe('payment receipt validation and mapping', () => {
     receivedFrom: 'निखिल',
     amount: '1250.50',
     paymentPurpose: 'Consulting retainer',
+    paymentNote: '',
   };
 
   it('maps required and optional fields into a receipt document', () => {
