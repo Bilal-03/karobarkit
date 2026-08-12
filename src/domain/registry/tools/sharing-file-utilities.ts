@@ -50,6 +50,13 @@ import {
   validatePdfOperationInput,
 } from '@/domain/files/pdf';
 import {
+  calculateDigitalSignature,
+  digitalSignatureInputSchema,
+  type DigitalSignatureInput,
+  type DigitalSignaturePlan,
+  validateDigitalSignatureInput,
+} from '@/domain/files/digital-signature';
+import {
   calculateEmailSignature,
   emailSignatureInputSchema,
   type EmailSignatureInput,
@@ -573,6 +580,68 @@ export const pdfMergeSplitTool = createSharingTool<PdfOperationInput, PdfFileInf
   disclaimer: sharingDisclaimer,
 });
 
+export const digitalSignatureTool = createSharingTool<DigitalSignatureInput, DigitalSignaturePlan>({
+  id: 'digital-signature-generator',
+  slug: 'digital-signature-generator',
+  kind: 'generator',
+  generatorKind: 'document',
+  ui: { adapter: 'business-document', variant: 'digital-signature' },
+  name: 'Digital Signature Draw & Sign',
+  shortName: 'Digital Signature',
+  category: 'media-files',
+  categoryLabel: 'Media & Files',
+  secondaryCategories: ['marketing-digital'],
+  tags: ['digital signature', 'draw signature', 'signature png', 'canvas'],
+  searchTerms: ['digital signature maker', 'draw signature online', 'signature png', 'electronic signature'],
+  summary:
+    'Draw a handwritten signature locally and download a transparent or solid-background PNG for documents and forms.',
+  riskTier: 'B',
+  method:
+    'Capture pointer strokes in a browser canvas and export the user-drawn mark without uploading or embedding it in a document.',
+  defaultValues: { penColor: 'ink', background: 'transparent', strokeWidth: '3' },
+  inputSchema: digitalSignatureInputSchema,
+  validate: validateDigitalSignatureInput,
+  calculate: (input) => calculateDigitalSignature(input),
+  renderResult: (result) => `${result.strokeWidth}px signature stroke`,
+  capabilities: ['download-png'],
+  limitations: [
+    'The output is an image of a user-drawn mark, not a certificate-backed or cryptographic digital signature.',
+    'The browser cannot confirm who drew the mark or whether a document was changed after signing.',
+  ],
+  seoTitle: 'Digital Signature Draw & Sign | KarobarKit',
+  seoDescription:
+    'Draw a digital signature locally and download a transparent PNG for documents, forms and business workflows.',
+  relatedToolIds: ['email-signature-generator', 'pdf-merge-split'],
+  howToUse: [
+    'Choose a pen colour, background and stroke width.',
+    'Draw your signature with a mouse, trackpad, stylus or finger.',
+    'Download the PNG and verify its appearance before placing it in a document.',
+  ],
+  formula: 'Signature PNG = pointer strokes + selected pen style + selected background',
+  workedExample:
+    'A signature drawn with a 3px teal stroke can be exported on a transparent background for placement over a PDF or invoice.',
+  resultInterpretation:
+    'The download is a visual signature asset. It does not provide identity verification, audit history or tamper evidence.',
+  edgeCases: [
+    'Transparent exports keep the background clear; use white or soft slate when a solid image is easier to place.',
+    'Very short taps are preserved as rounded dots so a stylus or finger mark is not lost.',
+  ],
+  faqs: [
+    {
+      question: 'Is this a legally verified digital signature?',
+      answer:
+        'No. It creates a local image of a handwritten mark. Use the signing and identity-verification process required for your document or jurisdiction.',
+    },
+    {
+      question: 'Does my signature leave the browser?',
+      answer:
+        'No. Strokes remain in this page session and the PNG is generated locally when you download it.',
+    },
+  ],
+  privacyNote: sharingPrivacy,
+  disclaimer: sharingDisclaimer,
+});
+
 export const emailSignatureTool = createSharingTool<EmailSignatureInput, EmailSignatureResult>({
   id: 'email-signature-generator',
   slug: 'email-signature-generator',
@@ -751,6 +820,7 @@ export const sharingFileUtilityTools = [
   qrBarcodeScannerTool,
   photoResizerTool,
   pdfMergeSplitTool,
+  digitalSignatureTool,
   emailSignatureTool,
   reviewRequestTool,
   faviconAppIconTool,

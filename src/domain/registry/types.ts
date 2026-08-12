@@ -228,6 +228,7 @@ export type ToolUiAdapter =
       adapter: 'business-document';
       variant:
         | 'email-signature'
+        | 'digital-signature'
         | 'review-request'
         | 'price-tag'
         | 'delivery-challan'

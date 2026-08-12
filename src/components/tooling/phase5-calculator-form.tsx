@@ -26,7 +26,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
-import { useLiveCalculation } from './use-live-calculation';
+import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 interface Phase5CalculatorFormProps {
   kind: Phase5CalculatorKind;
@@ -145,7 +145,7 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
       if (source === 'submit') {
         trackEvent('tool_completed', { toolId: tool.id });
         trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => resultRef.current?.focus());
+        window.requestAnimationFrame(() => focusResult(resultRef.current));
       }
     },
     onValidationFailure: (validationErrors, source) => {

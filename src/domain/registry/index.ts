@@ -85,6 +85,7 @@ import {
 } from './tools/everyday-utilities';
 import {
   barcodeGeneratorTool,
+  digitalSignatureTool,
   emailSignatureTool,
   faviconAppIconTool,
   pdfMergeSplitTool,
@@ -215,6 +216,7 @@ export {
   everydayUtilityTools,
   EVERYDAY_UTILITIES_FEATURE_FLAG,
   barcodeGeneratorTool,
+  digitalSignatureTool,
   emailSignatureTool,
   faviconAppIconTool,
   pdfMergeSplitTool,

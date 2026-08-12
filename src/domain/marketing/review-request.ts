@@ -93,17 +93,25 @@ export function calculateReviewRequest(input: ReviewRequestInput): ReviewRequest
     );
   const value = validation.data;
   const destination = validateDestination(value.reviewUrl);
-  const greeting =
-    value.tone === 'formal'
-      ? 'We would appreciate your feedback.'
-      : value.tone === 'direct'
-        ? 'Would you share a quick review?'
-        : 'We would love to hear how we did.';
-  const message = `Thank you for choosing ${value.businessName}. ${greeting}\n\nPlease share your honest experience here: ${destination}\n\nYour feedback helps us improve.`;
+  const messages = {
+    warm: {
+      subject: `We’d love your feedback on ${value.businessName}`,
+      body: `Hi there,\n\nThank you for choosing ${value.businessName}. We hope you had a good experience. If you have a moment, we’d really appreciate your honest feedback:\n\n${destination}\n\nYour review helps us improve and helps future customers.\n\nThank you for your support.`,
+    },
+    direct: {
+      subject: `A quick review for ${value.businessName}`,
+      body: `Could you leave a quick, honest review for ${value.businessName}?\n\n${destination}\n\nYour feedback helps us improve. Thank you.`,
+    },
+    formal: {
+      subject: `Feedback request for ${value.businessName}`,
+      body: `Dear customer,\n\nThank you for choosing ${value.businessName}. We would appreciate an honest review of your experience using the link below:\n\n${destination}\n\nYour feedback will help us improve our service.\n\nKind regards,\n${value.businessName}`,
+    },
+  } as const;
+  const message = messages[value.tone].body;
   const phone = value.whatsappPhone.replace(/\D/g, '');
   const country = value.whatsappCountryCode.replace(/\D/g, '');
   return {
-    subject: `A quick review for ${value.businessName}`,
+    subject: messages[value.tone].subject,
     message,
     whatsappUrl: phone ? `https://wa.me/${country}${phone}?text=${encodeURIComponent(message)}` : null,
     destination,

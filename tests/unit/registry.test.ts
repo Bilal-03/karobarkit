@@ -82,6 +82,7 @@ describe('tool registry contract', () => {
       'qr-barcode-scanner',
       'photo-resizer-compressor',
       'pdf-merge-split',
+      'digital-signature-generator',
       'email-signature-generator',
       'review-request-builder',
       'favicon-app-icon-generator',
@@ -166,7 +167,7 @@ describe('tool registry contract', () => {
   });
 
   it('keeps public definitions and the metadata-only build index separate', () => {
-    expect(allToolDefinitions).toHaveLength(82);
+    expect(allToolDefinitions).toHaveLength(83);
     expect(allToolDefinitions.filter((tool) => tool.featureFlag === 'regulated-utilities-wave')).toHaveLength(
       6,
     );
@@ -186,7 +187,7 @@ describe('tool registry contract', () => {
     ).toBe(true);
     expect(
       allToolDefinitions.filter((tool) => tool.featureFlag === 'sharing-file-utilities-wave'),
-    ).toHaveLength(10);
+    ).toHaveLength(11);
     expect(
       allToolDefinitions
         .filter((tool) => tool.featureFlag === 'sharing-file-utilities-wave')

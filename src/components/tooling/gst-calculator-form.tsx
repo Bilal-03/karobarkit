@@ -26,7 +26,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, RadioGroup } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
-import { useLiveCalculation } from './use-live-calculation';
+import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 interface GstCalculatorToolProps {
   id: string;
@@ -80,7 +80,7 @@ export function GstCalculatorForm({ tool }: GstCalculatorFormProps) {
         if (source === 'submit') {
           trackEvent('tool_completed', { toolId: tool.id });
           trackEvent('result_generated', { toolId: tool.id });
-          window.requestAnimationFrame(() => resultRef.current?.focus());
+          window.requestAnimationFrame(() => focusResult(resultRef.current));
         }
       },
       onValidationFailure: (validationErrors, source) => {

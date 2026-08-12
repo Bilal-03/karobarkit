@@ -37,7 +37,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField, CheckboxField } from '@/components/ui/form-field';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
-import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
+import { focusResult, useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 export type WorkplaceDocumentKind =
   | 'price-tag'
@@ -575,7 +575,7 @@ export function WorkplaceDocumentForm({
       if (source === 'submit') {
         trackEvent('tool_completed', { toolId: tool.id });
         trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => resultRef.current?.focus());
+        window.requestAnimationFrame(() => focusResult(resultRef.current));
       }
     },
     onValidationFailure: (validationErrors, source) => {

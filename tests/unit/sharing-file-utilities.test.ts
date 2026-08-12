@@ -6,6 +6,7 @@ import { calculateVcard } from '@/domain/qr/vcard';
 import { calculateWhatsapp } from '@/domain/qr/whatsapp';
 import { calculateWifi } from '@/domain/qr/wifi';
 import { calculateFaviconPlan, validateFaviconInput } from '@/domain/files/favicon';
+import { calculateDigitalSignature, validateDigitalSignatureInput } from '@/domain/files/digital-signature';
 import { parsePageSelection, validatePdfFile } from '@/domain/files/pdf';
 import { validateImageFile } from '@/domain/files/image';
 import { FILE_LIMITS, withFileProcessingTimeout } from '@/lib/files/limits';
@@ -110,8 +111,30 @@ describe('sharing and file utility engines', () => {
       whatsappCountryCode: '91',
       whatsappPhone: '9876543210',
     });
-    expect(review.message).toContain('honest experience');
+    expect(review.message).toContain('honest feedback');
     expect(review.whatsappUrl).toContain('https://wa.me/919876543210');
+  });
+
+  it('keeps the three review tones distinct and validates signature drawing options', () => {
+    const common = {
+      businessName: 'Shop',
+      reviewUrl: 'https://example.com/review',
+      whatsappCountryCode: '',
+      whatsappPhone: '',
+    } as const;
+    const messages = (['warm', 'direct', 'formal'] as const).map(
+      (tone) => calculateReviewRequest({ ...common, tone }).message,
+    );
+    expect(new Set(messages).size).toBe(3);
+    expect(messages.every((message) => message.includes('https://example.com/review'))).toBe(true);
+
+    expect(
+      calculateDigitalSignature({ penColor: 'teal', background: 'transparent', strokeWidth: '4' }),
+    ).toEqual({ penColor: 'teal', background: 'transparent', strokeWidth: 4 });
+    expect(
+      validateDigitalSignatureInput({ penColor: 'teal', background: 'transparent', strokeWidth: '12' })
+        .success,
+    ).toBe(false);
   });
 
   it('aborts timed-out local work instead of only ignoring its result', async () => {

@@ -4,6 +4,19 @@ import type { FieldError, ValidationResult } from '@/domain/calculations/types';
 
 type LiveCalculationSource = 'live' | 'submit';
 
+/**
+ * Moves keyboard focus to a generated result without letting a sticky header
+ * cover the result heading in the viewport.
+ */
+export function focusResult(element: HTMLElement | null) {
+  if (!element) return;
+
+  element.focus({ preventScroll: true });
+  const headerHeight = document.querySelector<HTMLElement>('.site-header')?.getBoundingClientRect().height ?? 0;
+  const top = element.getBoundingClientRect().top + window.scrollY - headerHeight - 24;
+  window.scrollTo(0, Math.max(0, top));
+}
+
 interface UseLiveCalculationOptions<TInput, TResult> {
   values: TInput;
   validate: (values: TInput) => ValidationResult<TInput>;

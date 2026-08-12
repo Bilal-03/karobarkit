@@ -97,6 +97,10 @@ const SharingFileUtilityForm = dynamic(
   () => import('./sharing-file-utility-form').then((module) => module.SharingFileUtilityForm),
   { loading: ToolInteractionLoading },
 );
+const DigitalSignatureForm = dynamic(
+  () => import('./digital-signature-form').then((module) => module.DigitalSignatureForm),
+  { loading: ToolInteractionLoading },
+);
 const WorkplaceDocumentForm = dynamic(
   () =>
     import('@/components/documents/workplace-document-form').then((module) => module.WorkplaceDocumentForm),
@@ -300,6 +304,18 @@ export const toolRendererRegistry = {
     />
   ),
   'business-document': (tool) => {
+    if (tool.ui.variant === 'digital-signature') {
+      return (
+        <DigitalSignatureForm
+          tool={{
+            id: tool.id,
+            category: tool.category,
+            defaultValues: tool.defaultValues,
+            privacyNote: tool.privacyNote,
+          }}
+        />
+      );
+    }
     if (tool.ui.variant === 'email-signature' || tool.ui.variant === 'review-request') {
       return (
         <SharingFileUtilityForm

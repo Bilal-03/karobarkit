@@ -47,6 +47,7 @@ import {
   validateReviewRequestInput,
 } from '@/domain/marketing/review-request';
 import { trackEvent } from '@/lib/analytics';
+import { copyText } from '@/lib/clipboard';
 
 import { DownloadList } from '@/components/files/download-list';
 import { FileProcessingStatus } from '@/components/files/file-processing-status';
@@ -56,7 +57,7 @@ import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
-import { useLiveCalculation } from './use-live-calculation';
+import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 export type SharingFileUtilityKind =
   | 'whatsapp-link'
@@ -101,6 +102,7 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
   const initial = useMemo(() => tool.defaultValues as Record<string, string | boolean>, [tool.defaultValues]);
   const [values, setValues] = useState<Record<string, string | boolean>>(initial);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const isInteractive = useToolView(tool);
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -132,7 +134,7 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
       if (source === 'submit') {
         trackEvent('tool_completed', { toolId: tool.id });
         trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => resultRef.current?.focus());
+        window.requestAnimationFrame(() => focusResult(resultRef.current));
       }
     },
     onValidationFailure: (validationErrors, source) => {
@@ -182,6 +184,32 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
     } catch (nextError) {
       setExportError(exportErrorMessage(nextError));
     }
+  }
+
+  async function copyPayload() {
+    if (!result) return;
+    try {
+      await copyText(result.payload);
+      trackEvent('result_copied', { toolId: tool.id });
+      setActionStatus(
+        kind === 'vcard'
+          ? 'vCard text copied.'
+          : kind === 'whatsapp-link'
+            ? 'WhatsApp link copied.'
+            : 'Wi‑Fi payload copied.',
+      );
+      setExportError(null);
+    } catch (nextError) {
+      setExportError(nextError instanceof Error ? nextError.message : 'We could not copy that payload.');
+      setActionStatus(null);
+    }
+  }
+
+  function openWhatsapp() {
+    if (kind !== 'whatsapp-link' || !result) return;
+    window.open(result.payload, '_blank', 'noopener,noreferrer');
+    trackEvent('result_shared', { toolId: tool.id });
+    setActionStatus('WhatsApp opened in a new tab. Review the message before sending.');
   }
 
   return (
@@ -360,6 +388,7 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
                 label="Encoded payload"
                 value={result.payload}
                 detail="Review the destination before sharing."
+                size="compact"
               />
             </div>
             {exportError ? (
@@ -367,7 +396,12 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
                 {exportError}
               </p>
             ) : null}
-            <div className="inline-actions">
+            {actionStatus ? (
+              <p className="action-status" role="status">
+                {actionStatus}
+              </p>
+            ) : null}
+            <div className="inline-actions result-actions">
               <Button type="button" onClick={exportPng} disabled={!qrImage.dataUrl}>
                 Download PNG
               </Button>
@@ -377,6 +411,18 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
               {kind === 'vcard' ? (
                 <Button type="button" variant="secondary" onClick={exportVcard}>
                   Download .vcf
+                </Button>
+              ) : null}
+              <Button type="button" variant="secondary" onClick={copyPayload}>
+                {kind === 'vcard'
+                  ? 'Copy vCard text'
+                  : kind === 'whatsapp-link'
+                    ? 'Copy link'
+                    : 'Copy payload'}
+              </Button>
+              {kind === 'whatsapp-link' ? (
+                <Button type="button" variant="secondary" onClick={openWhatsapp}>
+                  Open WhatsApp
                 </Button>
               ) : null}
             </div>
@@ -501,7 +547,7 @@ function BarcodeForm({ tool }: { tool: ToolProps }) {
               <span className="result-status">Live · ready</span>
             </div>
             <div className="barcode-preview" dangerouslySetInnerHTML={{ __html: renderBarcodeSvg(result) }} />
-            <div className="inline-actions">
+            <div className="inline-actions result-actions">
               <Button
                 type="button"
                 onClick={() => {
@@ -1236,6 +1282,7 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
       }
     },
   });
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const visibleError = error ?? errors[0]?.message ?? null;
   function update(field: keyof EmailSignatureInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -1245,6 +1292,18 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
     event.preventDefault();
     trackEvent('tool_started', { toolId: tool.id });
     evaluate();
+  }
+
+  async function copySignature(value: string, label: string) {
+    try {
+      await copyText(value);
+      trackEvent('result_copied', { toolId: tool.id });
+      setActionStatus(`${label} copied.`);
+    } catch (nextError) {
+      setActionStatus(
+        nextError instanceof Error ? nextError.message : `We could not copy the ${label.toLowerCase()}.`,
+      );
+    }
   }
   return (
     <div className="calculator-layout">
@@ -1336,7 +1395,12 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
             </div>
             <div className="signature-preview" dangerouslySetInnerHTML={{ __html: result.html }} />
             <pre className="payload-details">{result.plainText}</pre>
-            <div className="inline-actions">
+            {actionStatus ? (
+              <p className="action-status" role="status">
+                {actionStatus}
+              </p>
+            ) : null}
+            <div className="inline-actions result-actions">
               <Button
                 type="button"
                 onClick={() => {
@@ -1355,6 +1419,20 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
                 }}
               >
                 Download text
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => copySignature(result.html, 'HTML signature')}
+              >
+                Copy HTML
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => copySignature(result.plainText, 'Plain-text signature')}
+              >
+                Copy text
               </Button>
             </div>
           </>
@@ -1392,6 +1470,7 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
       }
     },
   });
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const visibleError = error ?? errors[0]?.message ?? null;
   function update(field: keyof ReviewRequestInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -1401,6 +1480,35 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
     event.preventDefault();
     trackEvent('tool_started', { toolId: tool.id });
     evaluate();
+  }
+
+  async function copyMessage() {
+    if (!result) return;
+    try {
+      await copyText(result.message);
+      trackEvent('result_copied', { toolId: tool.id });
+      setActionStatus('Review message copied.');
+    } catch (nextError) {
+      setActionStatus(nextError instanceof Error ? nextError.message : 'We could not copy the message.');
+    }
+  }
+
+  async function copyWhatsappLink() {
+    if (!result?.whatsappUrl) return;
+    try {
+      await copyText(result.whatsappUrl);
+      trackEvent('result_copied', { toolId: tool.id });
+      setActionStatus('WhatsApp link copied.');
+    } catch (nextError) {
+      setActionStatus(nextError instanceof Error ? nextError.message : 'We could not copy the link.');
+    }
+  }
+
+  function openWhatsapp() {
+    if (!result?.whatsappUrl) return;
+    window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+    trackEvent('result_shared', { toolId: tool.id });
+    setActionStatus('WhatsApp opened in a new tab. Review the message before sending.');
   }
   return (
     <div className="calculator-layout">
@@ -1473,16 +1581,25 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
               </div>
               <span className="result-status">Live · no auto-send</span>
             </div>
-            <ResultPanel label="Subject" value={result.subject} />
-            <pre className="payload-details">{result.message}</pre>
+            <ResultPanel label="Subject" value={result.subject} size="compact" />
+            <div className="review-message">
+              <p className="review-message__label">Message to send</p>
+              <pre className="payload-details review-message__body">{result.message}</pre>
+            </div>
             {result.whatsappUrl ? (
               <ResultPanel
                 label="WhatsApp link"
                 value={result.whatsappUrl}
                 detail="Opening and sending remain user actions."
+                size="compact"
               />
             ) : null}
-            <div className="inline-actions">
+            {actionStatus ? (
+              <p className="action-status" role="status">
+                {actionStatus}
+              </p>
+            ) : null}
+            <div className="inline-actions result-actions">
               <Button
                 type="button"
                 onClick={() => {
@@ -1492,6 +1609,19 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
               >
                 Download text
               </Button>
+              <Button type="button" variant="secondary" onClick={copyMessage}>
+                Copy message
+              </Button>
+              {result.whatsappUrl ? (
+                <>
+                  <Button type="button" variant="secondary" onClick={copyWhatsappLink}>
+                    Copy WhatsApp link
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={openWhatsapp}>
+                    Open WhatsApp
+                  </Button>
+                </>
+              ) : null}
             </div>
           </>
         ) : (

@@ -134,7 +134,16 @@ export const categoryRegistry = [
     shortDescription: 'Browser-local image, PDF and asset operations.',
     description:
       'Resize, compress, merge and prepare local media or documents in the browser, with explicit file limits and cleanup behavior.',
-    searchTerms: ['photo resize', 'compress image', 'pdf merge', 'pdf split', 'favicon', 'app icon'],
+    searchTerms: [
+      'photo resize',
+      'compress image',
+      'pdf merge',
+      'pdf split',
+      'favicon',
+      'app icon',
+      'digital signature',
+      'draw signature',
+    ],
     roadmapPhase: 3,
   },
 ] as const satisfies readonly ToolCategoryDefinition[];

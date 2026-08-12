@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { focusResult } from './use-live-calculation';
 
 interface AIAssistantFormProps {
   kind: AIAssistantKind;
@@ -245,7 +246,7 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
       setReviewed(false);
       setIsEditing(false);
       setActionStatus(null);
-      window.requestAnimationFrame(() => resultRef.current?.focus());
+      window.requestAnimationFrame(() => focusResult(resultRef.current));
       trackEvent('tool_completed', { toolId: tool.id });
       trackEvent('result_generated', { toolId: tool.id });
     } catch (error) {
