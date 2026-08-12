@@ -80,7 +80,8 @@ test.describe('QR generators', () => {
     const resetClickPromise = page.getByRole('button', { name: 'Reset' }).click();
     await (await dialogPromise).accept();
     await resetClickPromise;
-    await expect(page.getByLabel('Payee name')).toHaveValue('');
-    await expect(page.getByTestId('qr-preview')).toHaveCount(0);
+    await expect(page.getByLabel('Payee name')).toHaveValue('KarobarKit Demo');
+    await expect(page.getByLabel('UPI ID')).toHaveValue('demo@upi');
+    await expect(page.getByTestId('qr-preview')).toBeVisible();
   });
 });
