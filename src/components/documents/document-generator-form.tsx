@@ -50,6 +50,56 @@ function getInitialValues(kind: DocumentKind, value: unknown): DocumentInput {
   return (value as PaymentReceiptInput) ?? paymentReceiptDefaultValues;
 }
 
+function getResetValues(kind: DocumentKind, value: DocumentInput): DocumentInput {
+  const commonValues = {
+    ...value,
+    businessName: '',
+    businessAddress: '',
+    phone: '',
+    email: '',
+    website: '',
+    tagline: '',
+    gstin: '',
+    cin: '',
+    registrationNumber: '',
+    additionalContact: '',
+    socialHandle: '',
+    logo: null,
+    footerText: '',
+    headerDivider: false,
+    footerDivider: false,
+  };
+
+  return kind === 'letterhead'
+    ? ({
+        ...commonValues,
+        letterDate: '',
+        recipientName: '',
+        recipientAddress: '',
+        subject: '',
+        body: '',
+        signatoryName: '',
+        signatoryDesignation: '',
+        signaturePlaceholder: false,
+      } as LetterheadInput)
+    : ({
+        ...commonValues,
+        receiptNumber: '',
+        receiptDate: '',
+        receivedFrom: '',
+        amount: '',
+        paymentPurpose: '',
+        paymentMethod: '',
+        transactionReference: '',
+        paymentNote: '',
+        invoiceReference: '',
+        customerAddress: '',
+        signatoryName: '',
+        signatoryDesignation: '',
+        signaturePlaceholder: false,
+      } as PaymentReceiptInput);
+}
+
 export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool: DocumentToolProps }) {
   const isLetterhead = kind === 'letterhead';
   const initialValues = useMemo(() => getInitialValues(kind, tool.defaultValues), [kind, tool.defaultValues]);
@@ -168,7 +218,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   function resetForm() {
     const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
     if (isDirty && !window.confirm('Clear the entered details and preview?')) return;
-    setValues(initialValues);
+    setValues(getResetValues(kind, initialValues));
     clearErrors();
     setExportError(null);
     setExportStatus(null);

@@ -197,7 +197,7 @@ function PaymentReceiptPage({ document }: { document: PaymentReceiptDocument }) 
             <p className="preserve-lines">{document.recipient.address.text}</p>
           </div>
         ) : null}
-        <section className="amount-summary" aria-label="Amount received">
+        <section className="amount-summary" aria-label="Receipt amount summary">
           <span>Amount received</span>
           <strong>{document.monetaryValue.formatted}</strong>
           <p>Declared amount — independently verify payment settlement.</p>
