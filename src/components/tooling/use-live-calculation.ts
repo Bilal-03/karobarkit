@@ -12,7 +12,8 @@ export function focusResult(element: HTMLElement | null) {
   if (!element) return;
 
   element.focus({ preventScroll: true });
-  const headerHeight = document.querySelector<HTMLElement>('.site-header')?.getBoundingClientRect().height ?? 0;
+  const headerHeight =
+    document.querySelector<HTMLElement>('.site-header')?.getBoundingClientRect().height ?? 0;
   const top = element.getBoundingClientRect().top + window.scrollY - headerHeight - 24;
   window.scrollTo(0, Math.max(0, top));
 }
