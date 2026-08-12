@@ -109,7 +109,9 @@ describe('document generator form integration', () => {
     await screen.findByTestId('document-preview');
     await user.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(screen.getByRole('textbox', { name: 'Business name' })).toHaveValue('KarobarKit Demo');
-    expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: 'Business name' })).toHaveValue('');
+      expect(screen.queryByTestId('document-preview')).not.toBeInTheDocument();
+    });
   });
 });
