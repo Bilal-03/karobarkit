@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   applicationName: siteConfig.name,
   authors: [{ name: 'KarobarKit' }],
   creator: 'KarobarKit',
-  icons: { icon: '/brand-badge.png', apple: '/brand-badge.png' },
+  icons: { icon: '/brand-favicon.png', apple: '/brand-favicon.png' },
   robots: { index: true, follow: true },
 };
 
