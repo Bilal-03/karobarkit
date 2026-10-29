@@ -100,3 +100,63 @@ test('navigation drawers, collapsed sidebar and search restore keyboard focus', 
   await page.keyboard.press('Escape');
   await expect(search).toBeFocused();
 });
+
+test('toolkit links switch groups without retaining previous directory filters', async ({ page }) => {
+  await page.goto('/tools');
+  const groups = [
+    ['Calculators', 'calculators', 'CAGR Calculator'],
+    ['Tax & Salary', 'tax', 'GST Calculator'],
+    ['Documents', 'documents', 'Invoice Generator'],
+    ['QR & Sharing', 'sharing', 'URL QR Generator'],
+    ['Files', 'files', 'Photo Resizer & Compressor'],
+    ['AI', 'ai', 'Business Name Assistant'],
+  ];
+  for (const [name, group, example] of groups) {
+    const menu = page.getByRole('button', { name: 'Open navigation' });
+    if (await menu.isVisible()) await menu.click();
+    await page
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .filter({ visible: true })
+      .getByRole('link', { name, exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`group=${group}$`));
+    await expect(
+      page.getByRole('navigation', { name: 'Task groups' }).getByRole('button', { name, exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('heading', { name: example, exact: true })).toBeVisible();
+  }
+  await page.goBack();
+  await expect(page).toHaveURL(/group=files$/);
+  await expect(page.getByRole('heading', { name: 'Photo Resizer & Compressor', exact: true })).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL(/group=ai$/);
+  const search = page.getByRole('searchbox', { name: 'Search tools' });
+  await search.fill('business');
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue('business');
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).toHaveURL(/\/tools$/);
+});
+
+test('contact hints stay below their controls and cards have no Beta badges', async ({ page }, info) => {
+  await page.goto('/');
+  await expect(page.locator('.tool-card').getByText('Beta', { exact: true })).toHaveCount(0);
+  await page.goto('/tools/emi-calculator');
+  await expect(page.locator('.workspace-heading').getByText('Beta', { exact: true })).toHaveCount(0);
+  await page.goto('/contact');
+  for (const [input, hint] of [
+    ['#contact-email', '#contact-email-help'],
+    ['#contact-message', '#contact-message-help'],
+  ]) {
+    const control = await page.locator(input).boundingBox();
+    const help = await page.locator(hint).boundingBox();
+    expect(help!.y).toBeGreaterThanOrEqual(control!.y + control!.height);
+  }
+  const select = await page.getByLabel('What is this about?').boundingBox();
+  expect(select!.height).toBeGreaterThanOrEqual(48);
+  const help = await page.locator('#contact-email-help').boundingBox();
+  const topic = await page.locator('label[for=contact-topic]').boundingBox();
+  expect(topic!.y).toBeGreaterThan(help!.y + help!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+  await page.screenshot({ path: info.outputPath('contact-layout.png'), fullPage: true });
+});

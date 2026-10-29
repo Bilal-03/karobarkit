@@ -233,6 +233,28 @@ export function LiveToolSearch({
   const [regulated, setRegulated] = useState(initialRegulated);
   const [visibleToolCount, setVisibleToolCount] = useState(INITIAL_VISIBLE_TOOLS);
   const historyModeRef = useRef<'push' | 'replace'>('replace');
+  const incomingFilters = JSON.stringify([
+    initialQuery,
+    initialGroup,
+    initialCategory,
+    initialKind,
+    initialExecution,
+    initialRegulated,
+  ]);
+  const [previousFilters, setPreviousFilters] = useState(incomingFilters);
+
+  // Next keeps this component mounted when a sidebar link changes only the query string.
+  // Synchronize before committing so the URL effect never writes the previous filters back.
+  if (previousFilters !== incomingFilters) {
+    setPreviousFilters(incomingFilters);
+    setQuery(initialQuery.slice(0, 80));
+    setGroup(initialGroup);
+    setCategory(initialCategory);
+    setKind(initialKind);
+    setExecution(initialExecution);
+    setRegulated(initialRegulated);
+    setVisibleToolCount(INITIAL_VISIBLE_TOOLS);
+  }
 
   const tools = useMemo(() => {
     const searched = normalizeSearchQuery(query) ? searchTools(availableTools, query) : [...availableTools];

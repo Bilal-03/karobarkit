@@ -22,7 +22,6 @@ export function ToolCard({
   categoryLabel,
   presentation,
   featured = false,
-  lifecycle = 'live',
   executionMode = 'local-only',
 }: ToolCardProps) {
   return (
@@ -36,7 +35,6 @@ export function ToolCard({
               'business'
             }
           />
-          {lifecycle === 'beta' ? <span className="local-badge">Beta</span> : null}
           {executionMode === 'network-required' ? <span className="local-badge">Online</span> : null}
         </div>
         <h3>{name}</h3>

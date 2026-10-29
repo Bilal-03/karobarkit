@@ -18,10 +18,7 @@ export function ToolPage({ tool }: { tool: SupportedTool }) {
           <Link href="/tools" className="workspace-back">
             All tools / {tool.categoryLabel}
           </Link>
-          <h1>
-            {tool.name}
-            {tool.lifecycle === 'beta' && <span className="workspace-beta">Beta</span>}
-          </h1>
+          <h1>{tool.name}</h1>
         </div>
       </div>
       <StudioReveal>

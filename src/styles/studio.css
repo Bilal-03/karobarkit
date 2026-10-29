@@ -642,10 +642,28 @@ html[data-theme='dark'] .tool-icon {
 .studio-shell textarea.input {
   min-height: 90px;
 }
+.studio-shell .contact-grid {
+  align-items: start;
+}
+.studio-shell .contact-form .field {
+  margin-bottom: 0;
+}
+.studio-shell .contact-form select.input {
+  appearance: none;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-650) 50%),
+    linear-gradient(135deg, var(--ink-650) 50%, transparent 50%);
+  background-position:
+    calc(100% - 19px) center,
+    calc(100% - 14px) center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
 .studio-shell .input:focus {
   border-color: var(--accent-600);
 }
-.studio-shell .field__help {
+.studio-shell details.field__help {
   position: absolute;
   right: -5px;
   top: -13px;
@@ -653,7 +671,7 @@ html[data-theme='dark'] .tool-icon {
   font-size: 12px;
   z-index: 3;
 }
-.studio-shell .field__help > summary {
+.studio-shell details.field__help > summary {
   display: grid;
   place-items: center;
   width: 44px;
@@ -1357,19 +1375,6 @@ html[data-theme='dark'] .tool-icon {
   .studio-shell .calculator-card {
     padding: 20px 18px;
   }
-}
-.workspace-beta {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 12px;
-  font:
-    500 10px 'Plus Jakarta Sans',
-    sans-serif;
-  letter-spacing: 0;
-  padding: 4px 7px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  color: var(--ink-650);
 }
 .tool-skeleton {
   display: grid;
