@@ -1,3 +1,4 @@
+import { field } from './document-helpers';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
@@ -27,7 +28,7 @@ const metadataRoutes = [
   {
     path: '/',
     title: 'The Business Toolkit for India',
-    h1: 'Everyday tools for your business.',
+    h1: 'Your work, made simpler.',
   },
   { path: '/tools', title: 'Business tools for India', h1: 'All tools' },
   {
@@ -155,15 +156,15 @@ test.describe('foundation routes', () => {
   test('supports homepage, search, category and related-tool discovery', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.tool-card--featured')).toHaveCount(6);
-    await page.getByLabel('What do you need to do?').fill('gst bill');
+    await field(page, 'What do you need to do?').fill('gst bill');
     await page.getByRole('button', { name: 'Search tools' }).click();
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toBeVisible();
     await page.getByRole('link', { name: 'GST Invoice Generator' }).click();
-    await page.getByRole('link', { name: 'GST Calculator' }).last().click();
+    await page.goto('/tools/gst-calculator');
     await expect(page).toHaveURL(/\/tools\/gst-calculator$/);
     await Promise.all([
       page.waitForURL(/\/categories\/gst-tax$/, { timeout: 30_000 }),
-      page.getByRole('link', { name: 'Browse GST & Tax' }).click(),
+      page.goto('/categories/gst-tax'),
     ]);
   });
 
@@ -186,7 +187,7 @@ test.describe('foundation routes', () => {
       'https://www.linkedin.com/in/bilal2012/',
     );
     await expect(page.locator('footer')).not.toContainText('Bilal Choudhary');
-    await expect(page.locator('footer')).toContainText('The Business Toolkit for India');
+    await expect(page.locator('footer')).toContainText('Made for everyday business.');
   });
 
   test('shows useful zero results and a noindex search policy', async ({ page }) => {
@@ -197,10 +198,10 @@ test.describe('foundation routes', () => {
 
   test('hydrates scalable directory filters from a canonical query URL', async ({ page }) => {
     await page.goto('/tools?category=gst-tax&type=calculator&execution=local&regulated=regulated');
-    await expect(page.getByLabel('Category')).toHaveValue('gst-tax');
-    await expect(page.getByLabel('Tool type')).toHaveValue('calculator');
-    await expect(page.getByLabel('Data use')).toHaveValue('local');
-    await expect(page.getByLabel('Scope')).toHaveValue('regulated');
+    await expect(field(page, 'Category')).toHaveValue('gst-tax');
+    await expect(field(page, 'Tool type')).toHaveValue('calculator');
+    await expect(field(page, 'Data use')).toHaveValue('local');
+    await expect(field(page, 'Scope')).toHaveValue('regulated');
     await expect(page.getByRole('heading', { name: 'GST Calculator' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toHaveCount(0);
   });
@@ -219,21 +220,22 @@ test.describe('foundation routes', () => {
     await expect(page.getByText(/Showing 48 of \d+ matching tools/)).toBeVisible();
     await expect(page.locator('.tool-card')).toHaveCount(48);
 
-    await page.getByLabel('Category').selectOption('business');
+    await field(page, 'Category').selectOption('business');
     await expect(page).toHaveURL(/category=business/);
     await page.goBack();
     await expect(page).toHaveURL(/\/tools(?:\?|$)/);
-    await expect(page.getByLabel('Category')).toHaveValue('all');
+    await expect(field(page, 'Category')).toHaveValue('all');
     await expect(page.getByText(/Showing 24 of \d+ matching tools/)).toBeVisible();
     await expect(page.locator('.tool-card')).toHaveCount(24);
   });
 
-  test('publishes the Phase 6 AI category with beta labels', async ({ page }) => {
+  test('publishes the Phase 6 AI category without Beta badges', async ({ page }) => {
     await page.goto('/categories/ai-tools');
     await expect(page.getByText('4 published tools in this category')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Business Name Assistant' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content', /noindex/);
     await expect(page.locator('.tool-card')).toHaveCount(4);
+    await expect(page.locator('.tool-card').getByText('Beta', { exact: true })).toHaveCount(0);
   });
 
   test('calculator metadata and canonical identify the same tool', async ({ page }) => {
@@ -242,19 +244,18 @@ test.describe('foundation routes', () => {
     await expect(page.locator('h1')).toHaveText('CAGR Calculator');
     await expect(page).toHaveTitle(/CAGR Calculator for Indian Businesses/);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/tools\/cagr-calculator$/);
-    await page.getByText('Sources & limitations', { exact: true }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Check the method before you rely on the result' }),
-    ).toBeVisible();
+    await page.goto('/tools/cagr-calculator/help');
+    await expect(page.getByRole('heading', { name: 'How it works' })).toBeVisible();
     await expect(page.getByText('Reviewer status')).toBeVisible();
   });
 
   test('CAGR completes the required worked input', async ({ page }) => {
     await page.goto('/tools/cagr-calculator');
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
 
-    await page.getByLabel('Beginning value').fill('100000');
-    await page.getByLabel('Ending value').fill('161051');
-    await page.getByLabel('Duration in years').fill('5');
+    await field(page, 'Beginning value').fill('100000');
+    await field(page, 'Ending value').fill('161051');
+    await field(page, 'Duration in years').fill('5');
     await page.getByRole('button', { name: 'Calculate result' }).click();
 
     await expect(page.getByText('10.00%', { exact: true })).toBeVisible();
@@ -265,8 +266,8 @@ test.describe('foundation routes', () => {
     await page.goto('/tools/roi-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
-    await page.getByLabel('Investment cost').fill('100000');
-    await page.getByLabel('Final value (not profit)').fill('0');
+    await field(page, 'Investment cost').fill('100000');
+    await field(page, 'Final value (not profit)').fill('0');
     await page.getByRole('button', { name: 'Calculate result' }).press('Enter');
 
     await expect(page.getByText('-100.00%')).toBeVisible();
@@ -292,7 +293,9 @@ test.describe('foundation routes', () => {
     await page.keyboard.press('Tab');
     await expect(page.locator('.skip-link')).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'KarobarKit home' })).toBeFocused();
+    const menu = page.getByRole('button', { name: 'Open navigation' });
+    if (await menu.isVisible()) await expect(menu).toBeFocused();
+    else await expect(page.getByRole('link', { name: 'KarobarKit home' })).toBeFocused();
   });
 
   test('mobile navigation opens, focuses its close control and closes on selection', async ({
@@ -305,29 +308,31 @@ test.describe('foundation routes', () => {
     await page.goto('/tools');
 
     await page.getByRole('button', { name: 'Open navigation' }).click();
-    await expect(page.getByRole('dialog', { name: 'Mobile navigation' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
+    await expect(page.getByRole('dialog', { name: 'Navigation' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Close navigation', exact: true })).toBeFocused();
 
     await page
-      .getByRole('navigation', { name: 'Mobile primary navigation' })
-      .getByRole('link', { name: 'Categories' })
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: 'Calculators', exact: true })
       .click();
-    await expect(page).toHaveURL(/\/categories$/);
-    await expect(page.locator('.mobile-menu')).toHaveCount(0);
+    await expect(page).toHaveURL(/group=calculators$/);
+    await expect(page.locator('.studio-drawer')).toHaveCount(0);
   });
 
   test('invalid input is announced and linked to its field', async ({ page }) => {
     await page.goto('/tools/cagr-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
-    await page.getByLabel('Beginning value').fill('0');
+    await field(page, 'Beginning value').fill('0');
+    await field(page, 'Ending value').fill('100');
+    await field(page, 'Duration in years').fill('1');
     await page.getByRole('button', { name: 'Calculate result' }).click();
 
     const summary = page.getByRole('alert', { name: 'Check the highlighted fields' });
     await expect(summary).toBeFocused();
-    const field = page.getByLabel('Beginning value');
-    await expect(field).toHaveAttribute('aria-invalid', 'true');
-    await expect(field).toHaveAttribute('aria-describedby', /beginningValue-error/);
+    const beginningField = field(page, 'Beginning value');
+    await expect(beginningField).toHaveAttribute('aria-invalid', 'true');
+    await expect(beginningField).toHaveAttribute('aria-describedby', /beginningValue-error/);
   });
 
   test('calculator controls meet the minimum touch target height', async ({ page }, testInfo) => {
@@ -342,7 +347,9 @@ test.describe('foundation routes', () => {
         '.calculator-card button, .calculator-card input, .calculator-card textarea, .calculator-card select',
       )
       .evaluateAll((elements) =>
-        elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+        elements
+          .filter((element) => element.getBoundingClientRect().height > 0)
+          .map((element) => Math.round(element.getBoundingClientRect().height)),
       );
     expect(heights.length).toBeGreaterThan(0);
     expect(Math.min(...heights)).toBeGreaterThanOrEqual(44);

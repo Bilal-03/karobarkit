@@ -1,4 +1,6 @@
+import { field } from './document-helpers';
 import { test, expect } from '@playwright/test';
+import { openDocumentOptions, reviewDocument } from './document-helpers';
 
 async function waitForInteractive(page: import('@playwright/test').Page) {
   await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
@@ -20,15 +22,16 @@ test.describe('document generators', () => {
     await page.goto('/tools/letterhead-generator');
     await waitForInteractive(page);
 
-    await page.getByLabel('Business name').fill('नमस्ते Studio');
-    await page.getByLabel('Business address').fill('12 Market Road\nPune, Maharashtra');
-    await page.getByLabel('Email (optional)').fill('hello@example.com');
-    await page.getByLabel('Website (optional)').fill('example.com');
-    await page.getByLabel('Recipient name (optional)').fill('Asha Traders');
-    await page.getByLabel('Subject (optional)').fill('A note for your records');
-    await page.getByLabel('Letter body (optional)').fill('Thank you for working with us.\n\nRegards.');
-    await page.getByLabel('Signatory name (optional)').fill('Bilal');
-    await page.getByLabel('Signatory designation (optional)').fill('Owner');
+    await field(page, 'Business name').fill('नमस्ते Studio');
+    await field(page, 'Business address').fill('12 Market Road\nPune, Maharashtra');
+    await openDocumentOptions(page);
+    await field(page, 'Email (optional)').fill('hello@example.com');
+    await field(page, 'Website (optional)').fill('example.com');
+    await field(page, 'Recipient name (optional)').fill('Asha Traders');
+    await field(page, 'Subject (optional)').fill('A note for your records');
+    await field(page, 'Letter body (optional)').fill('Thank you for working with us.\n\nRegards.');
+    await field(page, 'Signatory name (optional)').fill('Bilal');
+    await field(page, 'Signatory designation (optional)').fill('Owner');
     await page.locator('#business-logo').setInputFiles({
       name: 'logo.png',
       mimeType: 'image/png',
@@ -36,7 +39,7 @@ test.describe('document generators', () => {
     });
     await expect(page.getByText('Logo ready')).toBeVisible();
     await page.getByRole('button', { name: 'Remove logo' }).click();
-    await page.getByRole('button', { name: 'Create letterhead' }).click();
+    await reviewDocument(page);
 
     await expect(page.getByTestId('document-preview')).toBeVisible();
     await expect(page.getByText('नमस्ते Studio')).toBeVisible();
@@ -47,8 +50,8 @@ test.describe('document generators', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('karobarkit-letterhead.pdf');
 
-    await page.emulateMedia({ media: 'print' });
     await page.getByRole('button', { name: 'Print' }).click();
+    await page.emulateMedia({ media: 'print' });
     await expect(page.locator('body')).toHaveAttribute('data-print-called', 'true');
     const printGeometry = await page.getByTestId('a4-page').evaluate((element) => {
       const rect = element.getBoundingClientRect();
@@ -62,11 +65,13 @@ test.describe('document generators', () => {
     test.setTimeout(120_000);
     await page.goto('/tools/letterhead-generator');
     await waitForInteractive(page);
-    await page.getByLabel('Business name').fill('Long Letter Co');
-    await page.getByLabel('Business address').fill('A long address');
-    await page.getByLabel('Layout').selectOption('formal');
-    await page.getByLabel('Letter body (optional)').fill('A '.repeat(1800));
-    await page.getByRole('button', { name: 'Create letterhead' }).click();
+    await field(page, 'Business name').fill('Long Letter Co');
+    await field(page, 'Business address').fill('A long address');
+    await openDocumentOptions(page);
+    await field(page, 'Letter body (optional)').fill('A '.repeat(1800));
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await field(page, 'Layout').selectOption('formal');
+    await reviewDocument(page);
 
     await expect(page.getByTestId('a4-page')).toHaveCount(2);
     await expect(page.locator('.a4-page--formal')).toHaveCount(2);
@@ -78,16 +83,18 @@ test.describe('document generators', () => {
     test.setTimeout(120_000);
     await page.goto('/tools/payment-receipt-generator');
     await waitForInteractive(page);
-    await page.getByLabel('Business name').fill('Ravi & Sons');
-    await page.getByLabel('Business address').fill('Market Road, Pune');
-    await page.getByLabel('Receipt number').fill('RCPT/2026-001');
-    await page.getByLabel('Receipt date').fill('2026-08-06');
-    await page.getByLabel('Received from').fill('Nikhil');
-    await page.getByLabel('Amount received').fill('1250.50');
-    await page.getByLabel('Payment purpose').fill('Consulting retainer');
-    await page.getByLabel('Payment method (optional)').selectOption('upi');
-    await page.getByLabel('Transaction reference (optional)').fill('UPI-REF-001');
-    await page.getByRole('button', { name: 'Create receipt' }).click();
+    await field(page, 'Business name').fill('Ravi & Sons');
+    await field(page, 'Business address').fill('Market Road, Pune');
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await openDocumentOptions(page);
+    await field(page, 'Receipt number').fill('RCPT/2026-001');
+    await field(page, 'Receipt date').fill('2026-08-06');
+    await field(page, 'Received from').fill('Nikhil');
+    await field(page, 'Amount received').fill('1250.50');
+    await field(page, 'Payment purpose').fill('Consulting retainer');
+    await field(page, 'Payment method (optional)').selectOption('upi');
+    await field(page, 'Transaction reference (optional)').fill('UPI-REF-001');
+    await reviewDocument(page);
 
     await expect(page.getByTestId('document-preview')).toBeVisible();
     await expect(page.getByTestId('a4-page').getByText('₹1,250.50', { exact: true })).toBeVisible();
@@ -109,26 +116,28 @@ test.describe('document generators', () => {
   test('payment receipt rejects invalid amount and resets from the keyboard journey', async ({ page }) => {
     await page.goto('/tools/payment-receipt-generator');
     await waitForInteractive(page);
-    await page.getByLabel('Business name').fill('Keyboard Shop');
-    await page.getByLabel('Business address').fill('Address');
-    await page.getByLabel('Receipt number').fill('RCPT/1');
-    await page.getByLabel('Receipt date').fill('2026-08-06');
-    await page.getByLabel('Received from').fill('Customer');
-    await page.getByLabel('Amount received').fill('-1');
-    await page.getByLabel('Payment purpose').fill('Service');
-    await page.getByRole('button', { name: 'Create receipt' }).press('Enter');
+    await field(page, 'Business name').fill('Keyboard Shop');
+    await field(page, 'Business address').fill('Address');
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await openDocumentOptions(page);
+    await field(page, 'Receipt number').fill('RCPT/1');
+    await field(page, 'Receipt date').fill('2026-08-06');
+    await field(page, 'Received from').fill('Customer');
+    await field(page, 'Amount received').fill('-1');
+    await field(page, 'Payment purpose').fill('Service');
+    await page.getByRole('button', { name: 'Review document' }).press('Enter');
 
     const summary = page.getByRole('alert', { name: 'Check the highlighted fields' });
-    await expect(summary).toBeFocused();
-    await expect(page.getByLabel('Amount received')).toHaveAttribute('aria-invalid', 'true');
+    await expect(summary).toBeVisible();
+    await expect(field(page, 'Amount received')).toHaveAttribute('aria-invalid', 'true');
     await expect(summary).toContainText('Amount must be greater than zero');
 
-    await page.getByLabel('Amount received').fill('10.00');
-    await page.getByRole('button', { name: 'Create receipt' }).press('Enter');
+    await field(page, 'Amount received').fill('10.00');
+    await page.getByRole('button', { name: 'Review document' }).press('Enter');
     await expect(page.getByTestId('document-preview')).toBeVisible();
     page.once('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: 'Reset' }).click();
-    await expect(page.getByLabel('Business name')).toHaveValue('');
+    await expect(field(page, 'Business name')).toHaveValue('');
     await expect(page.getByTestId('document-preview')).toHaveCount(0);
   });
 });

@@ -5,6 +5,8 @@ const retailItemFields = [
   'itemsText',
   'items',
   'sections',
+  'includeQr',
+  'qrUrl',
   'reason',
   'vehicleNumber',
   'deliveryDate',

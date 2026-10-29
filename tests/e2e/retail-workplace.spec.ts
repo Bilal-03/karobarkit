@@ -1,5 +1,7 @@
+import { field } from './document-helpers';
 import { expect, test } from '@playwright/test';
 import { PDFDocument } from 'pdf-lib';
+import { openDocumentOptions, reviewDocument } from './document-helpers';
 
 async function downloadBytes(download: import('@playwright/test').Download) {
   const stream = await download.createReadStream();
@@ -55,6 +57,7 @@ test.describe('retail, documents and workplace operations wave', () => {
     test.skip(testInfo.project.name !== 'mobile-390', 'Run once at the reference mobile width.');
     await page.goto('/tools/notice-period-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate locally' }).click();
     await expect(page.getByText('9 September 2026', { exact: true })).toBeVisible();
     await expect(page.getByText(/Contract wording and employer policy remain authoritative/)).toBeVisible();
@@ -78,7 +81,8 @@ test.describe('retail, documents and workplace operations wave', () => {
     };
 
     for (const [profile, [expectedWidth, expectedHeight]] of Object.entries(expectedDimensions)) {
-      await page.getByLabel('Print profile').selectOption(profile);
+      await openDocumentOptions(page);
+      await field(page, 'Print profile').selectOption(profile);
       await page.getByRole('button', { name: 'Generate price tag' }).click();
       await expect(page.locator('.workplace-code-graphic svg')).toBeVisible();
       const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
@@ -98,10 +102,12 @@ test.describe('retail, documents and workplace operations wave', () => {
     await page.goto('/tools/menu-generator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await page.getByRole('textbox', { name: 'Business name' }).fill('अपना कैफ़े');
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await openDocumentOptions(page);
     await page.getByRole('textbox', { name: 'Item 1 name' }).fill('मसाला चाय');
     await page.getByRole('checkbox', { name: 'Prepare an optional QR destination' }).check();
     await page.getByRole('textbox', { name: 'Menu URL' }).fill('https://example.com/menu');
-    await page.getByRole('button', { name: 'Generate menu' }).click();
+    await reviewDocument(page);
     await expect(page.locator('.workplace-code-graphic svg')).toBeVisible();
     const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
     await page.getByRole('button', { name: 'Download PDF' }).click();

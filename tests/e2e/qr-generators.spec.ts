@@ -1,3 +1,4 @@
+import { field, openDocumentOptions } from './document-helpers';
 import { test, expect } from '@playwright/test';
 
 test.describe('QR generators', () => {
@@ -9,6 +10,7 @@ test.describe('QR generators', () => {
     });
     await page.goto('/tools/url-qr');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
+    await openDocumentOptions(page);
 
     await page.getByRole('textbox', { name: 'URL' }).fill('example.com/menu?source=sign');
     await page.getByRole('combobox', { name: 'Output size' }).selectOption('256');
@@ -31,6 +33,7 @@ test.describe('QR generators', () => {
   test('URL QR rejects unsafe protocols accessibly', async ({ page }) => {
     await page.goto('/tools/url-qr');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
+    await openDocumentOptions(page);
     await page.getByRole('textbox', { name: 'URL' }).fill('javascript:alert(1)');
     await page.getByRole('button', { name: 'Generate QR code' }).click();
 
@@ -44,10 +47,11 @@ test.describe('QR generators', () => {
   test('UPI standee encodes details and keeps the ownership limitation visible', async ({ page }) => {
     await page.goto('/tools/upi-standee');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
-    await page.getByLabel('Payee name').fill('Ravi & Sons');
-    await page.getByLabel('UPI ID').fill('ravi.shop@bank');
-    await page.getByLabel('Fixed amount (optional)').fill('125.50');
-    await page.getByLabel('Payment note (optional)').fill('Order #1 & tea');
+    await openDocumentOptions(page);
+    await field(page, 'Payee name').fill('Ravi & Sons');
+    await field(page, 'UPI ID').fill('ravi.shop@bank');
+    await field(page, 'Fixed amount (optional)').fill('125.50');
+    await field(page, 'Payment note (optional)').fill('Order #1 & tea');
     await page.getByRole('button', { name: 'Generate UPI standee' }).click();
 
     await expect(page.getByTestId('qr-preview')).toBeVisible();
@@ -70,8 +74,9 @@ test.describe('QR generators', () => {
   test('UPI form can be completed with keyboard and reset safely', async ({ page }) => {
     await page.goto('/tools/upi-standee');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
-    await page.getByLabel('Payee name').fill('Keyboard Shop');
-    await page.getByLabel('UPI ID').fill('keyboard@bank');
+    await openDocumentOptions(page);
+    await field(page, 'Payee name').fill('Keyboard Shop');
+    await field(page, 'UPI ID').fill('keyboard@bank');
     await page.getByRole('button', { name: 'Generate UPI standee' }).focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('qr-preview')).toBeVisible();
@@ -80,8 +85,8 @@ test.describe('QR generators', () => {
     const resetClickPromise = page.getByRole('button', { name: 'Reset' }).click();
     await (await dialogPromise).accept();
     await resetClickPromise;
-    await expect(page.getByLabel('Payee name')).toHaveValue('KarobarKit Demo');
-    await expect(page.getByLabel('UPI ID')).toHaveValue('demo@upi');
+    await expect(field(page, 'Payee name')).toHaveValue('KarobarKit Demo');
+    await expect(field(page, 'UPI ID')).toHaveValue('demo@upi');
     await expect(page.getByTestId('qr-preview')).toBeVisible();
   });
 });

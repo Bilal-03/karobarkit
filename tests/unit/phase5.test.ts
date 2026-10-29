@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   calculatePhase5,
@@ -15,6 +15,13 @@ import {
 import { validatePhase5FixtureManifest } from '@/domain/registry';
 
 describe('Phase 5 startup and marketplace calculations', () => {
+  // Historical fixtures exercise the reviewed August 2026 policy bundle.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-10T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('calculates blended and paid CAC for the same attribution window', () => {
     const result = calculatePhase5('cac', {
       salesMarketingCost: '100000',
@@ -387,5 +394,12 @@ describe('Phase 5 startup and marketplace calculations', () => {
 
   it('keeps every Phase 5 golden fixture ID backed by a manifest', () => {
     expect(validatePhase5FixtureManifest()).toEqual([]);
+  });
+  it('blocks expired marketplace fees using the runtime date', () => {
+    vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
+    const input = Object.fromEntries(
+      phase5CalculatorFields['amazon-fees'].map((field) => [field.name, field.defaultValue]),
+    );
+    expect(() => calculatePhase5('amazon-fees', input)).toThrow(/stale bundled policy/);
   });
 });

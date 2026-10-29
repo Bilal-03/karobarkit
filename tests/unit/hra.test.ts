@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   calculateHra,
@@ -14,6 +14,13 @@ import {
 } from '@/domain/policies/income-tax';
 
 describe('HRA policy and calculation', () => {
+  // Historical fixtures exercise the reviewed August 2026 policy bundle.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-10T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('selects the AY 2026-27 policy and applies the lowest-of-three rule', () => {
     const validation = validateHraCalculatorInput({
       ...hraCalculatorDefaultValues,
@@ -126,5 +133,9 @@ describe('HRA policy and calculation', () => {
     expect(validateIncomeTaxSourceBundle(policy.sourceIds, [source])).toEqual(
       expect.arrayContaining([expect.stringMatching(/approved government domain/iu)]),
     );
+  });
+  it('blocks expired policies using the runtime date', () => {
+    vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
+    expect(() => calculateHra(hraCalculatorDefaultValues)).toThrow(/No reviewed HRA policy/);
   });
 });

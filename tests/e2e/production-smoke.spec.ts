@@ -1,3 +1,4 @@
+import { field } from './document-helpers';
 import { expect, test } from '@playwright/test';
 
 test('production-safe route smoke checks', async ({ page }) => {
@@ -51,14 +52,14 @@ test('contact sends through its backend contract and error reports stay local-on
   await page.goto('/contact');
   await expect(page.getByText(/We will use your email only to reply/i)).toBeVisible();
   await expect(page.getByText(/no message-delivery backend/i)).toHaveCount(0);
-  await page.getByLabel('Your name').fill('Test sender');
-  await page.getByLabel('Email address').fill('test@example.com');
-  await page.getByLabel('Message').fill('A safe test message.');
+  await field(page, 'Your name').fill('Test sender');
+  await field(page, 'Email address').fill('test@example.com');
+  await field(page, 'Message').fill('A safe test message.');
   await page.getByRole('button', { name: 'Send message' }).click();
   await expect(page.getByRole('status')).toHaveText('Thanks — your message has been sent.');
 
   await page.goto('/report-an-error');
-  await page.getByLabel('What happened?').fill('A safe test report.');
+  await field(page, 'What happened?').fill('A safe test report.');
   await page.getByRole('button', { name: 'Prepare report' }).click();
   await expect(page.getByRole('heading', { name: 'Report ready to share' })).toBeVisible();
   await expect(page.getByText('Nothing has been transmitted by KarobarKit.')).toBeVisible();

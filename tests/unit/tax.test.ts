@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   calculateTax,
@@ -13,6 +13,13 @@ function defaults(kind: keyof typeof taxCalculatorFields): TaxCalculatorInput {
 }
 
 describe('Phase 4 tax and payroll policy fixtures', () => {
+  // Historical fixtures exercise the reviewed August 2026 policy bundle.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-10T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('calculates an individual AY 2026-27 new-regime fixture with cess', () => {
     const result = calculateTax('income-tax', {
       ...defaults('income-tax'),
@@ -131,5 +138,9 @@ describe('Phase 4 tax and payroll policy fixtures', () => {
     expect(
       getTaxPolicyFreshness({ ...result.policy, lastVerifiedOn: '2025-01-01' }, '2026-08-10').isStale,
     ).toBe(true);
+  });
+  it('blocks expired tax policies using the runtime date', () => {
+    vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
+    expect(() => calculateTax('income-tax', defaults('income-tax'))).toThrow(/policy review is due/);
   });
 });

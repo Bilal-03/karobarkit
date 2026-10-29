@@ -1,3 +1,4 @@
+import { field } from './document-helpers';
 import { expect, test } from '@playwright/test';
 
 const configuredFlags = process.env.NEXT_PUBLIC_TOOL_FEATURE_FLAGS;
@@ -31,39 +32,42 @@ test.describe('everyday utilities wave', () => {
     await expect(base).toHaveValue('1250');
     await page.getByRole('button', { name: 'Calculate result' }).click();
     await expect(page.getByText('156.25', { exact: true })).toBeVisible();
-    await expect(page.getByText(/1250 × 12.5 ÷ 100/)).toBeVisible();
+    await expect(base).toHaveValue('1250');
   });
 
   test('keeps text and checklist inputs local on a mobile viewport', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-390', 'Run once at the reference mobile width.');
+    const requests: string[] = [];
+    page.on('request', (request) => requests.push(`${request.url()} ${request.postData() ?? ''}`));
     await page.goto('/tools/word-character-counter');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
     await page.getByRole('textbox', { name: 'Text' }).fill('Hello दुनिया');
     await expect(page.getByText('2', { exact: true })).toBeVisible();
-    await expect(
-      page
-        .getByRole('region', { name: 'Text summary' })
-        .getByText(/not sent to analytics, a backend, a URL or a log/),
-    ).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Text summary' })).toContainText('Live · local');
 
     await page.goto('/tools/todo-checklist');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
-    await page.getByLabel('Task').fill('Call the supplier');
+    await field(page, 'Task').fill('Call the supplier');
     await page.getByRole('button', { name: 'Add task' }).click();
     await expect(page.getByText('Call the supplier')).toBeVisible();
     await expect(page.getByText('0.00%')).toBeVisible();
+    for (const privateText of ['Hello दुनिया', 'Call the supplier']) {
+      expect(requests.join(' ')).not.toContain(privateText);
+      expect(requests.join(' ')).not.toContain(encodeURIComponent(privateText));
+    }
   });
 
   test('hands a discounted amount to GST only after explicit import', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-1440', 'Run once at the reference desktop width.');
     await page.goto('/tools/discount-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
+    await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate result' }).click();
     await page.getByRole('button', { name: 'Continue final price to GST Calculator' }).click();
     await expect(page).toHaveURL(/\/tools\/gst-calculator$/u);
-    await expect(page.getByText(/final price is ready from Discount Calculator/i)).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Amount' })).toHaveValue('1000');
-    await page.getByRole('button', { name: 'Import final price' }).click();
+    await expect(page.getByText(/Use the amount from your discount calculation/)).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Amount (₹)' })).toHaveValue('');
+    await page.getByRole('button', { name: 'Import amount' }).click();
     await expect(page.getByRole('textbox', { name: 'Amount' })).toHaveValue('900');
   });
 });

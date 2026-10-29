@@ -41,6 +41,7 @@ test.describe('data-backed and regulated utilities wave', () => {
     test.skip(testInfo.project.name !== 'mobile-390', 'Run once at the reference mobile width.');
     await page.goto('/tools/currency-converter');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate reference result' }).click();
     await expect(page.getByText('12 USD', { exact: true })).toBeVisible();
     await expect(page.getByText('Manual rate · 1 INR = 0.012 USD', { exact: true })).toBeVisible();

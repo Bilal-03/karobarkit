@@ -1,3 +1,4 @@
+import { field } from './document-helpers';
 import { test, expect } from '@playwright/test';
 
 async function waitForInteractive(page: import('@playwright/test').Page) {
@@ -9,17 +10,13 @@ test.describe('Phase 2 business economics', () => {
     await page.goto('/tools/margin-calculator');
     await waitForInteractive(page);
 
-    await expect(page.getByText('Private · runs in your browser · Beta')).toBeVisible();
-    await page.getByLabel('Revenue').fill('100000');
-    await page.getByLabel('Total cost').fill('70000');
+    await expect(page.locator('.workspace-heading')).not.toContainText('Beta');
+    await field(page, 'Revenue').fill('100000');
+    await field(page, 'Total cost').fill('70000');
     await page.getByRole('button', { name: 'Calculate scenario' }).press('Enter');
 
     await expect(page.getByText('30.00%', { exact: true })).toBeVisible();
     await expect(page.getByText('₹30,000.00')).toBeVisible();
-    await page.getByText('Sources & limitations', { exact: true }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Check the method before you rely on the result' }),
-    ).toBeVisible();
 
     const download = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download CSV' }).click();
@@ -29,15 +26,16 @@ test.describe('Phase 2 business economics', () => {
   test('supports an explicit tab-only handoff of matching assumptions', async ({ page }) => {
     await page.goto('/tools/pricing-calculator');
     await waitForInteractive(page);
+    await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate scenario' }).click();
     await expect(page.getByText('₹1,180.00')).toBeVisible();
     await page.getByRole('button', { name: 'Save for a related tool' }).click();
-    await expect(page.getByText('Saved only in this browser tab')).toBeVisible();
+    await expect(page.getByText('Saved for this tab')).toBeVisible();
 
     await page.goto('/tools/markup-calculator');
     await waitForInteractive(page);
     await expect(page.getByText('Scenario ready from Pricing Calculator')).toBeVisible();
     await page.getByRole('button', { name: 'Import matching inputs' }).click();
-    await expect(page.getByLabel('Unit cost')).toHaveValue('600');
+    await expect(field(page, 'Unit cost')).toHaveValue('600');
   });
 });

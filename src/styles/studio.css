@@ -90,6 +90,11 @@ html {
   width: 34px;
   height: 34px;
 }
+html[data-theme='dark'] .studio-brand .brand-lockup__icon {
+  background: #eaf3ef;
+  box-shadow: 0 0 0 4px #eaf3ef;
+  border-radius: 3px;
+}
 .studio-brand .brand-lockup__name {
   font-size: 1.1rem;
   color: var(--ink-950);

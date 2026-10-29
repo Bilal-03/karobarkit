@@ -26,7 +26,7 @@ export function ToolCard({
 }: ToolCardProps) {
   return (
     <article className={`tool-card${featured ? ' tool-card--featured' : ''}`}>
-      <Link className="tool-card__link" href={href} aria-label={name}>
+      <Link className="tool-card__link" href={href}>
         <div className="tool-card__topline">
           <ToolIcon
             category={

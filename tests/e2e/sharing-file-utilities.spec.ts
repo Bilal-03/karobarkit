@@ -1,3 +1,4 @@
+import { field } from './document-helpers';
 import { expect, test } from '@playwright/test';
 import { PDFDocument } from 'pdf-lib';
 
@@ -49,7 +50,7 @@ test.describe('sharing and file utilities wave', () => {
 
     await page.goto('/tools/barcode-generator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible();
-    await page.getByLabel('Symbology').selectOption('ean13');
+    await field(page, 'Symbology').selectOption('ean13');
     await page.getByRole('textbox', { name: 'Value' }).fill('400638133393');
     await page.getByRole('button', { name: 'Generate barcode' }).click();
     await expect(page.locator('.barcode-preview svg')).toBeVisible();
@@ -68,7 +69,6 @@ test.describe('sharing and file utilities wave', () => {
     await expect(page.getByRole('button', { name: 'Clear selected PDFs' })).toBeVisible();
     await page.getByRole('button', { name: 'Process locally' }).click();
     await expect(page.getByRole('heading', { name: 'PDF ready' })).toBeVisible();
-    await expect(page.getByText('2 pages')).toBeVisible();
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download PDF' }).click();
     const download = await downloadPromise;

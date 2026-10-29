@@ -5,12 +5,17 @@ test.describe('Phase 4 HRA controlled beta', () => {
     await page.goto('/tools/hra-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
-    await expect(page.getByText('Private · runs in your browser · Beta')).toBeVisible();
+    await page.clock.setFixedTime(new Date('2026-08-10T12:00:00Z'));
+    await page.reload();
+    await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate HRA exemption' }).click();
 
     await expect(page.getByRole('heading', { name: 'HRA exemption illustration' })).toBeVisible();
     await expect(page.locator('.result-panel__value')).toHaveText('₹1,20,000.00');
+    await page.goto('/tools/hra-calculator/help');
     await expect(page.getByText(/confirm the result with payroll/iu).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /CBDT e-Filing ITR-4 Validation Rules/iu })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /CBDT e-Filing ITR-4 Validation Rules/iu }).first(),
+    ).toBeVisible();
   });
 });
