@@ -1,4 +1,5 @@
 'use client';
+import { FieldGroups } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -18,7 +19,7 @@ import { trackEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult } from './use-live-calculation';
 
 interface AIAssistantFormProps {
@@ -312,32 +313,26 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
         <div className="calculator-card__heading">
           <div>
             <p className="eyebrow">Phase 6 AI beta</p>
-            <h2 id="ai-assistant-form-title">Build a private, reviewable brief</h2>
+            <h2 id="ai-assistant-form-title">Describe what you need</h2>
           </div>
           <span className="local-badge">Server gateway</span>
         </div>
-        <div className="notice notice--muted" role="note">
-          <strong>Before you generate</strong>
-          <p>
-            With consent, these fields are sent to the server gateway: {fieldLabels}. Known contact and tax-ID
-            patterns are redacted; confidential financial identifiers and credentials are rejected.{' '}
-            {providerNotice} Review provider data controls before sharing sensitive business context:{' '}
-            <a href="https://ai.google.dev/gemini-api/docs/zdr" target="_blank" rel="noreferrer">
-              Gemini data controls
-            </a>{' '}
-            and{' '}
-            <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer">
-              Groq data controls
-            </a>
-            .
-          </p>
-        </div>
+        <details className="field-group" id="ai-processing-details">
+          <summary>AI processing details</summary>
+          <p>Your brief includes: {fieldLabels}.</p>
+          <p>{providerNotice}</p>
+        </details>
         <form onSubmit={onSubmit} noValidate>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {fields.map((field) => renderField(field, values, errors, updateValue))}
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => renderField(field, values, errors, updateValue)}
+          />
           <CheckboxField
             id="ai-consent"
-            label="I understand the disclosed fields may be processed by the configured AI provider, and I will review the draft before using it."
+            label="I agree to send this brief to the AI provider."
             checked={consent}
             onChange={(event) => {
               setConsent(event.target.checked);
@@ -349,7 +344,6 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
             {isGenerating ? 'Generating draft…' : result ? 'Generate again' : 'Generate draft'}
           </Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
 
       <section

@@ -20,11 +20,8 @@ export default function ToolsPage() {
           <p className="eyebrow">Tool directory</p>
           <div className="directory-heading">
             <div>
-              <h1>Find the right tool for the business task</h1>
-              <p className="lede">
-                Search by task, category, tool type, data use or regulatory scope. Every published tool
-                exposes its method, limitations, sources and verification status.
-              </p>
+              <h1>All tools</h1>
+              <p className="lede">Find a tool and get started.</p>
             </div>
             <span className="result-count">{toolRegistry.length} tools available</span>
           </div>

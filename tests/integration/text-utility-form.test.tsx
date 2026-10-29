@@ -13,7 +13,7 @@ describe('text utility form', () => {
     await user.type(screen.getByRole('textbox', { name: 'Text' }), 'Hello दुनिया');
 
     expect(await screen.findByText('2')).toBeInTheDocument();
-    expect(screen.getByText(/Text remains in the browser memory/)).toBeInTheDocument();
+    expect(screen.queryByText(/Text remains in the browser memory/)).not.toBeInTheDocument();
   });
 
   it('generates a local password without exposing a copy action', async () => {

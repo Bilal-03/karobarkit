@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface LocalFileDropzoneProps {
   id: string;
@@ -9,6 +9,7 @@ interface LocalFileDropzoneProps {
   label: string;
   help: string;
   onFiles: (files: File[]) => void;
+  previewFile?: File | null;
 }
 
 export function LocalFileDropzone({
@@ -18,7 +19,21 @@ export function LocalFileDropzone({
   label,
   help,
   onFiles,
+  previewFile,
 }: LocalFileDropzoneProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!previewFile) {
+      const frame = requestAnimationFrame(() => setPreviewUrl(null));
+      return () => cancelAnimationFrame(frame);
+    }
+    const url = URL.createObjectURL(previewFile);
+    const frame = requestAnimationFrame(() => setPreviewUrl(url));
+    return () => {
+      cancelAnimationFrame(frame);
+      URL.revokeObjectURL(url);
+    };
+  }, [previewFile]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -52,6 +67,7 @@ export function LocalFileDropzone({
         hidden
         onChange={(event) => readFiles(event.target.files)}
       />
+      {previewUrl && <img src={previewUrl} alt="Selected image preview" className="file-thumbnail" />}
       <p className="file-dropzone__label">{label}</p>
       <p className="file-dropzone__help">{help}</p>
       <button type="button" className="button button--secondary" onClick={() => inputRef.current?.click()}>

@@ -4,13 +4,9 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/tools', label: 'All tools' },
+  { href: '/tools', label: 'Tools' },
   { href: '/categories', label: 'Categories' },
   { href: '/search', label: 'Search' },
-  { href: '/methodology', label: 'Methodology' },
-  { href: '/sources', label: 'Sources' },
-  { href: '/about', label: 'About' },
 ];
 
 export function MobileNav() {
@@ -61,13 +57,6 @@ export function MobileNav() {
               ))}
             </ul>
           </nav>
-          <Link
-            className="button button--primary button--full"
-            href="/tools/cagr-calculator"
-            onClick={() => setOpen(false)}
-          >
-            Try a calculator
-          </Link>
         </div>
       ) : null}
     </div>

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { categoryRegistry } from '@/domain/registry/categories';
+import { ToolIcon } from './tool-icon';
 
 import type { ToolExecutionMode, ToolLifecycle } from '@/domain/registry/types';
 
@@ -7,6 +9,7 @@ interface ToolCardProps {
   name: string;
   summary: string;
   categoryLabel: string;
+  presentation?: { description?: string; iconKey?: string };
   featured?: boolean;
   lifecycle?: ToolLifecycle;
   executionMode?: ToolExecutionMode;
@@ -17,6 +20,7 @@ export function ToolCard({
   name,
   summary,
   categoryLabel,
+  presentation,
   featured = false,
   lifecycle = 'live',
   executionMode = 'local-only',
@@ -25,20 +29,18 @@ export function ToolCard({
     <article className={`tool-card${featured ? ' tool-card--featured' : ''}`}>
       <Link className="tool-card__link" href={href} aria-label={name}>
         <div className="tool-card__topline">
-          <span className="tag">{categoryLabel}</span>
-          <span className="local-badge">
-            {lifecycle === 'beta'
-              ? 'Beta'
-              : executionMode === 'local-only'
-                ? 'Local-first'
-                : 'Data flow disclosed'}
-          </span>
+          <ToolIcon
+            category={
+              presentation?.iconKey ??
+              categoryRegistry.find((category) => category.name === categoryLabel)?.id ??
+              'business'
+            }
+          />
+          {lifecycle === 'beta' ? <span className="local-badge">Beta</span> : null}
+          {executionMode === 'network-required' ? <span className="local-badge">Online</span> : null}
         </div>
         <h3>{name}</h3>
-        <p>{summary}</p>
-        <span className="text-link">
-          Open tool <span aria-hidden="true">→</span>
-        </span>
+        <p>{presentation?.description ?? summary.split('. ')[0].replace(/\.$/, '')}.</p>
       </Link>
     </article>
   );

@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-29",
+  "baseline": "https://karobarkit.vercel.app",
+  "comparison": "local studio redesign, desktop viewport",
+  "method": "Rendered main.innerText whitespace-separated word count; navigation and footer excluded; GST uses the same 1000 INR, 18% example. This is a comparison with the deployed site, not a captured snapshot of the intermediate local revision.",
+  "home": {
+    "baseline": 865,
+    "studio": 151,
+    "reductionPercent": 82.5
+  },
+  "gst": {
+    "baseline": 1239,
+    "studio": 50,
+    "reductionPercent": 96.0
+  }
+}

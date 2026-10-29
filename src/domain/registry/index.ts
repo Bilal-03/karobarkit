@@ -1,3 +1,4 @@
+import { toolPresentations } from './presentation';
 import { defaultPolicyContext } from '../policies/context';
 import {
   isApprovedOfficialPolicyUrl,
@@ -298,6 +299,19 @@ export const toolDiscoveryIndex: readonly ToolDiscoveryRecord[] = toolRegistry.m
   tags: [...tool.tags],
   searchTerms: [...tool.searchTerms],
   summary: tool.summary,
+  taskGroup: toolPresentations[tool.id]?.group,
+  presentation:
+    tool.presentation ??
+    (
+      {
+        'gst-calculator': { description: 'Add or remove GST from an amount' },
+        'invoice-generator': { description: 'Create and download a business invoice' },
+        'margin-calculator': { description: 'See your profit on each sale' },
+        'emi-calculator': { description: 'Estimate your monthly loan payment' },
+        'upi-standee': { description: 'Create a printable UPI payment QR' },
+        'photo-resizer-compressor': { description: 'Resize and compress your images' },
+      } as Record<string, { description: string }>
+    )[tool.slug],
   capabilities: [...(tool.capabilities ?? [])],
   featured: tool.featured ?? false,
   launchPriority: tool.launchPriority,

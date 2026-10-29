@@ -1,4 +1,5 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -24,7 +25,7 @@ import { QrPreview, useQrImage } from '@/components/qr/qr-preview';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 type GeneratorKind = 'url-qr' | 'upi-standee';
@@ -214,116 +215,118 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {handoffTransfer && !isUrl ? (
-            <div className="local-handoff-banner" role="status">
-              <strong>An invoice total is ready for a UPI QR draft</strong>
-              <p>
-                Import the declared amount and invoice note, then enter and verify the payee name and UPI ID
-                yourself.
-              </p>
-              <div className="inline-actions">
-                <Button type="button" onClick={importInvoiceHandoff}>
-                  Import invoice amount
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    clearLocalScenarioTransfer();
-                    setHandoffTransfer(null);
-                  }}
-                >
-                  Dismiss
-                </Button>
+          <PresentedControls toolId={tool.id}>
+            {handoffTransfer && !isUrl ? (
+              <div className="local-handoff-banner" role="status">
+                <strong>An invoice total is ready for a UPI QR draft</strong>
+                <p>
+                  Import the declared amount and invoice note, then enter and verify the payee name and UPI ID
+                  yourself.
+                </p>
+                <div className="inline-actions">
+                  <Button type="button" onClick={importInvoiceHandoff}>
+                    Import invoice amount
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      clearLocalScenarioTransfer();
+                      setHandoffTransfer(null);
+                    }}
+                  >
+                    Dismiss
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : null}
-          {isUrl ? (
-            <>
-              <InputField
-                id="url"
-                name="url"
-                type="text"
-                inputMode="url"
-                autoComplete="url"
-                label="URL"
-                help="HTTP and HTTPS are supported. A bare domain is normalized to HTTPS; other protocols are rejected."
-                placeholder="https://example.com"
-                value={(values as UrlQrInput).url}
-                onChange={(event) => updateValue('url', event.target.value)}
-                error={getFieldError(errors, 'url')}
-                required
-              />
-              <SelectField
-                id="size"
-                name="size"
-                label="Output size"
-                help="Choose a larger size for print or a distant sign."
-                value={(values as UrlQrInput).size}
-                onChange={(event) => updateValue('size', event.target.value)}
-                error={getFieldError(errors, 'size')}
-                required
-              >
-                {URL_QR_SIZES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </SelectField>
-            </>
-          ) : (
-            <>
-              <InputField
-                id="payeeName"
-                name="payeeName"
-                type="text"
-                autoComplete="name"
-                label="Payee name"
-                help="This is shown on the standee. It is not checked against a bank or UPI account."
-                value={(values as UpiInput).payeeName}
-                onChange={(event) => updateValue('payeeName', event.target.value)}
-                error={getFieldError(errors, 'payeeName')}
-                required
-              />
-              <InputField
-                id="upiId"
-                name="upiId"
-                type="text"
-                inputMode="email"
-                autoComplete="off"
-                label="UPI ID"
-                help="Use the name@handle format shown by your UPI app. Syntax is checked locally; ownership is not verified."
-                placeholder="yourname@bank"
-                value={(values as UpiInput).upiId}
-                onChange={(event) => updateValue('upiId', event.target.value)}
-                error={getFieldError(errors, 'upiId')}
-                required
-              />
-              <InputField
-                id="amount"
-                name="amount"
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                label="Fixed amount (optional)"
-                help="Enter an INR amount with up to two decimal places, or leave blank for an open amount."
-                placeholder="For example, 250.00"
-                value={(values as UpiInput).amount}
-                onChange={(event) => updateValue('amount', event.target.value)}
-                error={getFieldError(errors, 'amount')}
-              />
-              <TextareaField
-                id="note"
-                name="note"
-                label="Payment note (optional)"
-                help="Keep it short. The note is encoded into the URI and shown to the payer's UPI app."
-                rows={3}
-                value={(values as UpiInput).note}
-                onChange={(event) => updateValue('note', event.target.value)}
-                error={getFieldError(errors, 'note')}
-              />
-            </>
-          )}
+            ) : null}
+            {isUrl ? (
+              <>
+                <InputField
+                  id="url"
+                  name="url"
+                  type="text"
+                  inputMode="url"
+                  autoComplete="url"
+                  label="URL"
+                  help="HTTP and HTTPS are supported. A bare domain is normalized to HTTPS; other protocols are rejected."
+                  placeholder="https://example.com"
+                  value={(values as UrlQrInput).url}
+                  onChange={(event) => updateValue('url', event.target.value)}
+                  error={getFieldError(errors, 'url')}
+                  required
+                />
+                <SelectField
+                  id="size"
+                  name="size"
+                  label="Output size"
+                  help="Choose a larger size for print or a distant sign."
+                  value={(values as UrlQrInput).size}
+                  onChange={(event) => updateValue('size', event.target.value)}
+                  error={getFieldError(errors, 'size')}
+                  required
+                >
+                  {URL_QR_SIZES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SelectField>
+              </>
+            ) : (
+              <>
+                <InputField
+                  id="payeeName"
+                  name="payeeName"
+                  type="text"
+                  autoComplete="name"
+                  label="Payee name"
+                  help="This is shown on the standee. It is not checked against a bank or UPI account."
+                  value={(values as UpiInput).payeeName}
+                  onChange={(event) => updateValue('payeeName', event.target.value)}
+                  error={getFieldError(errors, 'payeeName')}
+                  required
+                />
+                <InputField
+                  id="upiId"
+                  name="upiId"
+                  type="text"
+                  inputMode="email"
+                  autoComplete="off"
+                  label="UPI ID"
+                  help="Use the name@handle format shown by your UPI app. Syntax is checked locally; ownership is not verified."
+                  placeholder="yourname@bank"
+                  value={(values as UpiInput).upiId}
+                  onChange={(event) => updateValue('upiId', event.target.value)}
+                  error={getFieldError(errors, 'upiId')}
+                  required
+                />
+                <InputField
+                  id="amount"
+                  name="amount"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  label="Fixed amount (optional)"
+                  help="Enter an INR amount with up to two decimal places, or leave blank for an open amount."
+                  placeholder="For example, 250.00"
+                  value={(values as UpiInput).amount}
+                  onChange={(event) => updateValue('amount', event.target.value)}
+                  error={getFieldError(errors, 'amount')}
+                />
+                <TextareaField
+                  id="note"
+                  name="note"
+                  label="Payment note (optional)"
+                  help="Keep it short. The note is encoded into the URI and shown to the payer's UPI app."
+                  rows={3}
+                  value={(values as UpiInput).note}
+                  onChange={(event) => updateValue('note', event.target.value)}
+                  error={getFieldError(errors, 'note')}
+                />
+              </>
+            )}
+          </PresentedControls>
           <div className="generator-form__actions">
             <Button type="submit" fullWidth disabled={isGenerating}>
               {isGenerating ? 'Generating…' : isUrl ? 'Generate QR code' : 'Generate UPI standee'}
@@ -333,7 +336,6 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
             </Button>
           </div>
         </form>
-        <PrivacyBlock>{QR_LOCAL_PRIVACY_NOTE}</PrivacyBlock>
       </section>
 
       <section
@@ -409,7 +411,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
                 Print
               </Button>
             </div>
-            <PrivacyBlock>{QR_LOCAL_PRIVACY_NOTE}</PrivacyBlock>
+
             {!isUrl ? <p className="generator-disclaimer">{UPI_OWNERSHIP_DISCLAIMER}</p> : null}
             {!isUrl ? (
               <details className="payload-details">

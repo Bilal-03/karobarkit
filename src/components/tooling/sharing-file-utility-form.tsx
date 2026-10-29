@@ -1,4 +1,5 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -56,7 +57,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 export type SharingFileUtilityKind =
@@ -232,136 +233,137 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
           data-interactive={isInteractive ? 'true' : 'false'}
         >
           <ErrorSummary ref={errorRef} errors={errors} />
-          {kind === 'whatsapp-link' ? (
-            <>
-              <InputField
-                id="countryCode"
-                label="Country code"
-                value={String(values.countryCode ?? '')}
-                onChange={(event) => update('countryCode', event.target.value)}
-                error={getFieldError(errors, 'countryCode')}
-                inputMode="numeric"
-                required
-              />
-              <InputField
-                id="phone"
-                label="Phone digits"
-                help="Do not include +, spaces or an extension."
-                value={String(values.phone ?? '')}
-                onChange={(event) => update('phone', event.target.value)}
-                error={getFieldError(errors, 'phone')}
-                inputMode="tel"
-                required
-              />
-              <TextareaField
-                id="message"
-                label="Optional message"
-                value={String(values.message ?? '')}
-                onChange={(event) => update('message', event.target.value)}
-                error={getFieldError(errors, 'message')}
-                rows={4}
-              />
-            </>
-          ) : kind === 'vcard' ? (
-            <>
-              <InputField
-                id="fullName"
-                label="Full name"
-                value={String(values.fullName ?? '')}
-                onChange={(event) => update('fullName', event.target.value)}
-                error={getFieldError(errors, 'fullName')}
-                required
-              />
-              <InputField
-                id="organization"
-                label="Organization"
-                value={String(values.organization ?? '')}
-                onChange={(event) => update('organization', event.target.value)}
-                error={getFieldError(errors, 'organization')}
-              />
-              <InputField
-                id="phone"
-                label="Phone"
-                value={String(values.phone ?? '')}
-                onChange={(event) => update('phone', event.target.value)}
-                error={getFieldError(errors, 'phone')}
-                inputMode="tel"
-              />
-              <InputField
-                id="email"
-                label="Email"
-                value={String(values.email ?? '')}
-                onChange={(event) => update('email', event.target.value)}
-                error={getFieldError(errors, 'email')}
-                inputMode="email"
-              />
-              <InputField
-                id="website"
-                label="Website"
-                value={String(values.website ?? '')}
-                onChange={(event) => update('website', event.target.value)}
-                error={getFieldError(errors, 'website')}
-                inputMode="url"
-              />
-              <InputField
-                id="address"
-                label="Address"
-                value={String(values.address ?? '')}
-                onChange={(event) => update('address', event.target.value)}
-                error={getFieldError(errors, 'address')}
-              />
-              <TextareaField
-                id="note"
-                label="Note"
-                value={String(values.note ?? '')}
-                onChange={(event) => update('note', event.target.value)}
-                error={getFieldError(errors, 'note')}
-                rows={3}
-              />
-            </>
-          ) : (
-            <>
-              <InputField
-                id="ssid"
-                label="Network name (SSID)"
-                value={String(values.ssid ?? '')}
-                onChange={(event) => update('ssid', event.target.value)}
-                error={getFieldError(errors, 'ssid')}
-                required
-              />
-              <SelectField
-                id="security"
-                label="Security"
-                value={String(values.security ?? 'WPA')}
-                onChange={(event) => update('security', event.target.value)}
-                error={getFieldError(errors, 'security')}
-              >
-                <option value="WPA">WPA / WPA2 / WPA3</option>
-                <option value="WEP">WEP</option>
-                <option value="nopass">Open network</option>
-              </SelectField>
-              <InputField
-                id="password"
-                label="Password"
-                type="password"
-                autoComplete="off"
-                value={String(values.password ?? '')}
-                onChange={(event) => update('password', event.target.value)}
-                error={getFieldError(errors, 'password')}
-              />
-              <CheckboxField
-                id="hidden"
-                label="This is a hidden network"
-                checked={values.hidden === true}
-                onChange={(event) => update('hidden', event.target.checked)}
-              />
-            </>
-          )}
+          <PresentedControls toolId={tool.id}>
+            {kind === 'whatsapp-link' ? (
+              <>
+                <InputField
+                  id="countryCode"
+                  label="Country code"
+                  value={String(values.countryCode ?? '')}
+                  onChange={(event) => update('countryCode', event.target.value)}
+                  error={getFieldError(errors, 'countryCode')}
+                  inputMode="numeric"
+                  required
+                />
+                <InputField
+                  id="phone"
+                  label="Phone digits"
+                  help="Do not include +, spaces or an extension."
+                  value={String(values.phone ?? '')}
+                  onChange={(event) => update('phone', event.target.value)}
+                  error={getFieldError(errors, 'phone')}
+                  inputMode="tel"
+                  required
+                />
+                <TextareaField
+                  id="message"
+                  label="Optional message"
+                  value={String(values.message ?? '')}
+                  onChange={(event) => update('message', event.target.value)}
+                  error={getFieldError(errors, 'message')}
+                  rows={4}
+                />
+              </>
+            ) : kind === 'vcard' ? (
+              <>
+                <InputField
+                  id="fullName"
+                  label="Full name"
+                  value={String(values.fullName ?? '')}
+                  onChange={(event) => update('fullName', event.target.value)}
+                  error={getFieldError(errors, 'fullName')}
+                  required
+                />
+                <InputField
+                  id="organization"
+                  label="Organization"
+                  value={String(values.organization ?? '')}
+                  onChange={(event) => update('organization', event.target.value)}
+                  error={getFieldError(errors, 'organization')}
+                />
+                <InputField
+                  id="phone"
+                  label="Phone"
+                  value={String(values.phone ?? '')}
+                  onChange={(event) => update('phone', event.target.value)}
+                  error={getFieldError(errors, 'phone')}
+                  inputMode="tel"
+                />
+                <InputField
+                  id="email"
+                  label="Email"
+                  value={String(values.email ?? '')}
+                  onChange={(event) => update('email', event.target.value)}
+                  error={getFieldError(errors, 'email')}
+                  inputMode="email"
+                />
+                <InputField
+                  id="website"
+                  label="Website"
+                  value={String(values.website ?? '')}
+                  onChange={(event) => update('website', event.target.value)}
+                  error={getFieldError(errors, 'website')}
+                  inputMode="url"
+                />
+                <InputField
+                  id="address"
+                  label="Address"
+                  value={String(values.address ?? '')}
+                  onChange={(event) => update('address', event.target.value)}
+                  error={getFieldError(errors, 'address')}
+                />
+                <TextareaField
+                  id="note"
+                  label="Note"
+                  value={String(values.note ?? '')}
+                  onChange={(event) => update('note', event.target.value)}
+                  error={getFieldError(errors, 'note')}
+                  rows={3}
+                />
+              </>
+            ) : (
+              <>
+                <InputField
+                  id="ssid"
+                  label="Network name (SSID)"
+                  value={String(values.ssid ?? '')}
+                  onChange={(event) => update('ssid', event.target.value)}
+                  error={getFieldError(errors, 'ssid')}
+                  required
+                />
+                <SelectField
+                  id="security"
+                  label="Security"
+                  value={String(values.security ?? 'WPA')}
+                  onChange={(event) => update('security', event.target.value)}
+                  error={getFieldError(errors, 'security')}
+                >
+                  <option value="WPA">WPA / WPA2 / WPA3</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">Open network</option>
+                </SelectField>
+                <InputField
+                  id="password"
+                  label="Password"
+                  type="password"
+                  autoComplete="off"
+                  value={String(values.password ?? '')}
+                  onChange={(event) => update('password', event.target.value)}
+                  error={getFieldError(errors, 'password')}
+                />
+                <CheckboxField
+                  id="hidden"
+                  label="This is a hidden network"
+                  checked={values.hidden === true}
+                  onChange={(event) => update('hidden', event.target.checked)}
+                />
+              </>
+            )}
+          </PresentedControls>
           <Button type="submit" fullWidth>
             Generate locally
           </Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section
         className="calculator-result generator-result"
@@ -426,7 +428,6 @@ function QrPayloadForm({ kind, tool }: { kind: 'whatsapp-link' | 'vcard' | 'wifi
                 </Button>
               ) : null}
             </div>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock titleId="sharing-result-title" title="Your preview will appear here" tone="empty">
@@ -490,47 +491,48 @@ function BarcodeForm({ tool }: { tool: ToolProps }) {
         </div>
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary errors={errors} />
-          <SelectField
-            id="symbology"
-            label="Symbology"
-            value={values.symbology}
-            onChange={(event) => update('symbology', event.target.value)}
-            error={getFieldError(errors, 'symbology')}
-          >
-            <option value="code128">Code 128</option>
-            <option value="code39">Code 39</option>
-            <option value="ean13">EAN-13</option>
-            <option value="upca">UPC-A</option>
-          </SelectField>
-          <InputField
-            id="value"
-            label="Value"
-            value={values.value}
-            onChange={(event) => update('value', event.target.value)}
-            error={getFieldError(errors, 'value')}
-            required
-          />
-          <SelectField
-            id="width"
-            label="Module width"
-            value={values.width}
-            onChange={(event) => update('width', event.target.value)}
-          >
-            <option value="compact">Compact</option>
-            <option value="standard">Standard</option>
-            <option value="large">Large</option>
-          </SelectField>
-          <CheckboxField
-            id="showLabel"
-            label="Show human-readable value"
-            checked={values.showLabel}
-            onChange={(event) => update('showLabel', event.target.checked)}
-          />
+          <PresentedControls toolId={tool.id}>
+            <SelectField
+              id="symbology"
+              label="Symbology"
+              value={values.symbology}
+              onChange={(event) => update('symbology', event.target.value)}
+              error={getFieldError(errors, 'symbology')}
+            >
+              <option value="code128">Code 128</option>
+              <option value="code39">Code 39</option>
+              <option value="ean13">EAN-13</option>
+              <option value="upca">UPC-A</option>
+            </SelectField>
+            <InputField
+              id="value"
+              label="Value"
+              value={values.value}
+              onChange={(event) => update('value', event.target.value)}
+              error={getFieldError(errors, 'value')}
+              required
+            />
+            <SelectField
+              id="width"
+              label="Module width"
+              value={values.width}
+              onChange={(event) => update('width', event.target.value)}
+            >
+              <option value="compact">Compact</option>
+              <option value="standard">Standard</option>
+              <option value="large">Large</option>
+            </SelectField>
+            <CheckboxField
+              id="showLabel"
+              label="Show human-readable value"
+              checked={values.showLabel}
+              onChange={(event) => update('showLabel', event.target.checked)}
+            />
+          </PresentedControls>
           <Button type="submit" fullWidth>
             Generate barcode
           </Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="barcode-result-title">
         {error ? (
@@ -698,7 +700,6 @@ function ScannerForm({ tool }: { tool: ToolProps }) {
         >
           Review content safely
         </Button>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="scanner-result-title">
         {error ? (
@@ -814,6 +815,17 @@ function PhotoForm({ tool }: { tool: ToolProps }) {
   return (
     <div className="calculator-layout">
       <section className="calculator-card" aria-labelledby="photo-form-title">
+        <div className="file-workflow" aria-label="File workflow">
+          <span>
+            <b>1</b>Choose
+          </span>
+          <span>
+            <b>2</b>Adjust
+          </span>
+          <span>
+            <b>3</b>Download
+          </span>
+        </div>
         <div className="calculator-card__heading">
           <div>
             <p className="eyebrow">Local image utility</p>
@@ -823,6 +835,7 @@ function PhotoForm({ tool }: { tool: ToolProps }) {
         </div>
         <LocalFileDropzone
           id="photo-file"
+          previewFile={file}
           accept="image/jpeg,image/png,image/webp,image/gif"
           label={file ? file.name : 'Choose a local image'}
           help="JPEG, PNG, WebP or GIF within the shared byte and pixel limits."
@@ -838,45 +851,53 @@ function PhotoForm({ tool }: { tool: ToolProps }) {
             Remove selected image
           </Button>
         ) : null}
-        <InputField
-          id="width"
-          label="Output width (px)"
-          value={values.width}
-          onChange={(event) => setValues((current) => ({ ...current, width: event.target.value }))}
-          inputMode="numeric"
-        />
-        <InputField
-          id="height"
-          label="Output height (px)"
-          value={values.height}
-          onChange={(event) => setValues((current) => ({ ...current, height: event.target.value }))}
-          inputMode="numeric"
-        />
-        <InputField
-          id="quality"
-          label="Quality (0.1–1)"
-          value={values.quality}
-          onChange={(event) => setValues((current) => ({ ...current, quality: event.target.value }))}
-          inputMode="decimal"
-        />
-        <SelectField
-          id="format"
-          label="Output format"
-          value={values.format}
-          onChange={(event) =>
-            setValues((current) => ({
-              ...current,
-              format: event.target.value as ImageProcessingInput['format'],
-            }))
-          }
-        >
-          <option value="image/jpeg">JPEG</option>
-          <option value="image/png">PNG</option>
-          <option value="image/webp">WebP</option>
-        </SelectField>
-        <p className="field__help">
-          The new file is canvas-encoded, so EXIF and other source metadata are always removed.
-        </p>
+        <PresentedControls toolId={tool.id}>
+          {' '}
+          <InputField
+            id="width"
+            label="Output width (px)"
+            value={values.width}
+            onChange={(event) => setValues((current) => ({ ...current, width: event.target.value }))}
+            inputMode="numeric"
+          />
+          <InputField
+            id="height"
+            label="Output height (px)"
+            value={values.height}
+            onChange={(event) => setValues((current) => ({ ...current, height: event.target.value }))}
+            inputMode="numeric"
+          />
+          <InputField
+            id="quality"
+            label="Image quality (%)"
+            value={values.quality === '' ? '' : String(Math.round(Number(values.quality) * 100))}
+            onChange={(event) =>
+              setValues((current) => ({
+                ...current,
+                quality: event.target.value === '' ? '' : String(Number(event.target.value) / 100),
+              }))
+            }
+            inputMode="decimal"
+          />
+          <SelectField
+            id="format"
+            label="Output format"
+            value={values.format}
+            onChange={(event) =>
+              setValues((current) => ({
+                ...current,
+                format: event.target.value as ImageProcessingInput['format'],
+              }))
+            }
+          >
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WebP</option>
+          </SelectField>
+          <p className="field__help">
+            The new file is canvas-encoded, so EXIF and other source metadata are always removed.
+          </p>
+        </PresentedControls>
         <Button
           type="button"
           fullWidth
@@ -895,7 +916,6 @@ function PhotoForm({ tool }: { tool: ToolProps }) {
           </Button>
         ) : null}
         <FileProcessingStatus status={status} message={error ?? undefined} />
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="photo-result-title">
         {output ? (
@@ -987,6 +1007,17 @@ function PdfForm({ tool }: { tool: ToolProps }) {
   return (
     <div className="calculator-layout">
       <section className="calculator-card" aria-labelledby="pdf-form-title">
+        <div className="file-workflow" aria-label="File workflow">
+          <span>
+            <b>1</b>Choose
+          </span>
+          <span>
+            <b>2</b>Adjust
+          </span>
+          <span>
+            <b>3</b>Download
+          </span>
+        </div>
         <div className="calculator-card__heading">
           <div>
             <p className="eyebrow">Local PDF utility</p>
@@ -1076,7 +1107,6 @@ function PdfForm({ tool }: { tool: ToolProps }) {
           </Button>
         ) : null}
         <FileProcessingStatus status={status} message={error ?? undefined} />
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="pdf-result-title">
         {output ? (
@@ -1138,6 +1168,17 @@ function FaviconForm({ tool }: { tool: ToolProps }) {
   return (
     <div className="calculator-layout">
       <section className="calculator-card" aria-labelledby="favicon-form-title">
+        <div className="file-workflow" aria-label="File workflow">
+          <span>
+            <b>1</b>Choose
+          </span>
+          <span>
+            <b>2</b>Adjust
+          </span>
+          <span>
+            <b>3</b>Download
+          </span>
+        </div>
         <div className="calculator-card__heading">
           <div>
             <p className="eyebrow">Local brand asset</p>
@@ -1218,7 +1259,6 @@ function FaviconForm({ tool }: { tool: ToolProps }) {
             {error}
           </p>
         ) : null}
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="favicon-result-title">
         {output ? (
@@ -1316,72 +1356,73 @@ function EmailSignatureForm({ tool }: { tool: ToolProps }) {
           <span className="local-badge">Escaped HTML</span>
         </div>
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
-          <InputField
-            id="name"
-            label="Name"
-            value={values.name}
-            onChange={(event) => update('name', event.target.value)}
-            required
-          />
-          <InputField
-            id="role"
-            label="Role"
-            value={values.role}
-            onChange={(event) => update('role', event.target.value)}
-          />
-          <InputField
-            id="company"
-            label="Company"
-            value={values.company}
-            onChange={(event) => update('company', event.target.value)}
-          />
-          <InputField
-            id="phone"
-            label="Phone"
-            value={values.phone}
-            onChange={(event) => update('phone', event.target.value)}
-          />
-          <InputField
-            id="email"
-            label="Email"
-            value={values.email}
-            onChange={(event) => update('email', event.target.value)}
-            inputMode="email"
-          />
-          <InputField
-            id="website"
-            label="Website"
-            value={values.website}
-            onChange={(event) => update('website', event.target.value)}
-            inputMode="url"
-          />
-          <InputField
-            id="linkedin"
-            label="LinkedIn"
-            value={values.linkedin}
-            onChange={(event) => update('linkedin', event.target.value)}
-            inputMode="url"
-          />
-          <SelectField
-            id="accent"
-            label="Accent"
-            value={values.accent}
-            onChange={(event) => update('accent', event.target.value as EmailSignatureInput['accent'])}
-          >
-            <option value="teal">Teal</option>
-            <option value="navy">Navy</option>
-            <option value="ochre">Ochre</option>
-          </SelectField>
-          {visibleError ? (
-            <p className="field__error" role="alert">
-              {visibleError}
-            </p>
-          ) : null}
+          <PresentedControls toolId={tool.id}>
+            <InputField
+              id="name"
+              label="Name"
+              value={values.name}
+              onChange={(event) => update('name', event.target.value)}
+              required
+            />
+            <InputField
+              id="role"
+              label="Role"
+              value={values.role}
+              onChange={(event) => update('role', event.target.value)}
+            />
+            <InputField
+              id="company"
+              label="Company"
+              value={values.company}
+              onChange={(event) => update('company', event.target.value)}
+            />
+            <InputField
+              id="phone"
+              label="Phone"
+              value={values.phone}
+              onChange={(event) => update('phone', event.target.value)}
+            />
+            <InputField
+              id="email"
+              label="Email"
+              value={values.email}
+              onChange={(event) => update('email', event.target.value)}
+              inputMode="email"
+            />
+            <InputField
+              id="website"
+              label="Website"
+              value={values.website}
+              onChange={(event) => update('website', event.target.value)}
+              inputMode="url"
+            />
+            <InputField
+              id="linkedin"
+              label="LinkedIn"
+              value={values.linkedin}
+              onChange={(event) => update('linkedin', event.target.value)}
+              inputMode="url"
+            />
+            <SelectField
+              id="accent"
+              label="Accent"
+              value={values.accent}
+              onChange={(event) => update('accent', event.target.value as EmailSignatureInput['accent'])}
+            >
+              <option value="teal">Teal</option>
+              <option value="navy">Navy</option>
+              <option value="ochre">Ochre</option>
+            </SelectField>
+            {visibleError ? (
+              <p className="field__error" role="alert">
+                {visibleError}
+              </p>
+            ) : null}
+          </PresentedControls>
           <Button type="submit" fullWidth>
             Generate signature
           </Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="signature-result-title">
         {result ? (
@@ -1521,55 +1562,56 @@ function ReviewRequestForm({ tool }: { tool: ToolProps }) {
           <span className="local-badge">No sending</span>
         </div>
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
-          <InputField
-            id="businessName"
-            label="Business name"
-            value={values.businessName}
-            onChange={(event) => update('businessName', event.target.value)}
-            required
-          />
-          <InputField
-            id="reviewUrl"
-            label="Review URL"
-            value={values.reviewUrl}
-            onChange={(event) => update('reviewUrl', event.target.value)}
-            inputMode="url"
-            required
-          />
-          <SelectField
-            id="tone"
-            label="Tone"
-            value={values.tone}
-            onChange={(event) => update('tone', event.target.value as ReviewRequestInput['tone'])}
-          >
-            <option value="warm">Warm</option>
-            <option value="direct">Direct</option>
-            <option value="formal">Formal</option>
-          </SelectField>
-          <InputField
-            id="whatsappCountryCode"
-            label="WhatsApp country code (optional)"
-            value={values.whatsappCountryCode}
-            onChange={(event) => update('whatsappCountryCode', event.target.value)}
-            inputMode="numeric"
-          />
-          <InputField
-            id="whatsappPhone"
-            label="WhatsApp phone (optional)"
-            value={values.whatsappPhone}
-            onChange={(event) => update('whatsappPhone', event.target.value)}
-            inputMode="tel"
-          />
-          {visibleError ? (
-            <p className="field__error" role="alert">
-              {visibleError}
-            </p>
-          ) : null}
+          <PresentedControls toolId={tool.id}>
+            <InputField
+              id="businessName"
+              label="Business name"
+              value={values.businessName}
+              onChange={(event) => update('businessName', event.target.value)}
+              required
+            />
+            <InputField
+              id="reviewUrl"
+              label="Review URL"
+              value={values.reviewUrl}
+              onChange={(event) => update('reviewUrl', event.target.value)}
+              inputMode="url"
+              required
+            />
+            <SelectField
+              id="tone"
+              label="Tone"
+              value={values.tone}
+              onChange={(event) => update('tone', event.target.value as ReviewRequestInput['tone'])}
+            >
+              <option value="warm">Warm</option>
+              <option value="direct">Direct</option>
+              <option value="formal">Formal</option>
+            </SelectField>
+            <InputField
+              id="whatsappCountryCode"
+              label="WhatsApp country code (optional)"
+              value={values.whatsappCountryCode}
+              onChange={(event) => update('whatsappCountryCode', event.target.value)}
+              inputMode="numeric"
+            />
+            <InputField
+              id="whatsappPhone"
+              label="WhatsApp phone (optional)"
+              value={values.whatsappPhone}
+              onChange={(event) => update('whatsappPhone', event.target.value)}
+              inputMode="tel"
+            />
+            {visibleError ? (
+              <p className="field__error" role="alert">
+                {visibleError}
+              </p>
+            ) : null}
+          </PresentedControls>
           <Button type="submit" fullWidth>
             Build draft locally
           </Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="review-result-title">
         {result ? (

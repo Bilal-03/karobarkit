@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { filterToolDirectory, normalizeSearchQuery, searchTools, type Tool } from '@/domain/discovery';
+import { taskGroups } from '@/domain/registry/presentation';
 import { categoryRegistry } from '@/domain/registry/categories';
 
 import { ToolCard } from '@/components/ui/tool-card';
@@ -25,6 +26,7 @@ interface SearchParamReader {
 
 export interface DirectorySearchState {
   query: string;
+  group?: string;
   category: string;
   kind: string;
   execution: string;
@@ -39,6 +41,10 @@ export function parseDirectorySearchParams(searchParams: SearchParamReader): Dir
   const requestedCategory = searchParams.get('category');
 
   return {
+    group: allowedSearchParam(
+      searchParams.get('group'),
+      taskGroups.map((group) => group.id),
+    ),
     query: (searchParams.get('q') ?? '').slice(0, 80),
     category: categoryRegistry.some((item) => item.slug === requestedCategory)
       ? (requestedCategory ?? 'all')
@@ -57,6 +63,8 @@ function formatSearchStateUrl(state: DirectorySearchState, includeDirectoryFilte
   else url.searchParams.delete('q');
 
   if (includeDirectoryFilters) {
+    if (state.group && state.group !== 'all') url.searchParams.set('group', state.group);
+    else url.searchParams.delete('group');
     if (state.category !== 'all') url.searchParams.set('category', state.category);
     else url.searchParams.delete('category');
     if (state.kind !== 'all') url.searchParams.set('type', state.kind);
@@ -87,6 +95,7 @@ interface LiveToolSearchProps {
   tools: readonly Tool[];
   initialQuery?: string;
   initialCategory?: string;
+  initialGroup?: string;
   initialKind?: string;
   initialExecution?: string;
   initialRegulated?: string;
@@ -130,6 +139,7 @@ function ToolResults({
             href={`/tools/${tool.slug}`}
             name={tool.name}
             summary={tool.summary}
+            presentation={tool.presentation}
             categoryLabel={tool.categoryLabel}
             lifecycle={tool.lifecycle}
             executionMode={tool.executionMode}
@@ -209,12 +219,14 @@ export function LiveToolSearch({
   tools: availableTools,
   initialQuery = '',
   initialCategory = 'all',
+  initialGroup = 'all',
   initialKind = 'all',
   initialExecution = 'all',
   initialRegulated = 'all',
   variant,
 }: LiveToolSearchProps) {
   const [query, setQuery] = useState(initialQuery.slice(0, 80));
+  const [group, setGroup] = useState(initialGroup);
   const [category, setCategory] = useState(initialCategory);
   const [kind, setKind] = useState(initialKind);
   const [execution, setExecution] = useState(initialExecution);
@@ -225,8 +237,8 @@ export function LiveToolSearch({
   const tools = useMemo(() => {
     const searched = normalizeSearchQuery(query) ? searchTools(availableTools, query) : [...availableTools];
     if (variant !== 'directory') return searched;
-    return filterToolDirectory(searched, { category, kind, execution, regulated });
-  }, [availableTools, category, execution, kind, query, regulated, variant]);
+    return filterToolDirectory(searched, { category, kind, execution, regulated, group });
+  }, [availableTools, group, category, execution, kind, query, regulated, variant]);
 
   useEffect(() => {
     if (variant !== 'directory' && variant !== 'page') return;
@@ -236,6 +248,7 @@ export function LiveToolSearch({
       setQuery(nextState.query);
       setVisibleToolCount(INITIAL_VISIBLE_TOOLS);
       if (variant === 'directory') {
+        setGroup(nextState.group ?? 'all');
         setCategory(nextState.category);
         setKind(nextState.kind);
         setExecution(nextState.execution);
@@ -251,12 +264,12 @@ export function LiveToolSearch({
     if (variant === 'home' || variant === 'not-found') return;
 
     updateSearchUrl(
-      { query, category, kind, execution, regulated },
+      { query, category, kind, execution, regulated, group },
       variant === 'directory',
       historyModeRef.current,
     );
     historyModeRef.current = 'replace';
-  }, [category, execution, kind, query, regulated, variant]);
+  }, [group, category, execution, kind, query, regulated, variant]);
 
   const handleQueryChange = (value: string) => {
     historyModeRef.current = 'replace';
@@ -275,7 +288,7 @@ export function LiveToolSearch({
 
     event.preventDefault();
     historyModeRef.current = 'push';
-    updateSearchUrl({ query, category, kind, execution, regulated }, variant === 'directory', 'push');
+    updateSearchUrl({ query, category, kind, execution, regulated, group }, variant === 'directory', 'push');
   };
 
   const visibleTools = tools.slice(0, visibleToolCount);
@@ -286,6 +299,25 @@ export function LiveToolSearch({
   if (variant === 'directory') {
     return (
       <>
+        <nav className="task-chips" aria-label="Task groups">
+          <button
+            type="button"
+            aria-pressed={group === 'all'}
+            onClick={() => handleFilterChange(setGroup, 'all')}
+          >
+            All tools
+          </button>
+          {taskGroups.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              aria-pressed={group === item.id}
+              onClick={() => handleFilterChange(setGroup, item.id)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </nav>
         <form className="directory-filters" action="/tools" method="get" onSubmit={handleSubmit}>
           <div>
             <label htmlFor={id}>Search tools</label>
@@ -317,52 +349,76 @@ export function LiveToolSearch({
               ))}
             </select>
           </div>
-          <div>
-            <label htmlFor="directory-type">Tool type</label>
-            <select
-              className="select"
-              id="directory-type"
-              name="type"
-              value={kind}
-              onChange={(event) => handleFilterChange(setKind, event.target.value)}
-            >
-              <option value="all">All types</option>
-              <option value="calculator">Calculators</option>
-              <option value="generator">Generators</option>
-              <option value="worksheet">Worksheets</option>
-              <option value="comparison">Comparisons</option>
-              <option value="data-backed">Data-backed</option>
-              <option value="ai-assisted">AI-assisted</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="directory-execution">Data use</label>
-            <select
-              className="select"
-              id="directory-execution"
-              name="execution"
-              value={execution}
-              onChange={(event) => handleFilterChange(setExecution, event.target.value)}
-            >
-              <option value="all">All data modes</option>
-              <option value="local">Runs locally</option>
-              <option value="network">Network or cloud</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="directory-regulated">Scope</label>
-            <select
-              className="select"
-              id="directory-regulated"
-              name="regulated"
-              value={regulated}
-              onChange={(event) => handleFilterChange(setRegulated, event.target.value)}
-            >
-              <option value="all">All scopes</option>
-              <option value="regulated">Tax or regulated</option>
-              <option value="general">General business</option>
-            </select>
-          </div>
+          <details className="advanced-filters">
+            <summary>
+              More filters
+              {[kind, execution, regulated].filter((value) => value !== 'all').length > 0
+                ? ` (${[kind, execution, regulated].filter((value) => value !== 'all').length})`
+                : ''}
+            </summary>
+            <div className="advanced-filters__body">
+              <div>
+                <label htmlFor="directory-type">Tool type</label>
+                <select
+                  className="select"
+                  id="directory-type"
+                  name="type"
+                  value={kind}
+                  onChange={(event) => handleFilterChange(setKind, event.target.value)}
+                >
+                  <option value="all">All types</option>
+                  <option value="calculator">Calculators</option>
+                  <option value="generator">Generators</option>
+                  <option value="worksheet">Worksheets</option>
+                  <option value="comparison">Comparisons</option>
+                  <option value="data-backed">Data-backed</option>
+                  <option value="ai-assisted">AI-assisted</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="directory-execution">Data use</label>
+                <select
+                  className="select"
+                  id="directory-execution"
+                  name="execution"
+                  value={execution}
+                  onChange={(event) => handleFilterChange(setExecution, event.target.value)}
+                >
+                  <option value="all">All data modes</option>
+                  <option value="local">Runs locally</option>
+                  <option value="network">Network or cloud</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="directory-regulated">Scope</label>
+                <select
+                  className="select"
+                  id="directory-regulated"
+                  name="regulated"
+                  value={regulated}
+                  onChange={(event) => handleFilterChange(setRegulated, event.target.value)}
+                >
+                  <option value="all">All scopes</option>
+                  <option value="regulated">Tax or regulated</option>
+                  <option value="general">General business</option>
+                </select>
+              </div>
+            </div>
+          </details>
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => {
+              handleQueryChange('');
+              handleFilterChange(setCategory, 'all');
+              setGroup('all');
+              setKind('all');
+              setExecution('all');
+              setRegulated('all');
+            }}
+          >
+            Clear
+          </button>
           <button className="button button--secondary" type="submit">
             Apply filters
           </button>
@@ -399,7 +455,7 @@ export function LiveToolSearch({
             maxLength={80}
             placeholder={
               isHome
-                ? 'Try GST bill, payment QR or growth rate…'
+                ? 'Search tools… GST, invoice, QR code'
                 : isNotFound
                   ? 'Try GST, invoice or QR…'
                   : 'Try “return”, “growth” or “profit”…'
@@ -435,6 +491,7 @@ export function DirectoryToolSearch({ id, tools }: { id: string; tools: readonly
       tools={tools}
       initialQuery={initialState.query}
       initialCategory={initialState.category}
+      initialGroup={initialState.group}
       initialKind={initialState.kind}
       initialExecution={initialState.execution}
       initialRegulated={initialState.regulated}

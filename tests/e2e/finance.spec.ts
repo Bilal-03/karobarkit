@@ -5,7 +5,7 @@ test.describe('Phase 3 finance foundation', () => {
     await page.goto('/tools/emi-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
-    await expect(page.getByText('Finance · Local-first · Beta')).toBeVisible();
+    await expect(page.getByText('Private · runs in your browser · Beta')).toBeVisible();
     await page.getByRole('button', { name: 'Calculate scenario' }).click();
 
     await expect(page.locator('.result-panel__value')).toHaveText('₹21,247.04');

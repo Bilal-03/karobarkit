@@ -46,7 +46,6 @@ export function ToolTrustPanel({
   trust,
   governance,
   sources,
-  limitations,
   privacyNote,
   executionMode,
 }: ToolTrustPanelProps) {
@@ -97,14 +96,6 @@ export function ToolTrustPanel({
           <dd>{privacyNote}</dd>
         </div>
       </dl>
-      <div className="tool-trust-panel__limits" id="limitations">
-        <strong>Important limitations</strong>
-        <ul className="plain-list">
-          {limitations.slice(0, 2).map((limitation) => (
-            <li key={limitation}>{limitation}</li>
-          ))}
-        </ul>
-      </div>
       <p className="tool-trust-panel__actions">
         <a href="#full-limitations">Read all limitations</a>
         <span aria-hidden="true"> · </span>

@@ -1,4 +1,7 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { toolIdsByVariant } from '@/domain/registry/presentation';
+import { ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -41,7 +44,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 type RegulatedUtilityKind = Extract<ToolUiAdapter, { adapter: 'regulated-utility' }>['variant'];
@@ -117,11 +120,10 @@ function calculateRegulated(
 }
 
 function CommonPolicyNote({ result }: { result: RegulatedResultBase }) {
-  const tone = result.policyState === 'fresh' ? 'success' : 'error';
-  return (
-    <StateBlock title="Policy snapshot" tone={tone}>
-      {`${result.policyMessage} Last verified ${formatIndianDate(result.lastVerifiedOn)}.`}
-    </StateBlock>
+  return result.policyState === 'fresh' ? null : (
+    <p className="notice" role="status">
+      {result.policyMessage}
+    </p>
   );
 }
 
@@ -171,7 +173,7 @@ function ResultView({ kind, result }: { kind: RegulatedUtilityKind; result: Regu
       <ResultPanel
         label="Illustrative depreciation"
         value={formatIndianCurrency(depreciation.annualDepreciation)}
-        detail={`${depreciation.mode === 'companies-act' ? 'Companies Act / SLM' : 'Income Tax / WDV'} · ${depreciation.policyVersion}`}
+        detail={`${depreciation.mode === 'companies-act' ? 'Companies Act / SLM' : 'Income Tax / WDV'}`}
       >
         <dl className="result-breakdown">
           <div>
@@ -287,7 +289,7 @@ function FormFields({
 }) {
   if (kind === 'hsn-sac') {
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
         <InputField
           id="query"
           label="Code or keyword"
@@ -308,12 +310,12 @@ function FormFields({
           <option value="goods">Goods only</option>
           <option value="services">Services only</option>
         </SelectField>
-      </>
+      </PresentedControls>
     );
   }
   if (kind === 'gst-due-date') {
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
         <SelectField
           id="financialYear"
           label="Financial year"
@@ -370,13 +372,13 @@ function FormFields({
             <option value="24">24th group</option>
           </SelectField>
         ) : null}
-      </>
+      </PresentedControls>
     );
   }
   if (kind === 'depreciation') {
     const mode = getValue(values, 'mode');
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
         <SelectField
           id="mode"
           label="Policy mode"
@@ -473,12 +475,12 @@ function FormFields({
           <option value="slm">Straight-line (SLM)</option>
           <option value="wdv">Written-down value (WDV)</option>
         </SelectField>
-      </>
+      </PresentedControls>
     );
   }
   if (kind === 'professional-tax') {
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
         <SelectField
           id="state"
           label="State schedule"
@@ -544,12 +546,12 @@ function FormFields({
             required
           />
         </div>
-      </>
+      </PresentedControls>
     );
   }
   if (kind === 'msme-interest') {
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
         <InputField
           id="principal"
           label="Invoice principal"
@@ -656,11 +658,11 @@ function FormFields({
             <option value="unknown">Unknown — needs review</option>
           </SelectField>
         </div>
-      </>
+      </PresentedControls>
     );
   }
   return (
-    <>
+    <PresentedControls toolId={toolIdsByVariant['regulated-utility:' + kind]}>
       <div className="form-grid form-grid--two">
         <InputField
           id="amount"
@@ -714,13 +716,13 @@ function FormFields({
           ))}
         </SelectField>
       </div>
-    </>
+    </PresentedControls>
   );
 }
 
 export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) {
   const initialValues = useMemo(() => (tool.defaultValues as Values) ?? {}, [tool.defaultValues]);
-  const [values, setValues] = useState<Values>(initialValues);
+  const [values, setValues] = useState<Values>(() => emptyPrimaryValues(tool.id, initialValues));
   const [quote, setQuote] = useState<CurrencyQuote | undefined>();
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [isFetchingQuote, setIsFetchingQuote] = useState(false);
@@ -823,6 +825,7 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
         </div>
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
           <FormFields kind={kind} values={values} errors={errors} update={update} />
           {isCurrency ? (
             <div className="button-row">
@@ -842,7 +845,6 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
           ) : null}
           <Button type="submit">Calculate reference result</Button>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section
         className="calculator-result"
@@ -869,7 +871,6 @@ export function RegulatedUtilityForm({ kind, tool }: RegulatedUtilityFormProps) 
             </div>
             <CommonPolicyNote result={result} />
             <ResultView kind={kind} result={result} />
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

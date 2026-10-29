@@ -6,7 +6,7 @@ import { TaxCalculatorForm } from '@/components/tooling/tax-calculator-form';
 import { hraTool, tdsTool } from '@/domain/registry';
 
 describe('tax calculator form integration', () => {
-  it('renders the HRA policy result and explicit review boundary', async () => {
+  it('keeps an unreviewed HRA policy disabled without showing a policy record', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -20,13 +20,13 @@ describe('tax calculator form integration', () => {
         }}
       />,
     );
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate HRA exemption' }));
-    expect(await screen.findByRole('heading', { name: 'HRA exemption illustration' })).toBeInTheDocument();
-    expect(screen.getAllByText('₹1,20,000.00')).not.toHaveLength(0);
-    expect(screen.getByText(/one stable rented-accommodation period/iu)).toBeInTheDocument();
+    expect((await screen.findAllByText(/No reviewed HRA policy/)).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Policy snapshot')).not.toBeInTheDocument();
   });
 
-  it('shows a new-regime boundary instead of a positive exemption', async () => {
+  it('does not bypass the review gate when switching regimes', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -40,13 +40,14 @@ describe('tax calculator form integration', () => {
         }}
       />,
     );
-    fireEvent.change(screen.getByLabelText(/Tax regime/i), { target: { value: 'new' } });
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
+    fireEvent.change(screen.getByRole('combobox', { name: /Tax regime/i }), { target: { value: 'new' } });
     await user.click(screen.getByRole('button', { name: 'Calculate HRA exemption' }));
-    expect(await screen.findByText('₹0.00')).toBeInTheDocument();
-    expect(screen.getByText(/not available in the new tax regime/iu)).toBeInTheDocument();
+    expect((await screen.findAllByText(/No reviewed HRA policy/)).length).toBeGreaterThan(0);
+    expect(screen.queryByText('₹0.00')).not.toBeInTheDocument();
   });
 
-  it('renders a TDS policy snapshot and stops in the form layer on invalid residency', async () => {
+  it('keeps a stale TDS policy disabled and validates residency', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -60,9 +61,12 @@ describe('tax calculator form integration', () => {
         }}
       />,
     );
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate estimate' }));
-    expect((await screen.findAllByText(/Income Tax Act, 2025/iu)).length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText(/Payee residency/i), { target: { value: 'non-resident' } });
+    expect((await screen.findAllByText(/review is due/iu)).length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByRole('combobox', { name: /Payee residency/i }), {
+      target: { value: 'non-resident' },
+    });
     await user.click(screen.getByRole('button', { name: 'Calculate estimate' }));
     expect((await screen.findAllByText(/Non-resident remittances/iu)).length).toBeGreaterThan(0);
   });

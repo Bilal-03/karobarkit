@@ -9,17 +9,21 @@ describe('finance calculator form integration', () => {
   it('renders a local EMI scenario with an amortization preview', async () => {
     const user = userEvent.setup();
     render(<FinanceCalculatorForm kind="emi" tool={emiTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     await user.click(screen.getByRole('button', { name: 'Calculate scenario' }));
 
     expect((await screen.findAllByText('₹21,247.04'))[0]).toBeInTheDocument();
-    expect(screen.getByText(/Preview amortization schedule/)).toBeInTheDocument();
-    expect(screen.getByText(/Rates and returns are user-entered assumptions/)).toBeInTheDocument();
+    expect(screen.getByText(/Repayment schedule/)).toBeInTheDocument();
+    expect(screen.queryByText(/Rates and returns are user-entered assumptions/)).not.toBeInTheDocument();
   });
 
   it('shows XIRR format errors before attempting to show a result', async () => {
     const user = userEvent.setup();
     render(<FinanceCalculatorForm kind="xirr" tool={xirrTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     const cashFlows = screen.getByRole('textbox', { name: /Dated cash flows/ });
     await user.clear(cashFlows);

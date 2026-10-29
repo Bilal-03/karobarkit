@@ -8,7 +8,6 @@ import { downloadDataUrl, exportErrorMessage, safeFilename } from '@/lib/qr/expo
 import { trackEvent } from '@/lib/analytics';
 
 import { Button } from '@/components/ui/button';
-import { PrivacyBlock } from '@/components/ui/trust-blocks';
 
 interface DigitalSignatureToolProps {
   id: string;
@@ -316,7 +315,6 @@ export function DigitalSignatureForm({ tool }: { tool: DigitalSignatureToolProps
         <p className="signature-settings__hint">
           Draw with a mouse, trackpad, stylus or finger. The mark stays in this page until you download it.
         </p>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
 
       <section

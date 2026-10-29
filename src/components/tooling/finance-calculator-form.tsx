@@ -1,4 +1,7 @@
 'use client';
+import { DurationField } from '@/components/ui/duration-field';
+import { Distribution } from '@/components/ui/result-summary';
+import { FieldGroups, ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -20,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 interface FinanceCalculatorFormProps {
@@ -98,6 +101,16 @@ function renderField(
     required: field.required !== false,
   };
 
+  if (field.name === 'tenureMonths')
+    return (
+      <DurationField
+        key={field.name}
+        id={field.name}
+        value={values[field.name] ?? ''}
+        onChange={(value) => updateValue(field.name, value)}
+        error={getFieldError(errors, field.name)}
+      />
+    );
   if (field.type === 'select') {
     return (
       <SelectField key={field.name} {...common}>
@@ -134,7 +147,9 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
       Object.fromEntries(fields.map((field) => [field.name, field.defaultValue])),
     [fields, tool.defaultValues],
   );
-  const [values, setValues] = useState<FinanceCalculatorInput>(initialValues);
+  const [values, setValues] = useState<FinanceCalculatorInput>(() =>
+    emptyPrimaryValues(tool.id, initialValues),
+  );
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -212,7 +227,13 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {fields.map((field) => renderField(field, values, errors, updateValue))}
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => renderField(field, values, errors, updateValue)}
+          />
           <Button type="submit" fullWidth disabled={isCalculating}>
             {isCalculating ? 'Calculating…' : 'Calculate scenario'}
           </Button>
@@ -248,8 +269,39 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
-              detail={result.detail}
             >
+              <dl className="result-breakdown">
+                {(kind === 'emi'
+                  ? result.details.filter((detail) =>
+                      ['Loan amount', 'Total interest', 'Total cost'].includes(detail.label),
+                    )
+                  : result.details.slice(0, 3)
+                ).map((detail) => (
+                  <div key={detail.label}>
+                    <dt>{detail.label}</dt>
+                    <dd>{formatMetric(detail)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </ResultPanel>
+            {(kind === 'emi' || kind === 'sip') && (
+              <Distribution
+                parts={result.details
+                  .filter((detail) =>
+                    kind === 'emi'
+                      ? ['Loan amount', 'Total interest'].includes(detail.label)
+                      : /invested|gain/i.test(detail.label),
+                  )
+                  .slice(0, 2)
+                  .map((detail) => ({
+                    label: detail.label,
+                    value: Number(detail.value),
+                    display: formatMetric(detail),
+                  }))}
+              />
+            )}
+            <details className="field-group">
+              <summary>Calculation details</summary>
               <dl className="result-breakdown">
                 {result.details.map((detail) => (
                   <div key={detail.label}>
@@ -258,10 +310,10 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
                   </div>
                 ))}
               </dl>
-            </ResultPanel>
+            </details>
             {result.schedule && result.schedule.length > 0 ? (
               <details className="content-card schedule-preview">
-                <summary>Preview amortization schedule ({result.schedule.length} periods)</summary>
+                <summary>Repayment schedule ({result.schedule.length} months)</summary>
                 <div className="table-scroll">
                   <table>
                     <thead>
@@ -300,7 +352,6 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
                 Print summary
               </Button>
             </div>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

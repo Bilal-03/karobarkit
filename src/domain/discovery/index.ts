@@ -103,6 +103,7 @@ export function filterTools(tools: readonly Tool[], categorySlug?: string) {
 }
 
 export interface ToolDirectoryFilters {
+  group?: string;
   category?: string;
   kind?: string;
   execution?: string;
@@ -111,6 +112,7 @@ export interface ToolDirectoryFilters {
 
 export function filterToolDirectory(tools: readonly Tool[], filters: ToolDirectoryFilters) {
   return tools.filter((tool) => {
+    if (filters.group && filters.group !== 'all' && tool.taskGroup !== filters.group) return false;
     if (
       filters.category &&
       filters.category !== 'all' &&

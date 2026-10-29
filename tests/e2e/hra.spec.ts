@@ -5,7 +5,7 @@ test.describe('Phase 4 HRA controlled beta', () => {
     await page.goto('/tools/hra-calculator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
 
-    await expect(page.getByText('GST & Tax · Local-first · Beta')).toBeVisible();
+    await expect(page.getByText('Private · runs in your browser · Beta')).toBeVisible();
     await page.getByRole('button', { name: 'Calculate HRA exemption' }).click();
 
     await expect(page.getByRole('heading', { name: 'HRA exemption illustration' })).toBeVisible();

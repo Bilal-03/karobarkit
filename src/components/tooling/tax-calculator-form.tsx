@@ -1,4 +1,5 @@
 'use client';
+import { FieldGroups, ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -26,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 type TaxKind = 'hra' | TaxCalculatorKind;
@@ -63,7 +64,7 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
       ) as unknown as HraCalculatorInput),
     [fields, tool.defaultValues],
   );
-  const [values, setValues] = useState<HraCalculatorInput>(initialValues);
+  const [values, setValues] = useState<HraCalculatorInput>(() => emptyPrimaryValues(tool.id, initialValues));
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -135,11 +136,36 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {fields.map((field) => {
-            const value = values[field.name] ?? '';
-            if (field.type === 'select') {
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => {
+              const value = values[field.name] ?? '';
+              if (field.type === 'select') {
+                return (
+                  <SelectField
+                    key={field.name}
+                    id={field.name}
+                    name={field.name}
+                    label={field.label}
+                    help={field.help}
+                    value={value}
+                    onChange={(event) => updateValue(field.name, event.target.value)}
+                    error={getFieldError(errors, field.name)}
+                    required
+                  >
+                    {field.options?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
+                );
+              }
               return (
-                <SelectField
+                <InputField
                   key={field.name}
                   id={field.name}
                   name={field.name}
@@ -148,33 +174,14 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
                   value={value}
                   onChange={(event) => updateValue(field.name, event.target.value)}
                   error={getFieldError(errors, field.name)}
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
                   required
-                >
-                  {field.options?.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectField>
+                />
               );
-            }
-            return (
-              <InputField
-                key={field.name}
-                id={field.name}
-                name={field.name}
-                label={field.label}
-                help={field.help}
-                value={value}
-                onChange={(event) => updateValue(field.name, event.target.value)}
-                error={getFieldError(errors, field.name)}
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-            );
-          })}
+            }}
+          />
           <Button type="submit" fullWidth>
             Calculate HRA exemption
           </Button>
@@ -209,10 +216,9 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
-              detail={result.detail}
             >
               <dl className="result-breakdown">
-                {result.details.map((detail) => (
+                {result.details.slice(0, 3).map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>
@@ -220,23 +226,16 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
                 ))}
               </dl>
             </ResultPanel>
-            <div className="content-card">
-              <h3>Policy snapshot</h3>
-              <p>
-                {result.policy.id} · effective {result.policy.effectiveFrom} to {result.policy.effectiveTo} ·
-                last verified {result.policy.lastVerifiedOn} · review due {result.policyFreshness.reviewDueOn}
+            {result.policyFreshness.isStale && (
+              <p className="notice" role="status">
+                This estimate needs a current policy review before use.
               </p>
-              <p>
-                This is an estimate from declared values for one stable rented-accommodation period. Confirm
-                the result with payroll or a qualified tax professional.
-              </p>
-            </div>
+            )}
             <div className="inline-actions scenario-actions">
               <Button type="button" variant="ghost" onClick={() => window.print()}>
                 Print summary
               </Button>
             </div>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock
@@ -316,7 +315,7 @@ function GenericTaxForm({
       Object.fromEntries(fields.map((field) => [field.name, field.defaultValue])),
     [fields, tool.defaultValues],
   );
-  const [values, setValues] = useState<TaxCalculatorInput>(initialValues);
+  const [values, setValues] = useState<TaxCalculatorInput>(() => emptyPrimaryValues(tool.id, initialValues));
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -387,7 +386,13 @@ function GenericTaxForm({
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {fields.map((field) => renderTaxField(field, values, errors, updateValue))}
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => renderTaxField(field, values, errors, updateValue)}
+          />
           <Button type="submit" fullWidth>
             Calculate estimate
           </Button>
@@ -420,10 +425,9 @@ function GenericTaxForm({
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
-              detail={result.detail}
             >
               <dl className="result-breakdown">
-                {result.details.map((detail) => (
+                {result.details.slice(0, 3).map((detail) => (
                   <div key={`${detail.label}-${detail.value}`}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>
@@ -441,25 +445,16 @@ function GenericTaxForm({
                 </ul>
               </div>
             ) : null}
-            <div className="content-card">
-              <h3>Policy snapshot</h3>
-              <p>
-                {result.policy.id} · {result.policy.act} · effective {result.policy.effectiveFrom} to{' '}
-                {result.policy.effectiveTo} · last verified {result.policy.lastVerifiedOn} · review due{' '}
-                {result.policyFreshness.reviewDueOn}
+            {result.policyFreshness.isStale && (
+              <p className="notice" role="status">
+                This estimate needs a current policy review before use.
               </p>
-              {result.policyFreshness.isStale ? (
-                <p role="status">
-                  This estimate is disabled until the official source bundle is re-verified.
-                </p>
-              ) : null}
-            </div>
+            )}
             <div className="inline-actions scenario-actions">
               <Button type="button" variant="ghost" onClick={() => window.print()}>
                 Print summary
               </Button>
             </div>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

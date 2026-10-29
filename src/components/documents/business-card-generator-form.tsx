@@ -1,4 +1,6 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -19,7 +21,7 @@ import { LogoUploader } from './logo-uploader';
 import { Button } from '@/components/ui/button';
 import { InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface BusinessCardToolProps {
@@ -36,6 +38,7 @@ function cloneInput(value: unknown): BusinessCardInput {
 }
 export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProps }) {
   const initialValues = useMemo(() => cloneInput(tool.defaultValues), [tool.defaultValues]);
+  const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<BusinessCardInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
@@ -44,32 +47,30 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'business-card-document-print-area';
-  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
-    BusinessCardInput,
-    BusinessCardDocument
-  >({
-    values,
-    validate: (input) => {
-      const validation = validateBusinessCardInput(input);
-      return validation.success ? { success: true as const, data: input } : validation;
-    },
-    calculate: (input) => calculateBusinessCard(input),
-    onResult: (_nextResult, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => focusResult(resultRef.current));
-      }
-    },
-    onValidationFailure: (validationErrors, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: validationErrors.map((error) => error.code),
-        });
-      }
-    },
-  });
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit, reportErrors } =
+    useLiveCalculation<BusinessCardInput, BusinessCardDocument>({
+      values,
+      validate: (input) => {
+        const validation = validateBusinessCardInput(input);
+        return validation.success ? { success: true as const, data: input } : validation;
+      },
+      calculate: (input) => calculateBusinessCard(input),
+      onResult: (_nextResult, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_completed', { toolId: tool.id });
+          trackEvent('result_generated', { toolId: tool.id });
+          window.requestAnimationFrame(() => focusResult(resultRef.current));
+        }
+      },
+      onValidationFailure: (validationErrors, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_validation_failed', {
+            toolId: tool.id,
+            errorCodes: validationErrors.map((error) => error.code),
+          });
+        }
+      },
+    });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -100,6 +101,7 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
   function resetForm() {
     const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
     if (isDirty && !window.confirm('Clear the entered card details and preview?')) return;
+    setResetVersion((value) => value + 1);
     setValues(cloneInput(initialValues));
     clearErrors();
     clearResult();
@@ -142,184 +144,206 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
+        <GuidedDocumentForm
+          key={resetVersion}
+          definition={documentFlows.businessCard}
+          validate={() => {
+            const checked = validateBusinessCardInput(values);
+            return checked.success ? [] : checked.errors;
+          }}
+          errors={errors}
+          onPreview={submit}
+          onStepErrors={reportErrors}
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          <fieldset className="document-form-section">
+          <DocumentSection stepId="parties" className="document-form-section">
             <legend>Business identity</legend>
-            <InputField
-              id="businessName"
-              label="Business name"
-              value={values.businessName}
-              onChange={(event) => updateValue('businessName', event.target.value)}
-              error={fieldError(errors, 'businessName')}
-              autoComplete="organization"
-              required
-            />
-            <TextareaField
-              id="businessAddress"
-              label="Business address"
-              value={values.businessAddress}
-              onChange={(event) => updateValue('businessAddress', event.target.value)}
-              error={fieldError(errors, 'businessAddress')}
-              rows={3}
-              required
-            />
-            <div className="form-grid form-grid--two">
+            <PresentedControls toolId={tool.id}>
               <InputField
-                id="phone"
-                label="Business phone (optional)"
-                value={values.phone}
-                onChange={(event) => updateValue('phone', event.target.value)}
-                error={fieldError(errors, 'phone')}
-                inputMode="tel"
+                id="businessName"
+                label="Business name"
+                value={values.businessName}
+                onChange={(event) => updateValue('businessName', event.target.value)}
+                error={fieldError(errors, 'businessName')}
+                autoComplete="organization"
+                required
               />
-              <InputField
-                id="email"
-                label="Business email (optional)"
-                value={values.email}
-                onChange={(event) => updateValue('email', event.target.value)}
-                error={fieldError(errors, 'email')}
-                type="email"
+              <TextareaField
+                id="businessAddress"
+                label="Business address"
+                value={values.businessAddress}
+                onChange={(event) => updateValue('businessAddress', event.target.value)}
+                error={fieldError(errors, 'businessAddress')}
+                rows={3}
+                required
               />
-            </div>
-            <InputField
-              id="website"
-              label="Business website (optional)"
-              value={values.website}
-              onChange={(event) => updateValue('website', event.target.value)}
-              error={fieldError(errors, 'website')}
-              inputMode="url"
-            />
-            <div className="form-grid form-grid--two">
-              <InputField
-                id="gstin"
-                label="GSTIN (optional)"
-                value={values.gstin}
-                onChange={(event) => updateValue('gstin', event.target.value)}
-                error={fieldError(errors, 'gstin')}
-                help="Displayed as entered; not verified."
-              />
-              <InputField
-                id="tagline"
-                label="Business tagline (optional)"
-                value={values.tagline}
-                onChange={(event) => updateValue('tagline', event.target.value)}
-                error={fieldError(errors, 'tagline')}
-              />
-            </div>
-            <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
-          </fieldset>
-          <fieldset className="document-form-section">
+              <details className="optional-fields">
+                <summary>More options</summary>
+                <div className="form-grid form-grid--two">
+                  <InputField
+                    id="phone"
+                    label="Business phone (optional)"
+                    value={values.phone}
+                    onChange={(event) => updateValue('phone', event.target.value)}
+                    error={fieldError(errors, 'phone')}
+                    inputMode="tel"
+                  />
+                  <InputField
+                    id="email"
+                    label="Business email (optional)"
+                    value={values.email}
+                    onChange={(event) => updateValue('email', event.target.value)}
+                    error={fieldError(errors, 'email')}
+                    type="email"
+                  />
+                </div>
+                <InputField
+                  id="website"
+                  label="Business website (optional)"
+                  value={values.website}
+                  onChange={(event) => updateValue('website', event.target.value)}
+                  error={fieldError(errors, 'website')}
+                  inputMode="url"
+                />
+                <div className="form-grid form-grid--two">
+                  <InputField
+                    id="gstin"
+                    label="GSTIN (optional)"
+                    value={values.gstin}
+                    onChange={(event) => updateValue('gstin', event.target.value)}
+                    error={fieldError(errors, 'gstin')}
+                    help="Displayed as entered; not verified."
+                  />
+                  <InputField
+                    id="tagline"
+                    label="Business tagline (optional)"
+                    value={values.tagline}
+                    onChange={(event) => updateValue('tagline', event.target.value)}
+                    error={fieldError(errors, 'tagline')}
+                  />
+                </div>
+                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+              </details>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="parties" className="document-form-section">
             <legend>Card details</legend>
-            <InputField
-              id="personName"
-              label="Person name"
-              value={values.personName}
-              onChange={(event) => updateValue('personName', event.target.value)}
-              error={fieldError(errors, 'personName')}
-              autoComplete="name"
-              required
-            />
-            <InputField
-              id="designation"
-              label="Designation (optional)"
-              value={values.designation}
-              onChange={(event) => updateValue('designation', event.target.value)}
-              error={fieldError(errors, 'designation')}
-            />
-            <div className="form-grid form-grid--two">
+            <PresentedControls toolId={tool.id}>
               <InputField
-                id="cardPhone"
-                label="Card phone (optional)"
-                value={values.cardPhone}
-                onChange={(event) => updateValue('cardPhone', event.target.value)}
-                error={fieldError(errors, 'cardPhone')}
-                inputMode="tel"
+                id="personName"
+                label="Person name"
+                value={values.personName}
+                onChange={(event) => updateValue('personName', event.target.value)}
+                error={fieldError(errors, 'personName')}
+                autoComplete="name"
+                required
               />
               <InputField
-                id="cardEmail"
-                label="Card email (optional)"
-                value={values.cardEmail}
-                onChange={(event) => updateValue('cardEmail', event.target.value)}
-                error={fieldError(errors, 'cardEmail')}
-                type="email"
+                id="designation"
+                label="Designation (optional)"
+                value={values.designation}
+                onChange={(event) => updateValue('designation', event.target.value)}
+                error={fieldError(errors, 'designation')}
               />
-            </div>
-            <InputField
-              id="cardWebsite"
-              label="Card website (optional)"
-              value={values.cardWebsite}
-              onChange={(event) => updateValue('cardWebsite', event.target.value)}
-              error={fieldError(errors, 'cardWebsite')}
-              inputMode="url"
-            />
-            <TextareaField
-              id="cardAddress"
-              label="Card address (optional)"
-              value={values.cardAddress}
-              onChange={(event) => updateValue('cardAddress', event.target.value)}
-              error={fieldError(errors, 'cardAddress')}
-              rows={2}
-            />
-            <InputField
-              id="cardTagline"
-              label="Personal tagline (optional)"
-              value={values.cardTagline}
-              onChange={(event) => updateValue('cardTagline', event.target.value)}
-              error={fieldError(errors, 'cardTagline')}
-            />
-            <TextareaField
-              id="cardNote"
-              label="Back-of-card note (optional)"
-              value={values.cardNote}
-              onChange={(event) => updateValue('cardNote', event.target.value)}
-              error={fieldError(errors, 'cardNote')}
-              rows={3}
-            />
-          </fieldset>
-          <fieldset className="document-form-section">
+              <div className="form-grid form-grid--two">
+                <InputField
+                  id="cardPhone"
+                  label="Card phone (optional)"
+                  value={values.cardPhone}
+                  onChange={(event) => updateValue('cardPhone', event.target.value)}
+                  error={fieldError(errors, 'cardPhone')}
+                  inputMode="tel"
+                />
+                <InputField
+                  id="cardEmail"
+                  label="Card email (optional)"
+                  value={values.cardEmail}
+                  onChange={(event) => updateValue('cardEmail', event.target.value)}
+                  error={fieldError(errors, 'cardEmail')}
+                  type="email"
+                />
+              </div>
+              <InputField
+                id="cardWebsite"
+                label="Card website (optional)"
+                value={values.cardWebsite}
+                onChange={(event) => updateValue('cardWebsite', event.target.value)}
+                error={fieldError(errors, 'cardWebsite')}
+                inputMode="url"
+              />
+              <TextareaField
+                id="cardAddress"
+                label="Card address (optional)"
+                value={values.cardAddress}
+                onChange={(event) => updateValue('cardAddress', event.target.value)}
+                error={fieldError(errors, 'cardAddress')}
+                rows={2}
+              />
+              <InputField
+                id="cardTagline"
+                label="Personal tagline (optional)"
+                value={values.cardTagline}
+                onChange={(event) => updateValue('cardTagline', event.target.value)}
+                error={fieldError(errors, 'cardTagline')}
+              />
+              <TextareaField
+                id="cardNote"
+                label="Back-of-card note (optional)"
+                value={values.cardNote}
+                onChange={(event) => updateValue('cardNote', event.target.value)}
+                error={fieldError(errors, 'cardNote')}
+                rows={3}
+              />
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Style</legend>
-            <div className="form-grid form-grid--two">
-              <SelectField
-                id="template"
-                label="Layout"
-                value={values.template}
-                onChange={(event) =>
-                  updateValue('template', event.target.value as BusinessCardInput['template'])
-                }
-                error={fieldError(errors, 'template')}
-              >
-                <option value="editorial">Editorial edge</option>
-                <option value="formal">Formal frame</option>
-              </SelectField>
-              <SelectField
-                id="accent"
-                label="Accent"
-                value={values.accent}
-                onChange={(event) => updateValue('accent', event.target.value as BusinessCardInput['accent'])}
-                error={fieldError(errors, 'accent')}
-              >
-                {DOCUMENT_ACCENTS.map((accent) => (
-                  <option value={accent.value} key={accent.value}>
-                    {accent.label}
-                  </option>
-                ))}
-              </SelectField>
+            <PresentedControls toolId={tool.id}>
+              <div className="form-grid form-grid--two">
+                <SelectField
+                  id="template"
+                  label="Layout"
+                  value={values.template}
+                  onChange={(event) =>
+                    updateValue('template', event.target.value as BusinessCardInput['template'])
+                  }
+                  error={fieldError(errors, 'template')}
+                >
+                  <option value="editorial">Editorial edge</option>
+                  <option value="formal">Formal frame</option>
+                </SelectField>
+                <SelectField
+                  id="accent"
+                  label="Accent"
+                  value={values.accent}
+                  onChange={(event) =>
+                    updateValue('accent', event.target.value as BusinessCardInput['accent'])
+                  }
+                  error={fieldError(errors, 'accent')}
+                >
+                  {DOCUMENT_ACCENTS.map((accent) => (
+                    <option value={accent.value} key={accent.value}>
+                      {accent.label}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="review">
+            <div className="document-form__actions">
+              <Button type="submit" fullWidth>
+                Create business card
+              </Button>
+              <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
+                Reset
+              </Button>
             </div>
-          </fieldset>
-          <div className="document-form__actions">
-            <Button type="submit" fullWidth>
-              Create business card
-            </Button>
-            <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
-              Reset
-            </Button>
-          </div>
-        </form>
-        <PrivacyBlock>
-          Business, person, contact and logo details stay in this browser. They are not uploaded, stored by
-          default, sent in analytics or written to logs.
-        </PrivacyBlock>
+          </DocumentSection>
+        </GuidedDocumentForm>
       </section>
       <section
         className="calculator-result document-result"
@@ -362,9 +386,6 @@ export function BusinessCardGeneratorForm({ tool }: { tool: BusinessCardToolProp
             <p className="document-export-help">
               The output is an A4 proof sheet. Check printer alignment, stock and trimming before production.
             </p>
-            <PrivacyBlock>
-              This card is generated locally and details are displayed exactly as entered.
-            </PrivacyBlock>
           </>
         ) : (
           <StateBlock

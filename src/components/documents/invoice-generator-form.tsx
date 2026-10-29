@@ -1,4 +1,6 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,7 +29,7 @@ import { LogoUploader } from './logo-uploader';
 import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface InvoiceToolProps {
@@ -87,6 +89,7 @@ function importQuotationValues(transfer: LocalScenarioTransfer, current: Invoice
 export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
+  const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<InvoiceInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
@@ -97,32 +100,30 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'invoice-document-print-area';
-  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
-    InvoiceInput,
-    InvoiceDocument
-  >({
-    values,
-    validate: (input) => {
-      const validation = validateInvoiceInput(input);
-      return validation.success ? { success: true as const, data: input } : validation;
-    },
-    calculate: (input) => calculateInvoice(input),
-    onResult: (_nextResult, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => focusResult(resultRef.current));
-      }
-    },
-    onValidationFailure: (validationErrors, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: validationErrors.map((error) => error.code),
-        });
-      }
-    },
-  });
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit, reportErrors } =
+    useLiveCalculation<InvoiceInput, InvoiceDocument>({
+      values,
+      validate: (input) => {
+        const validation = validateInvoiceInput(input);
+        return validation.success ? { success: true as const, data: input } : validation;
+      },
+      calculate: (input) => calculateInvoice(input),
+      onResult: (_nextResult, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_completed', { toolId: tool.id });
+          trackEvent('result_generated', { toolId: tool.id });
+          window.requestAnimationFrame(() => focusResult(resultRef.current));
+        }
+      },
+      onValidationFailure: (validationErrors, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_validation_failed', {
+            toolId: tool.id,
+            errorCodes: validationErrors.map((error) => error.code),
+          });
+        }
+      },
+    });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -205,6 +206,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   function resetForm() {
     const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
     if (isDirty && !window.confirm('Clear the entered invoice details and preview?')) return;
+    setResetVersion((value) => value + 1);
     setValues(cloneInvoiceInput(initialValues));
     clearErrors();
     clearResult();
@@ -301,7 +303,20 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
+        <GuidedDocumentForm
+          key={resetVersion}
+          definition={documentFlows.invoice}
+          validate={() => {
+            const checked = validateInvoiceInput(values);
+            return checked.success ? [] : checked.errors;
+          }}
+          errors={errors}
+          onPreview={submit}
+          onStepErrors={reportErrors}
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {quotationTransfer ? (
             <div className="local-handoff-banner" role="status">
@@ -324,318 +339,336 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </div>
             </div>
           ) : null}
-          <div className="gst-policy-summary" role="note">
-            <strong>Commercial invoice boundary</strong>
-            <span>This draft shows entered commercial values before any GST or statutory treatment.</span>
-            <span>Use the GST Invoice Generator when a tax invoice is required.</span>
-          </div>
-          <fieldset className="document-form-section">
+          <p className="context-note">Commercial invoice · GST is not calculated.</p>
+          <DocumentSection stepId="parties" className="document-form-section">
             <legend>Business identity</legend>
-            <InputField
-              id="businessName"
-              label="Business name"
-              value={values.businessName}
-              onChange={(event) => updateValue('businessName', event.target.value)}
-              error={fieldError(errors, 'businessName')}
-              autoComplete="organization"
-              required
-            />
-            <TextareaField
-              id="businessAddress"
-              label="Business address"
-              value={values.businessAddress}
-              onChange={(event) => updateValue('businessAddress', event.target.value)}
-              error={fieldError(errors, 'businessAddress')}
-              rows={3}
-              required
-            />
-            <div className="form-grid form-grid--two">
+            <PresentedControls toolId={tool.id}>
               <InputField
-                id="phone"
-                label="Phone (optional)"
-                value={values.phone}
-                onChange={(event) => updateValue('phone', event.target.value)}
-                error={fieldError(errors, 'phone')}
-                inputMode="tel"
+                id="businessName"
+                label="Business name"
+                value={values.businessName}
+                onChange={(event) => updateValue('businessName', event.target.value)}
+                error={fieldError(errors, 'businessName')}
+                autoComplete="organization"
+                required
               />
+              <TextareaField
+                id="businessAddress"
+                label="Business address"
+                value={values.businessAddress}
+                onChange={(event) => updateValue('businessAddress', event.target.value)}
+                error={fieldError(errors, 'businessAddress')}
+                rows={3}
+                required
+              />
+              <details className="optional-fields">
+                <summary>More options</summary>
+                <div className="form-grid form-grid--two">
+                  <InputField
+                    id="phone"
+                    label="Phone (optional)"
+                    value={values.phone}
+                    onChange={(event) => updateValue('phone', event.target.value)}
+                    error={fieldError(errors, 'phone')}
+                    inputMode="tel"
+                  />
+                  <InputField
+                    id="email"
+                    label="Email (optional)"
+                    value={values.email}
+                    onChange={(event) => updateValue('email', event.target.value)}
+                    error={fieldError(errors, 'email')}
+                    type="email"
+                  />
+                </div>
+                <InputField
+                  id="website"
+                  label="Website (optional)"
+                  value={values.website}
+                  onChange={(event) => updateValue('website', event.target.value)}
+                  error={fieldError(errors, 'website')}
+                  inputMode="url"
+                  help="HTTP and HTTPS only; the address is normalized locally."
+                />
+                <InputField
+                  id="gstin"
+                  label="GSTIN (optional)"
+                  value={values.gstin}
+                  onChange={(event) => updateValue('gstin', event.target.value)}
+                  error={fieldError(errors, 'gstin')}
+                  help="Displayed as entered; not verified. This draft does not calculate GST."
+                />
+                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+              </details>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" className="document-form-section">
+            <legend>Invoice details</legend>
+            <PresentedControls toolId={tool.id}>
+              <div className="form-grid form-grid--three">
+                <InputField
+                  id="invoiceNumber"
+                  label="Invoice number"
+                  value={values.invoiceNumber}
+                  onChange={(event) => updateValue('invoiceNumber', event.target.value)}
+                  error={fieldError(errors, 'invoiceNumber')}
+                  required
+                />
+                <InputField
+                  id="invoiceDate"
+                  label="Invoice date"
+                  type="date"
+                  value={values.invoiceDate}
+                  onChange={(event) => updateValue('invoiceDate', event.target.value)}
+                  error={fieldError(errors, 'invoiceDate')}
+                  required
+                />
+                <InputField
+                  id="dueDate"
+                  label="Due date (optional)"
+                  type="date"
+                  value={values.dueDate}
+                  onChange={(event) => updateValue('dueDate', event.target.value)}
+                  error={fieldError(errors, 'dueDate')}
+                />
+              </div>
+
               <InputField
-                id="email"
-                label="Email (optional)"
-                value={values.email}
-                onChange={(event) => updateValue('email', event.target.value)}
-                error={fieldError(errors, 'email')}
+                id="customerEmail"
+                label="Customer email (optional)"
+                value={values.customerEmail}
+                onChange={(event) => updateValue('customerEmail', event.target.value)}
+                error={fieldError(errors, 'customerEmail')}
                 type="email"
               />
-            </div>
-            <InputField
-              id="website"
-              label="Website (optional)"
-              value={values.website}
-              onChange={(event) => updateValue('website', event.target.value)}
-              error={fieldError(errors, 'website')}
-              inputMode="url"
-              help="HTTP and HTTPS only; the address is normalized locally."
-            />
-            <InputField
-              id="gstin"
-              label="GSTIN (optional)"
-              value={values.gstin}
-              onChange={(event) => updateValue('gstin', event.target.value)}
-              error={fieldError(errors, 'gstin')}
-              help="Displayed as entered; not verified. This draft does not calculate GST."
-            />
-            <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
-          </fieldset>
-          <fieldset className="document-form-section">
-            <legend>Invoice details</legend>
-            <div className="form-grid form-grid--three">
-              <InputField
-                id="invoiceNumber"
-                label="Invoice number"
-                value={values.invoiceNumber}
-                onChange={(event) => updateValue('invoiceNumber', event.target.value)}
-                error={fieldError(errors, 'invoiceNumber')}
-                required
+              <TextareaField
+                id="customerAddress"
+                label="Customer address (optional)"
+                value={values.customerAddress}
+                onChange={(event) => updateValue('customerAddress', event.target.value)}
+                error={fieldError(errors, 'customerAddress')}
+                rows={3}
               />
-              <InputField
-                id="invoiceDate"
-                label="Invoice date"
-                type="date"
-                value={values.invoiceDate}
-                onChange={(event) => updateValue('invoiceDate', event.target.value)}
-                error={fieldError(errors, 'invoiceDate')}
-                required
-              />
-              <InputField
-                id="dueDate"
-                label="Due date (optional)"
-                type="date"
-                value={values.dueDate}
-                onChange={(event) => updateValue('dueDate', event.target.value)}
-                error={fieldError(errors, 'dueDate')}
-              />
-            </div>
-            <div className="form-grid form-grid--two">
-              <InputField
-                id="customerName"
-                label="Customer name"
-                value={values.customerName}
-                onChange={(event) => updateValue('customerName', event.target.value)}
-                error={fieldError(errors, 'customerName')}
-                required
-              />
-              <InputField
-                id="customerPhone"
-                label="Customer phone (optional)"
-                value={values.customerPhone}
-                onChange={(event) => updateValue('customerPhone', event.target.value)}
-                error={fieldError(errors, 'customerPhone')}
-                inputMode="tel"
-              />
-            </div>
-            <InputField
-              id="customerEmail"
-              label="Customer email (optional)"
-              value={values.customerEmail}
-              onChange={(event) => updateValue('customerEmail', event.target.value)}
-              error={fieldError(errors, 'customerEmail')}
-              type="email"
-            />
-            <TextareaField
-              id="customerAddress"
-              label="Customer address (optional)"
-              value={values.customerAddress}
-              onChange={(event) => updateValue('customerAddress', event.target.value)}
-              error={fieldError(errors, 'customerAddress')}
-              rows={3}
-            />
-          </fieldset>
-          <fieldset className="document-form-section">
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="parties" className="document-form-section">
+            <legend>Customer</legend>
+            <PresentedControls toolId={tool.id}>
+              <div className="form-grid form-grid--two">
+                <InputField
+                  id="customerName"
+                  label="Customer name"
+                  value={values.customerName}
+                  onChange={(event) => updateValue('customerName', event.target.value)}
+                  error={fieldError(errors, 'customerName')}
+                  required
+                />
+                <InputField
+                  id="customerPhone"
+                  label="Customer phone (optional)"
+                  value={values.customerPhone}
+                  onChange={(event) => updateValue('customerPhone', event.target.value)}
+                  error={fieldError(errors, 'customerPhone')}
+                  inputMode="tel"
+                />
+              </div>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Line items</legend>
-            <p className="field__help">Discounts are commercial adjustments; no tax is calculated here.</p>
-            <div className="invoice-editor-items">
-              {values.items.map((item, index) => {
-                const prefix = `items.${index}`;
-                return (
-                  <fieldset className="invoice-editor-item" key={item.id}>
-                    <legend>Item {index + 1}</legend>
-                    <TextareaField
-                      id={`${prefix}.description`}
-                      label="Description"
-                      value={item.description}
-                      onChange={(event) => updateItem(index, 'description', event.target.value)}
-                      error={fieldError(errors, `${prefix}.description`)}
-                      rows={2}
-                      required
-                    />
-                    <div className="form-grid form-grid--three">
-                      <InputField
-                        id={`${prefix}.quantity`}
-                        label="Quantity"
-                        value={item.quantity}
-                        onChange={(event) => updateItem(index, 'quantity', event.target.value)}
-                        error={fieldError(errors, `${prefix}.quantity`)}
-                        inputMode="decimal"
+            <PresentedControls toolId={tool.id}>
+              <p className="field__help">Discounts are commercial adjustments; no tax is calculated here.</p>
+              <div className="invoice-editor-items">
+                {values.items.map((item, index) => {
+                  const prefix = `items.${index}`;
+                  return (
+                    <fieldset className="invoice-editor-item" key={item.id}>
+                      <legend>Item {index + 1}</legend>
+                      <TextareaField
+                        id={`${prefix}.description`}
+                        label="Description"
+                        value={item.description}
+                        onChange={(event) => updateItem(index, 'description', event.target.value)}
+                        error={fieldError(errors, `${prefix}.description`)}
+                        rows={2}
                         required
                       />
-                      <InputField
-                        id={`${prefix}.unit`}
-                        label="Unit (optional)"
-                        value={item.unit}
-                        onChange={(event) => updateItem(index, 'unit', event.target.value)}
-                        error={fieldError(errors, `${prefix}.unit`)}
-                      />
-                      <InputField
-                        id={`${prefix}.unitPrice`}
-                        label="Unit price"
-                        value={item.unitPrice}
-                        onChange={(event) => updateItem(index, 'unitPrice', event.target.value)}
-                        error={fieldError(errors, `${prefix}.unitPrice`)}
-                        inputMode="decimal"
-                        required
-                      />
-                    </div>
-                    <div className="form-grid form-grid--two">
-                      <SelectField
-                        id={`${prefix}.discountType`}
-                        label="Discount"
-                        value={item.discountType}
-                        onChange={(event) =>
-                          updateItem(
-                            index,
-                            'discountType',
-                            event.target.value as QuotationLineInput['discountType'],
-                          )
-                        }
-                        error={fieldError(errors, `${prefix}.discountType`)}
-                      >
-                        <option value="none">None</option>
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed INR</option>
-                      </SelectField>
-                      {item.discountType !== 'none' ? (
+                      <div className="form-grid form-grid--three">
                         <InputField
-                          id={`${prefix}.discountValue`}
-                          label={
-                            item.discountType === 'percentage' ? 'Discount percentage' : 'Discount amount'
-                          }
-                          value={item.discountValue}
-                          onChange={(event) => updateItem(index, 'discountValue', event.target.value)}
-                          error={fieldError(errors, `${prefix}.discountValue`)}
+                          id={`${prefix}.quantity`}
+                          label="Quantity"
+                          value={item.quantity}
+                          onChange={(event) => updateItem(index, 'quantity', event.target.value)}
+                          error={fieldError(errors, `${prefix}.quantity`)}
                           inputMode="decimal"
                           required
                         />
-                      ) : (
-                        <span />
-                      )}
-                    </div>
-                    <div className="invoice-item-actions">
-                      <Button
-                        type="button"
-                        variant="danger"
-                        onClick={() => removeItem(index)}
-                        disabled={values.items.length <= 1}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </fieldset>
-                );
-              })}
-            </div>
-            <Button type="button" variant="secondary" onClick={addItem} disabled={values.items.length >= 50}>
-              Add item
-            </Button>
-          </fieldset>
-          <fieldset className="document-form-section">
+                        <InputField
+                          id={`${prefix}.unit`}
+                          label="Unit (optional)"
+                          value={item.unit}
+                          onChange={(event) => updateItem(index, 'unit', event.target.value)}
+                          error={fieldError(errors, `${prefix}.unit`)}
+                        />
+                        <InputField
+                          id={`${prefix}.unitPrice`}
+                          label="Unit price"
+                          value={item.unitPrice}
+                          onChange={(event) => updateItem(index, 'unitPrice', event.target.value)}
+                          error={fieldError(errors, `${prefix}.unitPrice`)}
+                          inputMode="decimal"
+                          required
+                        />
+                      </div>
+                      <div className="form-grid form-grid--two">
+                        <SelectField
+                          id={`${prefix}.discountType`}
+                          label="Discount"
+                          value={item.discountType}
+                          onChange={(event) =>
+                            updateItem(
+                              index,
+                              'discountType',
+                              event.target.value as QuotationLineInput['discountType'],
+                            )
+                          }
+                          error={fieldError(errors, `${prefix}.discountType`)}
+                        >
+                          <option value="none">None</option>
+                          <option value="percentage">Percentage</option>
+                          <option value="fixed">Fixed INR</option>
+                        </SelectField>
+                        {item.discountType !== 'none' ? (
+                          <InputField
+                            id={`${prefix}.discountValue`}
+                            label={
+                              item.discountType === 'percentage' ? 'Discount percentage' : 'Discount amount'
+                            }
+                            value={item.discountValue}
+                            onChange={(event) => updateItem(index, 'discountValue', event.target.value)}
+                            error={fieldError(errors, `${prefix}.discountValue`)}
+                            inputMode="decimal"
+                            required
+                          />
+                        ) : (
+                          <span />
+                        )}
+                      </div>
+                      <div className="invoice-item-actions">
+                        <Button
+                          type="button"
+                          variant="danger"
+                          onClick={() => removeItem(index)}
+                          disabled={values.items.length <= 1}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </fieldset>
+                  );
+                })}
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={addItem}
+                disabled={values.items.length >= 50}
+              >
+                Add item
+              </Button>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" optional="Customize document" className="document-form-section">
             <legend>Terms and style</legend>
-            <TextareaField
-              id="paymentDetails"
-              label="Payment details (optional)"
-              value={values.paymentDetails}
-              onChange={(event) => updateValue('paymentDetails', event.target.value)}
-              error={fieldError(errors, 'paymentDetails')}
-              rows={2}
-            />
-            <div className="form-grid form-grid--two">
+            <PresentedControls toolId={tool.id}>
               <TextareaField
-                id="notes"
-                label="Notes (optional)"
-                value={values.notes}
-                onChange={(event) => updateValue('notes', event.target.value)}
-                error={fieldError(errors, 'notes')}
+                id="paymentDetails"
+                label="Payment details (optional)"
+                value={values.paymentDetails}
+                onChange={(event) => updateValue('paymentDetails', event.target.value)}
+                error={fieldError(errors, 'paymentDetails')}
                 rows={2}
               />
-              <TextareaField
-                id="terms"
-                label="Terms (optional)"
-                value={values.terms}
-                onChange={(event) => updateValue('terms', event.target.value)}
-                error={fieldError(errors, 'terms')}
-                rows={2}
+              <div className="form-grid form-grid--two">
+                <TextareaField
+                  id="notes"
+                  label="Notes (optional)"
+                  value={values.notes}
+                  onChange={(event) => updateValue('notes', event.target.value)}
+                  error={fieldError(errors, 'notes')}
+                  rows={2}
+                />
+                <TextareaField
+                  id="terms"
+                  label="Terms (optional)"
+                  value={values.terms}
+                  onChange={(event) => updateValue('terms', event.target.value)}
+                  error={fieldError(errors, 'terms')}
+                  rows={2}
+                />
+              </div>
+              <div className="form-grid form-grid--two">
+                <SelectField
+                  id="template"
+                  label="Layout"
+                  value={values.template}
+                  onChange={(event) =>
+                    updateValue('template', event.target.value as InvoiceInput['template'])
+                  }
+                  error={fieldError(errors, 'template')}
+                >
+                  <option value="editorial">Editorial edge</option>
+                  <option value="formal">Formal frame</option>
+                </SelectField>
+                <SelectField
+                  id="accent"
+                  label="Accent"
+                  value={values.accent}
+                  onChange={(event) => updateValue('accent', event.target.value as InvoiceInput['accent'])}
+                  error={fieldError(errors, 'accent')}
+                >
+                  {DOCUMENT_ACCENTS.map((accent) => (
+                    <option value={accent.value} key={accent.value}>
+                      {accent.label}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+              <div className="form-grid form-grid--two">
+                <InputField
+                  id="signatoryName"
+                  label="Authorised signatory (optional)"
+                  value={values.signatoryName}
+                  onChange={(event) => updateValue('signatoryName', event.target.value)}
+                  error={fieldError(errors, 'signatoryName')}
+                />
+                <InputField
+                  id="signatoryDesignation"
+                  label="Designation (optional)"
+                  value={values.signatoryDesignation}
+                  onChange={(event) => updateValue('signatoryDesignation', event.target.value)}
+                  error={fieldError(errors, 'signatoryDesignation')}
+                />
+              </div>
+              <CheckboxField
+                id="signaturePlaceholder"
+                label="Show signature line"
+                checked={values.signaturePlaceholder}
+                onChange={(event) => updateValue('signaturePlaceholder', event.target.checked)}
               />
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="review">
+            <div className="document-form__actions">
+              <Button type="submit" fullWidth>
+                Create invoice draft
+              </Button>
+              <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
+                Reset
+              </Button>
             </div>
-            <div className="form-grid form-grid--two">
-              <SelectField
-                id="template"
-                label="Layout"
-                value={values.template}
-                onChange={(event) => updateValue('template', event.target.value as InvoiceInput['template'])}
-                error={fieldError(errors, 'template')}
-              >
-                <option value="editorial">Editorial edge</option>
-                <option value="formal">Formal frame</option>
-              </SelectField>
-              <SelectField
-                id="accent"
-                label="Accent"
-                value={values.accent}
-                onChange={(event) => updateValue('accent', event.target.value as InvoiceInput['accent'])}
-                error={fieldError(errors, 'accent')}
-              >
-                {DOCUMENT_ACCENTS.map((accent) => (
-                  <option value={accent.value} key={accent.value}>
-                    {accent.label}
-                  </option>
-                ))}
-              </SelectField>
-            </div>
-            <div className="form-grid form-grid--two">
-              <InputField
-                id="signatoryName"
-                label="Authorised signatory (optional)"
-                value={values.signatoryName}
-                onChange={(event) => updateValue('signatoryName', event.target.value)}
-                error={fieldError(errors, 'signatoryName')}
-              />
-              <InputField
-                id="signatoryDesignation"
-                label="Designation (optional)"
-                value={values.signatoryDesignation}
-                onChange={(event) => updateValue('signatoryDesignation', event.target.value)}
-                error={fieldError(errors, 'signatoryDesignation')}
-              />
-            </div>
-            <CheckboxField
-              id="signaturePlaceholder"
-              label="Show signature line"
-              checked={values.signaturePlaceholder}
-              onChange={(event) => updateValue('signaturePlaceholder', event.target.checked)}
-            />
-          </fieldset>
-          <div className="document-form__actions">
-            <Button type="submit" fullWidth>
-              Create invoice draft
-            </Button>
-            <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
-              Reset
-            </Button>
-          </div>
-        </form>
-        <PrivacyBlock>
-          Business, customer, line-item and logo details stay in this browser. They are not uploaded, stored
-          by default, sent in analytics or written to logs.
-        </PrivacyBlock>
+          </DocumentSection>
+        </GuidedDocumentForm>
       </section>
       <section
         className="calculator-result document-result"
@@ -690,10 +723,6 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               This is a commercial invoice draft, not a GST tax invoice. Handoffs copy selected fields into
               destination forms in this tab&apos;s session storage and always require review.
             </p>
-            <PrivacyBlock>
-              The invoice is generated locally and does not confirm tax treatment, payment settlement or UPI
-              ownership.
-            </PrivacyBlock>
           </>
         ) : (
           <StateBlock

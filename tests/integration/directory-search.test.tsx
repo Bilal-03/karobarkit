@@ -19,6 +19,7 @@ describe('directory search scaling', () => {
         ),
       ),
     ).toEqual({
+      group: 'all',
       query: 'gst bill',
       category: 'gst-tax',
       kind: 'calculator',
@@ -30,6 +31,7 @@ describe('directory search scaling', () => {
         new URLSearchParams('category=not-a-category&type=unknown&execution=remote&regulated=maybe'),
       ),
     ).toEqual({
+      group: 'all',
       query: '',
       category: 'all',
       kind: 'all',

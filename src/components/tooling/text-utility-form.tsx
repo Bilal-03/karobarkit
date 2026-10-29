@@ -1,4 +1,5 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -22,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 export type TextUtilityKind = 'word-counter' | 'password-toolkit';
@@ -264,7 +265,6 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
                 <dd>{formatIndianNumber(wordResult.paragraphs)}</dd>
               </div>
             </dl>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : kind === 'password-toolkit' && passwordResult ? (
           <>
@@ -302,7 +302,6 @@ export function TextUtilityForm({ kind, tool }: TextUtilityFormProps) {
                 )}
               </ul>
             </ResultPanel>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

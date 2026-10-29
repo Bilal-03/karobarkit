@@ -14,7 +14,7 @@ import { trackEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 
 interface TodoChecklistFormProps {
   tool: { id: string; category: string; defaultValues: unknown; privacyNote: string };
@@ -209,7 +209,6 @@ export function TodoChecklistForm({ tool }: TodoChecklistFormProps) {
             {exportError}
           </p>
         ) : null}
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
     </div>
   );

@@ -25,7 +25,7 @@ test.describe('GST Calculator', () => {
 
     await page.getByLabel('Amount').fill('1050');
     await page.getByRole('radio', { name: '5% · current headline rate' }).check();
-    await page.getByRole('radio', { name: 'GST inclusive' }).check();
+    await page.getByRole('radio', { name: 'Remove GST' }).check();
     await page.getByRole('radio', { name: 'Inter-state · IGST' }).check();
     await page.getByRole('button', { name: 'Calculate GST' }).press('Enter');
 

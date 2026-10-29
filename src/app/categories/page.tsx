@@ -17,10 +17,7 @@ export default function CategoriesPage() {
         <Container narrow>
           <p className="eyebrow">Categories</p>
           <h1>Browse tools by business task</h1>
-          <p className="lede">
-            {categoryRegistry.length} task-focused areas form the product architecture. Published counts are
-            explicit, and roadmap categories do not publish placeholder tool pages.
-          </p>
+          <p className="lede">What would you like to work on?</p>
         </Container>
       </section>
       <Container>
@@ -32,7 +29,7 @@ export default function CategoriesPage() {
                 <h2>
                   <Link href={`/categories/${category.slug}`}>{category.name}</Link>
                 </h2>
-                <p>{category.description}</p>
+                <p>{category.shortDescription}</p>
                 <Link className="text-link" href={`/categories/${category.slug}`}>
                   {count > 0
                     ? `${count} published tool${count === 1 ? '' : 's'}`

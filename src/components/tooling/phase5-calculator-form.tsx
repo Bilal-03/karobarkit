@@ -1,4 +1,5 @@
 'use client';
+import { FieldGroups, ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -25,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 interface Phase5CalculatorFormProps {
@@ -128,7 +129,9 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
       Object.fromEntries(fields.map((field) => [field.name, field.defaultValue])),
     [fields, tool.defaultValues],
   );
-  const [values, setValues] = useState<Phase5CalculatorInput>(initialValues);
+  const [values, setValues] = useState<Phase5CalculatorInput>(() =>
+    emptyPrimaryValues(tool.id, initialValues),
+  );
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -201,7 +204,13 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {fields.map((field) => renderField(field, values, errors, updateValue))}
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => renderField(field, values, errors, updateValue)}
+          />
           <Button type="submit" fullWidth disabled={isCalculating}>
             {isCalculating ? 'Calculating…' : 'Calculate scenario'}
           </Button>
@@ -237,10 +246,9 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
-              detail={result.detail}
             >
               <dl className="result-breakdown">
-                {result.details.map((detail) => (
+                {result.details.slice(0, 3).map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>
@@ -259,20 +267,13 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
               </div>
             ) : null}
             {result.policy && result.policyFreshness ? (
-              <div className="gst-policy-summary" role="note">
-                <strong>Bundled marketplace policy</strong>
-                <span>
-                  {result.policy.id} · effective {formatIndianDate(result.policy.effectiveFrom)}
-                  {result.policy.effectiveTo
-                    ? ` to ${formatIndianDate(result.policy.effectiveTo)}`
-                    : ' onward'}{' '}
-                  · verified {formatIndianDate(result.policy.lastVerifiedOn)} · review due{' '}
-                  {formatIndianDate(result.policyFreshness.reviewDueOn)}
-                </span>
-                {result.policyFreshness.isStale ? (
-                  <span className="gst-policy-warning">{result.policyFreshness.message}</span>
-                ) : null}
-              </div>
+              <>
+                {result.policyFreshness?.isStale && (
+                  <p className="notice" role="status">
+                    This estimate needs a current policy review before use.
+                  </p>
+                )}
+              </>
             ) : null}
             <div className="inline-actions scenario-actions">
               <Button type="button" variant="secondary" onClick={() => downloadCsv(kind, values, result)}>
@@ -282,7 +283,6 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
                 Print summary
               </Button>
             </div>
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

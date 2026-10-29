@@ -9,9 +9,10 @@ import type { ToolInteractionTool } from './tool-types';
 
 function ToolInteractionLoading() {
   return (
-    <div className="state-block state-block--loading" role="status" aria-live="polite">
-      <strong>Loading this tool interface</strong>
-      <p>The page shell is ready; the interaction area is loading.</p>
+    <div className="tool-skeleton" role="status">
+      <span className="sr-only">Loading tool…</span>
+      <div />
+      <div />
     </div>
   );
 }

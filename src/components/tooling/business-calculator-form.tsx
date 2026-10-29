@@ -1,4 +1,5 @@
 'use client';
+import { FieldGroups, ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -26,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 interface BusinessCalculatorFormProps {
@@ -88,7 +89,9 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
       Object.fromEntries(fields.map((field) => [field.name, field.defaultValue])),
     [fields, tool.defaultValues],
   );
-  const [values, setValues] = useState<BusinessCalculatorInput>(initialValues);
+  const [values, setValues] = useState<BusinessCalculatorInput>(() =>
+    emptyPrimaryValues(tool.id, initialValues),
+  );
   const [transferSaved, setTransferSaved] = useState(false);
   const [pendingTransfer, setPendingTransfer] = useState<
     (LocalScenarioTransfer & { sharedValues: Record<string, string> }) | null
@@ -198,6 +201,7 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
           {pendingTransfer ? (
             <div className="scenario-transfer" role="status">
               <strong>Scenario ready from {pendingTransfer.sourceToolName}</strong>
@@ -215,22 +219,27 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
               </div>
             </div>
           ) : null}
-          {fields.map((field) => (
-            <InputField
-              key={field.name}
-              id={field.name}
-              name={field.name}
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              label={field.label}
-              help={field.help}
-              value={values[field.name] ?? ''}
-              onChange={(event) => updateValue(field.name, event.target.value)}
-              error={getFieldError(errors, field.name)}
-              required={field.required !== false}
-            />
-          ))}
+          <FieldGroups
+            toolId={tool.id}
+            fields={fields}
+            values={values}
+            render={(field) => (
+              <InputField
+                key={field.name}
+                id={field.name}
+                name={field.name}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                label={field.label}
+                help={field.help}
+                value={values[field.name] ?? ''}
+                onChange={(event) => updateValue(field.name, event.target.value)}
+                error={getFieldError(errors, field.name)}
+                required={field.required !== false}
+              />
+            )}
+          />
           <Button type="submit" fullWidth disabled={isCalculating}>
             {isCalculating ? 'Calculating…' : 'Calculate scenario'}
           </Button>
@@ -266,10 +275,9 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
-              detail={result.detail}
             >
               <dl className="result-breakdown">
-                {result.details.map((detail) => (
+                {result.details.slice(0, 3).map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>
@@ -294,7 +302,6 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
                 matching fields after you choose to do so.
               </p>
             ) : null}
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

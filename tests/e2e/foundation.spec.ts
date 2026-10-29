@@ -27,9 +27,9 @@ const metadataRoutes = [
   {
     path: '/',
     title: 'The Business Toolkit for India',
-    h1: 'Run the numbers. Create the document. Make the next decision.',
+    h1: 'Everyday tools for your business.',
   },
-  { path: '/tools', title: 'Business tools for India', h1: 'Find the right tool for the business task' },
+  { path: '/tools', title: 'Business tools for India', h1: 'All tools' },
   {
     path: '/categories',
     title: 'Business toolkit categories for India',
@@ -154,7 +154,7 @@ function escapeRegExp(value: string) {
 test.describe('foundation routes', () => {
   test('supports homepage, search, category and related-tool discovery', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.tool-card--featured')).toHaveCount(15);
+    await expect(page.locator('.tool-card--featured')).toHaveCount(6);
     await page.getByLabel('What do you need to do?').fill('gst bill');
     await page.getByRole('button', { name: 'Search tools' }).click();
     await expect(page.getByRole('heading', { name: 'GST Invoice Generator' })).toBeVisible();
@@ -242,6 +242,7 @@ test.describe('foundation routes', () => {
     await expect(page.locator('h1')).toHaveText('CAGR Calculator');
     await expect(page).toHaveTitle(/CAGR Calculator for Indian Businesses/);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/tools\/cagr-calculator$/);
+    await page.getByText('Sources & limitations', { exact: true }).click();
     await expect(
       page.getByRole('heading', { name: 'Check the method before you rely on the result' }),
     ).toBeVisible();
@@ -309,9 +310,9 @@ test.describe('foundation routes', () => {
 
     await page
       .getByRole('navigation', { name: 'Mobile primary navigation' })
-      .getByRole('link', { name: 'Methodology' })
+      .getByRole('link', { name: 'Categories' })
       .click();
-    await expect(page).toHaveURL(/\/methodology$/);
+    await expect(page).toHaveURL(/\/categories$/);
     await expect(page.locator('.mobile-menu')).toHaveCount(0);
   });
 

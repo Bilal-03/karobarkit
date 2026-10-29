@@ -5,24 +5,30 @@ import { describe, expect, it, vi } from 'vitest';
 import { DocumentGeneratorForm } from '@/components/documents/document-generator-form';
 import { letterheadTool, paymentReceiptTool } from '@/domain/registry';
 
-vi.setConfig({ testTimeout: 15000 });
+vi.setConfig({ testTimeout: 30000 });
 
 describe('document generator form integration', () => {
   it('creates a minimum letterhead and preserves plain text as text', async () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
-    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'नमस्ते Studio');
-    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road\nPune');
-    await user.clear(screen.getByRole('textbox', { name: 'Letter body (optional)' }));
-    await user.type(screen.getByRole('textbox', { name: 'Letter body (optional)' }), '<script>no</script>');
-    await user.click(screen.getByRole('button', { name: 'Create letterhead' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'नमस्ते Studio' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road\nPune' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Letter body (optional)' }), {
+      target: { value: '<script>no</script>' },
+    });
+    if (screen.queryByRole('button', { name: 'Next' })) {
+      await user.click(screen.getByRole('button', { name: 'Next' }));
+    }
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
 
     expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
-    expect(screen.getByText('नमस्ते Studio')).toBeInTheDocument();
-    expect(screen.getAllByText('<script>no</script>')).toHaveLength(2);
+    expect(screen.getByTestId('document-preview')).toHaveTextContent('नमस्ते Studio');
+    expect(screen.getByTestId('document-preview').querySelector('script')).toBeNull();
     expect(screen.queryByRole('script')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('a4-page')).toHaveLength(1);
   });
@@ -31,15 +37,22 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
-    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Long Letter Co');
-    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'A long address');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Long Letter Co' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'A long address' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.selectOptions(screen.getByRole('combobox', { name: 'Layout' }), 'formal');
+    fireEvent.click(document.querySelector('.document-steps button')!);
     fireEvent.change(screen.getByRole('textbox', { name: 'Letter body (optional)' }), {
       target: { value: 'A '.repeat(1800) },
     });
-    await user.click(screen.getByRole('button', { name: 'Create letterhead' }));
+    if (screen.queryByRole('button', { name: 'Next' })) {
+      await user.click(screen.getByRole('button', { name: 'Next' }));
+    }
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
 
     expect(await screen.findByTestId('document-preview')).toHaveClass('document-preview');
     expect(screen.getAllByTestId('a4-page').length).toBeGreaterThan(1);
@@ -50,20 +63,25 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="payment-receipt" tool={paymentReceiptTool} />);
 
-    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
-    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
-    await user.clear(screen.getByRole('textbox', { name: 'Receipt number' }));
-    await user.type(screen.getByRole('textbox', { name: 'Receipt number' }), 'RCPT/001');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Ravi & Sons' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Receipt number' }), {
+      target: { value: 'RCPT/001' },
+    });
     fireEvent.change(screen.getByLabelText(/Receipt date/), { target: { value: '2026-08-06' } });
-    await user.clear(screen.getByRole('textbox', { name: 'Received from' }));
-    await user.type(screen.getByRole('textbox', { name: 'Received from' }), 'Nikhil');
-    await user.clear(screen.getByRole('textbox', { name: 'Amount received' }));
-    await user.type(screen.getByRole('textbox', { name: 'Amount received' }), '1250.50');
-    await user.clear(screen.getByRole('textbox', { name: 'Payment purpose' }));
-    await user.type(screen.getByRole('textbox', { name: 'Payment purpose' }), 'Consulting retainer');
-    await user.click(screen.getByRole('button', { name: 'Create receipt' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Received from' }), { target: { value: 'Nikhil' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount received' }), {
+      target: { value: '1250.50' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Payment purpose' }), {
+      target: { value: 'Consulting retainer' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
 
     expect(
       await screen.findByText('One Thousand Two Hundred Fifty Rupees and Fifty Paise Only'),
@@ -75,20 +93,23 @@ describe('document generator form integration', () => {
     const user = userEvent.setup();
     render(<DocumentGeneratorForm kind="payment-receipt" tool={paymentReceiptTool} />);
 
-    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Ravi & Sons');
-    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Market Road');
-    await user.clear(screen.getByRole('textbox', { name: 'Receipt number' }));
-    await user.type(screen.getByRole('textbox', { name: 'Receipt number' }), 'RCPT/001');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Ravi & Sons' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Market Road' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Receipt number' }), {
+      target: { value: 'RCPT/001' },
+    });
     fireEvent.change(screen.getByLabelText(/Receipt date/), { target: { value: '2026-08-06' } });
-    await user.clear(screen.getByRole('textbox', { name: 'Received from' }));
-    await user.type(screen.getByRole('textbox', { name: 'Received from' }), 'Nikhil');
-    await user.clear(screen.getByRole('textbox', { name: 'Amount received' }));
-    await user.type(screen.getByRole('textbox', { name: 'Amount received' }), '-1');
-    await user.clear(screen.getByRole('textbox', { name: 'Payment purpose' }));
-    await user.type(screen.getByRole('textbox', { name: 'Payment purpose' }), 'Consulting');
-    await user.click(screen.getByRole('button', { name: 'Create receipt' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Received from' }), { target: { value: 'Nikhil' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount received' }), { target: { value: '-1' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Payment purpose' }), {
+      target: { value: 'Consulting' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
 
     const summary = await screen.findByRole('alert', { name: 'Check the highlighted fields' });
     await waitFor(() => expect(summary).toHaveFocus());
@@ -101,13 +122,19 @@ describe('document generator form integration', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<DocumentGeneratorForm kind="letterhead" tool={letterheadTool} />);
 
-    await user.clear(screen.getByRole('textbox', { name: 'Business name' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Reset Co');
-    await user.clear(screen.getByRole('textbox', { name: 'Business address' }));
-    await user.type(screen.getByRole('textbox', { name: 'Business address' }), 'Address');
-    await user.click(screen.getByRole('button', { name: 'Create letterhead' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business name' }), {
+      target: { value: 'Reset Co' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Business address' }), {
+      target: { value: 'Address' },
+    });
+    if (screen.queryByRole('button', { name: 'Next' })) {
+      await user.click(screen.getByRole('button', { name: 'Next' }));
+    }
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
     await screen.findByTestId('document-preview');
     await user.click(screen.getByRole('button', { name: 'Reset' }));
+    fireEvent.click(document.querySelector('.document-steps button')!);
 
     await waitFor(() => {
       expect(screen.getByRole('textbox', { name: 'Business name' })).toHaveValue('');

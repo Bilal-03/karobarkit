@@ -53,7 +53,7 @@ describe('Phase 6 assistant form', () => {
     await user.click(screen.getByRole('button', { name: 'Generate draft' }));
     expect(screen.getByText('Confirm the data-use notice before sending a request.')).toBeInTheDocument();
 
-    await user.click(screen.getByLabelText(/I understand the disclosed fields/));
+    await user.click(screen.getByLabelText(/I agree to send this brief/));
     await user.click(screen.getByRole('button', { name: 'Generate draft' }));
     await waitFor(() => expect(screen.getByText('A first shortlist')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Copy reviewed draft' })).toBeDisabled();

@@ -1,4 +1,6 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -43,7 +45,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 export type UtilityCalculatorKind =
@@ -129,7 +131,6 @@ function UtilityResultView({ kind, result }: { kind: UtilityCalculatorKind; resu
               ? 'neutral'
               : 'positive'
         }
-        detail={percentage.formula}
       />
     );
   }
@@ -256,7 +257,7 @@ function UtilityResultView({ kind, result }: { kind: UtilityCalculatorKind; resu
 export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps) {
   const router = useRouter();
   const initialValues = useMemo(() => (tool.defaultValues as UtilityValues) ?? {}, [tool.defaultValues]);
-  const [values, setValues] = useState<UtilityValues>(initialValues);
+  const [values, setValues] = useState<UtilityValues>(() => emptyPrimaryValues(tool.id, initialValues));
   const [isInteractive, setIsInteractive] = useState(false);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
@@ -364,44 +365,96 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
         </div>
         <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
-          {kind === 'percentage' ? (
-            <>
-              <SelectField
-                id="mode"
-                label="What do you want to calculate?"
-                value={valueAsString(values, 'mode')}
-                onChange={(event) => updateValue('mode', event.target.value)}
-                error={getFieldError(errors, 'mode')}
-              >
-                <option value="percentage-of">What is X% of a number?</option>
-                <option value="what-percent">What percent is one value of another?</option>
-                <option value="percentage-change">What is the percentage change?</option>
-              </SelectField>
-              <InputField
-                id="base"
-                label="Base value"
-                value={valueAsString(values, 'base')}
-                onChange={(event) => updateValue('base', event.target.value)}
-                error={getFieldError(errors, 'base')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              {valueAsString(values, 'mode') === 'percentage-of' ? (
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
+          <PresentedControls toolId={tool.id}>
+            {kind === 'percentage' ? (
+              <>
+                <SelectField
+                  id="mode"
+                  label="What do you want to calculate?"
+                  value={valueAsString(values, 'mode')}
+                  onChange={(event) => updateValue('mode', event.target.value)}
+                  error={getFieldError(errors, 'mode')}
+                >
+                  <option value="percentage-of">What is X% of a number?</option>
+                  <option value="what-percent">What percent is one value of another?</option>
+                  <option value="percentage-change">What is the percentage change?</option>
+                </SelectField>
                 <InputField
-                  id="percentage"
-                  label="Percentage"
-                  value={valueAsString(values, 'percentage')}
-                  onChange={(event) => updateValue('percentage', event.target.value)}
-                  error={getFieldError(errors, 'percentage')}
+                  id="base"
+                  label="Base value"
+                  value={valueAsString(values, 'base')}
+                  onChange={(event) => updateValue('base', event.target.value)}
+                  error={getFieldError(errors, 'base')}
                   inputMode="decimal"
                   autoComplete="off"
                   required
                 />
-              ) : (
+                {valueAsString(values, 'mode') === 'percentage-of' ? (
+                  <InputField
+                    id="percentage"
+                    label="Percentage"
+                    value={valueAsString(values, 'percentage')}
+                    onChange={(event) => updateValue('percentage', event.target.value)}
+                    error={getFieldError(errors, 'percentage')}
+                    inputMode="decimal"
+                    autoComplete="off"
+                    required
+                  />
+                ) : (
+                  <InputField
+                    id="value"
+                    label="Comparison value"
+                    value={valueAsString(values, 'value')}
+                    onChange={(event) => updateValue('value', event.target.value)}
+                    error={getFieldError(errors, 'value')}
+                    inputMode="decimal"
+                    autoComplete="off"
+                    required
+                  />
+                )}
+              </>
+            ) : null}
+            {kind === 'discount' ? (
+              <>
+                <InputField
+                  id="originalPrice"
+                  label="Original price"
+                  value={valueAsString(values, 'originalPrice')}
+                  onChange={(event) => updateValue('originalPrice', event.target.value)}
+                  error={getFieldError(errors, 'originalPrice')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="firstDiscountPercent"
+                  label="First discount"
+                  help="Enter 0 to 100. This is applied first."
+                  value={valueAsString(values, 'firstDiscountPercent')}
+                  onChange={(event) => updateValue('firstDiscountPercent', event.target.value)}
+                  error={getFieldError(errors, 'firstDiscountPercent')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="secondDiscountPercent"
+                  label="Second discount (optional)"
+                  help="Applied to the already discounted price."
+                  value={valueAsString(values, 'secondDiscountPercent')}
+                  onChange={(event) => updateValue('secondDiscountPercent', event.target.value)}
+                  error={getFieldError(errors, 'secondDiscountPercent')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                />
+              </>
+            ) : null}
+            {kind === 'area' ? (
+              <>
                 <InputField
                   id="value"
-                  label="Comparison value"
+                  label="Area"
                   value={valueAsString(values, 'value')}
                   onChange={(event) => updateValue('value', event.target.value)}
                   error={getFieldError(errors, 'value')}
@@ -409,324 +462,275 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
                   autoComplete="off"
                   required
                 />
-              )}
-            </>
-          ) : null}
-          {kind === 'discount' ? (
-            <>
-              <InputField
-                id="originalPrice"
-                label="Original price"
-                value={valueAsString(values, 'originalPrice')}
-                onChange={(event) => updateValue('originalPrice', event.target.value)}
-                error={getFieldError(errors, 'originalPrice')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="firstDiscountPercent"
-                label="First discount"
-                help="Enter 0 to 100. This is applied first."
-                value={valueAsString(values, 'firstDiscountPercent')}
-                onChange={(event) => updateValue('firstDiscountPercent', event.target.value)}
-                error={getFieldError(errors, 'firstDiscountPercent')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="secondDiscountPercent"
-                label="Second discount (optional)"
-                help="Applied to the already discounted price."
-                value={valueAsString(values, 'secondDiscountPercent')}
-                onChange={(event) => updateValue('secondDiscountPercent', event.target.value)}
-                error={getFieldError(errors, 'secondDiscountPercent')}
-                inputMode="decimal"
-                autoComplete="off"
-              />
-            </>
-          ) : null}
-          {kind === 'area' ? (
-            <>
-              <InputField
-                id="value"
-                label="Area"
-                value={valueAsString(values, 'value')}
-                onChange={(event) => updateValue('value', event.target.value)}
-                error={getFieldError(errors, 'value')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <SelectField
-                id="fromUnit"
-                label="From unit"
-                value={valueAsString(values, 'fromUnit')}
-                onChange={(event) => updateValue('fromUnit', event.target.value)}
-                error={getFieldError(errors, 'fromUnit')}
-              >
-                {areaUnitOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </SelectField>
-              <SelectField
-                id="toUnit"
-                label="To unit"
-                value={valueAsString(values, 'toUnit')}
-                onChange={(event) => updateValue('toUnit', event.target.value)}
-                error={getFieldError(errors, 'toUnit')}
-              >
-                {areaUnitOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </SelectField>
-              {areaUsesRegion ? (
                 <SelectField
-                  id="region"
-                  label="Regional definition"
-                  help="Required for bigha and katha because these units vary by locality."
-                  value={valueAsString(values, 'region')}
-                  onChange={(event) => updateValue('region', event.target.value)}
-                  error={getFieldError(errors, 'region')}
+                  id="fromUnit"
+                  label="From unit"
+                  value={valueAsString(values, 'fromUnit')}
+                  onChange={(event) => updateValue('fromUnit', event.target.value)}
+                  error={getFieldError(errors, 'fromUnit')}
                 >
-                  {areaRegionOptions.map((option) => (
+                  {areaUnitOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </SelectField>
-              ) : null}
-            </>
-          ) : null}
-          {kind === 'business-days' ? (
-            <>
-              <InputField
-                id="startDate"
-                type="date"
-                label="Start date"
-                value={valueAsString(values, 'startDate')}
-                onChange={(event) => updateValue('startDate', event.target.value)}
-                error={getFieldError(errors, 'startDate')}
-                required
-              />
-              <InputField
-                id="endDate"
-                type="date"
-                label="End date"
-                value={valueAsString(values, 'endDate')}
-                onChange={(event) => updateValue('endDate', event.target.value)}
-                error={getFieldError(errors, 'endDate')}
-                required
-              />
-              <CheckboxField
-                id="includeStart"
-                label="Include the start date"
-                checked={valueAsBoolean(values, 'includeStart')}
-                onChange={(event) => updateValue('includeStart', event.target.checked)}
-              />
-              <CheckboxField
-                id="includeEnd"
-                label="Include the end date"
-                checked={valueAsBoolean(values, 'includeEnd')}
-                onChange={(event) => updateValue('includeEnd', event.target.checked)}
-              />
-              <SelectField
-                id="weekendPattern"
-                label="Weekend pattern"
-                value={valueAsString(values, 'weekendPattern')}
-                onChange={(event) => updateValue('weekendPattern', event.target.value)}
-                error={getFieldError(errors, 'weekendPattern')}
-              >
-                {weekendPatterns.map((pattern) => (
-                  <option key={pattern} value={pattern}>
-                    {pattern === 'saturday-sunday'
-                      ? 'Saturday and Sunday'
-                      : pattern === 'sunday'
-                        ? 'Sunday only'
-                        : 'No weekends'}
-                  </option>
-                ))}
-              </SelectField>
-              <SelectField
-                id="holidayPreset"
-                label="Holiday preset"
-                help="Presets are versioned references, not a universal regional calendar."
-                value={valueAsString(values, 'holidayPreset')}
-                onChange={(event) => updateValue('holidayPreset', event.target.value)}
-                error={getFieldError(errors, 'holidayPreset')}
-              >
-                {holidayPresets.map((preset) => (
-                  <option key={preset} value={preset}>
-                    {versionedHolidayPresetLabels[preset]}
-                  </option>
-                ))}
-              </SelectField>
-              <TextareaField
-                id="customHolidays"
-                label="Additional holidays (optional)"
-                help="Use YYYY-MM-DD, separated by commas or new lines."
-                value={valueAsString(values, 'customHolidays')}
-                onChange={(event) => updateValue('customHolidays', event.target.value)}
-                error={getFieldError(errors, 'customHolidays')}
-                rows={3}
-              />
-            </>
-          ) : null}
-          {kind === 'fuel-expense' ? (
-            <>
-              <InputField
-                id="distance"
-                label="Distance"
-                value={valueAsString(values, 'distance')}
-                onChange={(event) => updateValue('distance', event.target.value)}
-                error={getFieldError(errors, 'distance')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <SelectField
-                id="distanceUnit"
-                label="Distance unit"
-                value={valueAsString(values, 'distanceUnit')}
-                onChange={(event) => updateValue('distanceUnit', event.target.value)}
-                error={getFieldError(errors, 'distanceUnit')}
-              >
-                <option value="km">Kilometres</option>
-                <option value="mi">Miles</option>
-              </SelectField>
-              <InputField
-                id="mileage"
-                label="Mileage"
-                value={valueAsString(values, 'mileage')}
-                onChange={(event) => updateValue('mileage', event.target.value)}
-                error={getFieldError(errors, 'mileage')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <SelectField
-                id="mileageUnit"
-                label="Mileage unit"
-                value={valueAsString(values, 'mileageUnit')}
-                onChange={(event) => updateValue('mileageUnit', event.target.value)}
-                error={getFieldError(errors, 'mileageUnit')}
-              >
-                <option value="km-per-litre">Kilometres per litre</option>
-                <option value="miles-per-gallon">Miles per gallon</option>
-              </SelectField>
-              <InputField
-                id="fuelPricePerLitre"
-                label="Fuel price per litre"
-                help="Enter the price yourself; no live price is fetched."
-                value={valueAsString(values, 'fuelPricePerLitre')}
-                onChange={(event) => updateValue('fuelPricePerLitre', event.target.value)}
-                error={getFieldError(errors, 'fuelPricePerLitre')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="trips"
-                label="Number of trips"
-                value={valueAsString(values, 'trips')}
-                onChange={(event) => updateValue('trips', event.target.value)}
-                error={getFieldError(errors, 'trips')}
-                inputMode="numeric"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="markupPercent"
-                label="Optional markup"
-                help="A declared customer or trip markup, not a mandated rate."
-                value={valueAsString(values, 'markupPercent')}
-                onChange={(event) => updateValue('markupPercent', event.target.value)}
-                error={getFieldError(errors, 'markupPercent')}
-                inputMode="decimal"
-                autoComplete="off"
-              />
-            </>
-          ) : null}
-          {kind === 'volumetric-weight' ? (
-            <>
-              <InputField
-                id="length"
-                label="Length"
-                value={valueAsString(values, 'length')}
-                onChange={(event) => updateValue('length', event.target.value)}
-                error={getFieldError(errors, 'length')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="width"
-                label="Width"
-                value={valueAsString(values, 'width')}
-                onChange={(event) => updateValue('width', event.target.value)}
-                error={getFieldError(errors, 'width')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <InputField
-                id="height"
-                label="Height"
-                value={valueAsString(values, 'height')}
-                onChange={(event) => updateValue('height', event.target.value)}
-                error={getFieldError(errors, 'height')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <SelectField
-                id="dimensionUnit"
-                label="Dimension unit"
-                value={valueAsString(values, 'dimensionUnit')}
-                onChange={(event) => updateValue('dimensionUnit', event.target.value)}
-                error={getFieldError(errors, 'dimensionUnit')}
-              >
-                <option value="cm">Centimetres</option>
-                <option value="in">Inches</option>
-              </SelectField>
-              <InputField
-                id="actualWeight"
-                label="Actual weight"
-                value={valueAsString(values, 'actualWeight')}
-                onChange={(event) => updateValue('actualWeight', event.target.value)}
-                error={getFieldError(errors, 'actualWeight')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-              <SelectField
-                id="actualWeightUnit"
-                label="Actual weight unit"
-                value={valueAsString(values, 'actualWeightUnit')}
-                onChange={(event) => updateValue('actualWeightUnit', event.target.value)}
-                error={getFieldError(errors, 'actualWeightUnit')}
-              >
-                <option value="kg">Kilograms</option>
-                <option value="lb">Pounds</option>
-              </SelectField>
-              <InputField
-                id="divisor"
-                label="Carrier divisor"
-                help="Use the divisor stated by your carrier; it is never assumed silently."
-                value={valueAsString(values, 'divisor')}
-                onChange={(event) => updateValue('divisor', event.target.value)}
-                error={getFieldError(errors, 'divisor')}
-                inputMode="decimal"
-                autoComplete="off"
-                required
-              />
-            </>
-          ) : null}
+                <SelectField
+                  id="toUnit"
+                  label="To unit"
+                  value={valueAsString(values, 'toUnit')}
+                  onChange={(event) => updateValue('toUnit', event.target.value)}
+                  error={getFieldError(errors, 'toUnit')}
+                >
+                  {areaUnitOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SelectField>
+                {areaUsesRegion ? (
+                  <SelectField
+                    id="region"
+                    label="Regional definition"
+                    help="Required for bigha and katha because these units vary by locality."
+                    value={valueAsString(values, 'region')}
+                    onChange={(event) => updateValue('region', event.target.value)}
+                    error={getFieldError(errors, 'region')}
+                  >
+                    {areaRegionOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
+                ) : null}
+              </>
+            ) : null}
+            {kind === 'business-days' ? (
+              <>
+                <InputField
+                  id="startDate"
+                  type="date"
+                  label="Start date"
+                  value={valueAsString(values, 'startDate')}
+                  onChange={(event) => updateValue('startDate', event.target.value)}
+                  error={getFieldError(errors, 'startDate')}
+                  required
+                />
+                <InputField
+                  id="endDate"
+                  type="date"
+                  label="End date"
+                  value={valueAsString(values, 'endDate')}
+                  onChange={(event) => updateValue('endDate', event.target.value)}
+                  error={getFieldError(errors, 'endDate')}
+                  required
+                />
+                <CheckboxField
+                  id="includeStart"
+                  label="Include the start date"
+                  checked={valueAsBoolean(values, 'includeStart')}
+                  onChange={(event) => updateValue('includeStart', event.target.checked)}
+                />
+                <CheckboxField
+                  id="includeEnd"
+                  label="Include the end date"
+                  checked={valueAsBoolean(values, 'includeEnd')}
+                  onChange={(event) => updateValue('includeEnd', event.target.checked)}
+                />
+                <SelectField
+                  id="weekendPattern"
+                  label="Weekend pattern"
+                  value={valueAsString(values, 'weekendPattern')}
+                  onChange={(event) => updateValue('weekendPattern', event.target.value)}
+                  error={getFieldError(errors, 'weekendPattern')}
+                >
+                  {weekendPatterns.map((pattern) => (
+                    <option key={pattern} value={pattern}>
+                      {pattern === 'saturday-sunday'
+                        ? 'Saturday and Sunday'
+                        : pattern === 'sunday'
+                          ? 'Sunday only'
+                          : 'No weekends'}
+                    </option>
+                  ))}
+                </SelectField>
+                <SelectField
+                  id="holidayPreset"
+                  label="Holiday preset"
+                  help="Presets are versioned references, not a universal regional calendar."
+                  value={valueAsString(values, 'holidayPreset')}
+                  onChange={(event) => updateValue('holidayPreset', event.target.value)}
+                  error={getFieldError(errors, 'holidayPreset')}
+                >
+                  {holidayPresets.map((preset) => (
+                    <option key={preset} value={preset}>
+                      {versionedHolidayPresetLabels[preset]}
+                    </option>
+                  ))}
+                </SelectField>
+                <TextareaField
+                  id="customHolidays"
+                  label="Additional holidays (optional)"
+                  help="Use YYYY-MM-DD, separated by commas or new lines."
+                  value={valueAsString(values, 'customHolidays')}
+                  onChange={(event) => updateValue('customHolidays', event.target.value)}
+                  error={getFieldError(errors, 'customHolidays')}
+                  rows={3}
+                />
+              </>
+            ) : null}
+            {kind === 'fuel-expense' ? (
+              <>
+                <InputField
+                  id="distance"
+                  label="Distance"
+                  value={valueAsString(values, 'distance')}
+                  onChange={(event) => updateValue('distance', event.target.value)}
+                  error={getFieldError(errors, 'distance')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <SelectField
+                  id="distanceUnit"
+                  label="Distance unit"
+                  value={valueAsString(values, 'distanceUnit')}
+                  onChange={(event) => updateValue('distanceUnit', event.target.value)}
+                  error={getFieldError(errors, 'distanceUnit')}
+                >
+                  <option value="km">Kilometres</option>
+                  <option value="mi">Miles</option>
+                </SelectField>
+                <InputField
+                  id="mileage"
+                  label="Mileage"
+                  value={valueAsString(values, 'mileage')}
+                  onChange={(event) => updateValue('mileage', event.target.value)}
+                  error={getFieldError(errors, 'mileage')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <SelectField
+                  id="mileageUnit"
+                  label="Mileage unit"
+                  value={valueAsString(values, 'mileageUnit')}
+                  onChange={(event) => updateValue('mileageUnit', event.target.value)}
+                  error={getFieldError(errors, 'mileageUnit')}
+                >
+                  <option value="km-per-litre">Kilometres per litre</option>
+                  <option value="miles-per-gallon">Miles per gallon</option>
+                </SelectField>
+                <InputField
+                  id="fuelPricePerLitre"
+                  label="Fuel price per litre"
+                  help="Enter the price yourself; no live price is fetched."
+                  value={valueAsString(values, 'fuelPricePerLitre')}
+                  onChange={(event) => updateValue('fuelPricePerLitre', event.target.value)}
+                  error={getFieldError(errors, 'fuelPricePerLitre')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="trips"
+                  label="Number of trips"
+                  value={valueAsString(values, 'trips')}
+                  onChange={(event) => updateValue('trips', event.target.value)}
+                  error={getFieldError(errors, 'trips')}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="markupPercent"
+                  label="Optional markup"
+                  help="A declared customer or trip markup, not a mandated rate."
+                  value={valueAsString(values, 'markupPercent')}
+                  onChange={(event) => updateValue('markupPercent', event.target.value)}
+                  error={getFieldError(errors, 'markupPercent')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                />
+              </>
+            ) : null}
+            {kind === 'volumetric-weight' ? (
+              <>
+                <InputField
+                  id="length"
+                  label="Length"
+                  value={valueAsString(values, 'length')}
+                  onChange={(event) => updateValue('length', event.target.value)}
+                  error={getFieldError(errors, 'length')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="width"
+                  label="Width"
+                  value={valueAsString(values, 'width')}
+                  onChange={(event) => updateValue('width', event.target.value)}
+                  error={getFieldError(errors, 'width')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <InputField
+                  id="height"
+                  label="Height"
+                  value={valueAsString(values, 'height')}
+                  onChange={(event) => updateValue('height', event.target.value)}
+                  error={getFieldError(errors, 'height')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <SelectField
+                  id="dimensionUnit"
+                  label="Dimension unit"
+                  value={valueAsString(values, 'dimensionUnit')}
+                  onChange={(event) => updateValue('dimensionUnit', event.target.value)}
+                  error={getFieldError(errors, 'dimensionUnit')}
+                >
+                  <option value="cm">Centimetres</option>
+                  <option value="in">Inches</option>
+                </SelectField>
+                <InputField
+                  id="actualWeight"
+                  label="Actual weight"
+                  value={valueAsString(values, 'actualWeight')}
+                  onChange={(event) => updateValue('actualWeight', event.target.value)}
+                  error={getFieldError(errors, 'actualWeight')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+                <SelectField
+                  id="actualWeightUnit"
+                  label="Actual weight unit"
+                  value={valueAsString(values, 'actualWeightUnit')}
+                  onChange={(event) => updateValue('actualWeightUnit', event.target.value)}
+                  error={getFieldError(errors, 'actualWeightUnit')}
+                >
+                  <option value="kg">Kilograms</option>
+                  <option value="lb">Pounds</option>
+                </SelectField>
+                <InputField
+                  id="divisor"
+                  label="Carrier divisor"
+                  help="Use the divisor stated by your carrier; it is never assumed silently."
+                  value={valueAsString(values, 'divisor')}
+                  onChange={(event) => updateValue('divisor', event.target.value)}
+                  error={getFieldError(errors, 'divisor')}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  required
+                />
+              </>
+            ) : null}
+          </PresentedControls>
           <Button type="submit" fullWidth disabled={isCalculating}>
             {isCalculating ? 'Calculating…' : 'Calculate result'}
           </Button>
@@ -772,7 +776,6 @@ export function UtilityCalculatorForm({ kind, tool }: UtilityCalculatorFormProps
                 {handoffError}
               </p>
             ) : null}
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

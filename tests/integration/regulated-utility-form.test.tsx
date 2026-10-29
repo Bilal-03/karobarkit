@@ -9,6 +9,8 @@ describe('regulated utility form', () => {
   it('keeps HSN search local, interactive and explicitly classified as reference-only', async () => {
     const user = userEvent.setup();
     render(<RegulatedUtilityForm kind="hsn-sac" tool={hsnSacFinderTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     const form = screen.getByRole('textbox', { name: 'Code or keyword' }).closest('form');
     await waitFor(() => expect(form).toHaveAttribute('data-interactive', 'true'));
@@ -19,12 +21,14 @@ describe('regulated utility form', () => {
 
     expect(await screen.findByText(/1905/)).toBeInTheDocument();
     expect(screen.getByText(/Reference search only/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Inputs and bundled policy data stay in this browser/).length).toBe(2);
+    expect(screen.queryAllByText(/Inputs and bundled policy data stay in this browser/)).toHaveLength(0);
   });
 
   it('switches depreciation modes without changing the page shell', async () => {
     const user = userEvent.setup();
     render(<RegulatedUtilityForm kind="depreciation" tool={depreciationTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     await user.click(screen.getByRole('button', { name: 'Calculate reference result' }));
     expect(await screen.findByText(/Illustrative depreciation/)).toBeInTheDocument();

@@ -18,6 +18,6 @@ describe('to-do checklist form', () => {
 
     await user.click(screen.getByRole('checkbox'));
     expect(screen.getByText('100.00%')).toBeInTheDocument();
-    expect(screen.getByText(/Tasks remain in this browser session/)).toBeInTheDocument();
+    expect(screen.queryByText(/Tasks remain in this browser session/)).not.toBeInTheDocument();
   });
 });

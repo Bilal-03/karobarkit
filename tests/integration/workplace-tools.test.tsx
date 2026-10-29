@@ -30,6 +30,7 @@ describe('retail and workplace tool forms', () => {
     const user = userEvent.setup();
     render(<WorkplaceCalculatorForm kind="notice-period" tool={noticePeriodTool} />);
 
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate locally' }));
 
     expect(await screen.findByText('9 September 2026')).toBeInTheDocument();
@@ -40,6 +41,7 @@ describe('retail and workplace tool forms', () => {
     const user = userEvent.setup();
     render(<WorkplaceCalculatorForm kind="leave-balance" tool={leaveBalanceTool} />);
 
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate balance' }));
 
     expect(await screen.findByText('12 days')).toBeInTheDocument();
@@ -61,12 +63,13 @@ describe('retail and workplace tool forms', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Supplier address' }), {
       target: { value: 'Supplier address' },
     });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Add item' }));
     const secondDescription = document.getElementById('workplace-item-1-description') as HTMLInputElement;
     const secondPrice = document.getElementById('workplace-item-1-unit-price') as HTMLInputElement;
     fireEvent.change(secondDescription, { target: { value: 'Second item' } });
     fireEvent.change(secondPrice, { target: { value: '50' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Generate purchase order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review document' }));
 
     expect(await screen.findByText('Second item')).toBeInTheDocument();
     expect(screen.getAllByText('₹150.00').length).toBeGreaterThan(0);
@@ -77,12 +80,13 @@ describe('retail and workplace tool forms', () => {
     render(<WorkplaceDocumentForm kind="menu" tool={menuTool} />);
 
     await user.type(screen.getByRole('textbox', { name: 'Business name' }), 'Cafe');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Add menu item' }));
     await user.type(screen.getByRole('textbox', { name: 'Item 2 name' }), 'Tea');
     await user.click(screen.getByRole('button', { name: 'Add menu section' }));
     await user.type(screen.getAllByRole('textbox', { name: 'Section heading' })[1]!, 'Desserts');
     await user.type(screen.getAllByRole('textbox', { name: 'Item 1 name' })[1]!, 'Cake');
-    await user.click(screen.getByRole('button', { name: 'Generate menu' }));
+    await user.click(screen.getByRole('button', { name: 'Review document' }));
 
     expect(await screen.findByText('Tea')).toBeInTheDocument();
     expect(screen.getByText('Desserts')).toBeInTheDocument();

@@ -1,4 +1,6 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +34,7 @@ import { LogoUploader } from '@/components/documents/logo-uploader';
 import { Button } from '@/components/ui/button';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ErrorSummary } from '@/components/ui/form-error';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface InvoiceToolProps {
@@ -68,6 +70,7 @@ function policySummary(invoiceDate: string) {
 export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
+  const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<GstInvoiceInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
@@ -79,32 +82,30 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const resultRef = useRef<HTMLDivElement>(null);
   const printTargetId = 'gst-invoice-document-print-area';
   const rateOptions = getInvoiceRateOptions(values.invoiceDate || INVOICE_LAST_REVIEWED);
-  const { result, errors, calculationError, clearFieldError, clearErrors, submit } = useLiveCalculation<
-    GstInvoiceInput,
-    GstInvoiceDocument
-  >({
-    values,
-    validate: (input) => {
-      const validation = validateGstInvoiceInput(input);
-      return validation.success ? { success: true as const, data: input } : validation;
-    },
-    calculate: (input) => calculateGstInvoice(input),
-    onResult: (_nextResult, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_completed', { toolId: tool.id });
-        trackEvent('result_generated', { toolId: tool.id });
-        window.requestAnimationFrame(() => focusResult(resultRef.current));
-      }
-    },
-    onValidationFailure: (validationErrors, source) => {
-      if (source === 'submit') {
-        trackEvent('tool_validation_failed', {
-          toolId: tool.id,
-          errorCodes: validationErrors.map((error) => error.code),
-        });
-      }
-    },
-  });
+  const { result, errors, calculationError, clearFieldError, clearErrors, submit, reportErrors } =
+    useLiveCalculation<GstInvoiceInput, GstInvoiceDocument>({
+      values,
+      validate: (input) => {
+        const validation = validateGstInvoiceInput(input);
+        return validation.success ? { success: true as const, data: input } : validation;
+      },
+      calculate: (input) => calculateGstInvoice(input),
+      onResult: (_nextResult, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_completed', { toolId: tool.id });
+          trackEvent('result_generated', { toolId: tool.id });
+          window.requestAnimationFrame(() => focusResult(resultRef.current));
+        }
+      },
+      onValidationFailure: (validationErrors, source) => {
+        if (source === 'submit') {
+          trackEvent('tool_validation_failed', {
+            toolId: tool.id,
+            errorCodes: validationErrors.map((error) => error.code),
+          });
+        }
+      },
+    });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsInteractive(true));
@@ -289,6 +290,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       !window.confirm('Clear the entered invoice details and preview?')
     )
       return;
+    setResetVersion((value) => value + 1);
     setValues(cloneInvoiceInput(initialValues));
     clearErrors();
     clearResult();
@@ -520,7 +522,20 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={onSubmit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
+        <GuidedDocumentForm
+          key={resetVersion}
+          definition={documentFlows.gstInvoice}
+          validate={() => {
+            const checked = validateGstInvoiceInput(values);
+            return checked.success ? [] : checked.errors;
+          }}
+          errors={errors}
+          onPreview={submit}
+          onStepErrors={reportErrors}
+          onSubmit={onSubmit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+        >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
           {quotationTransfer ? (
             <div className="local-handoff-banner" role="status">
@@ -546,300 +561,310 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </div>
             </div>
           ) : null}
-          <div className="gst-policy-summary" role="note">
-            <strong>Reviewed GST policy</strong>
-            <span>{policySummary(values.invoiceDate)}</span>
-            <span>
-              The invoice date selects the effective policy; unsupported historical and future dates are
-              blocked. Rate presets are source-backed choices only, and the generator does not classify
-              goods/services or recommend a rate.
-            </span>
-          </div>
-          <fieldset className="document-form-section">
+
+          <DocumentSection stepId="parties" className="document-form-section">
             <legend>Supplier</legend>
-            <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
-            {renderPartyFields('supplier')}
-          </fieldset>
-          <fieldset className="document-form-section">
+            <PresentedControls toolId={tool.id}>
+              <details className="field-group">
+                <summary>Add a logo</summary>
+                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+              </details>
+              {renderPartyFields('supplier')}
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="parties" className="document-form-section">
             <legend>Recipient</legend>
-            <SelectField
-              id="recipientRegistrationStatus"
-              label="Recipient registration status"
-              value={values.recipientRegistrationStatus}
-              onChange={(event) =>
-                updateValue(
-                  'recipientRegistrationStatus',
-                  event.target.value as GstInvoiceInput['recipientRegistrationStatus'],
-                )
-              }
-              error={fieldError(errors, 'recipientRegistrationStatus')}
-              help="Choose the status from your records; the tool does not infer or verify it."
-              required
-            >
-              <option value="registered">Registered</option>
-              <option value="unregistered">Unregistered</option>
-              <option value="unknown">Unknown · review before issue</option>
-            </SelectField>
-            {renderPartyFields('recipient')}
-          </fieldset>
-          <fieldset className="document-form-section">
-            <legend>Invoice details</legend>
-            <div className="form-grid form-grid--two">
-              <InputField
-                id="invoiceNumber"
-                label="Invoice number"
-                value={values.invoiceNumber}
-                onChange={(event) => updateValue('invoiceNumber', event.target.value)}
-                error={fieldError(errors, 'invoiceNumber')}
-                required
-                help="Up to 16 letters, numbers, hyphens or slashes. Uniqueness is not checked."
-              />
-              <InputField
-                id="invoiceDate"
-                label="Invoice date"
-                type="date"
-                value={values.invoiceDate}
-                max={GST_POLICY_AS_OF}
-                onChange={(event) => updateValue('invoiceDate', event.target.value)}
-                error={fieldError(errors, 'invoiceDate')}
-                required
-              />
-            </div>
-            <InputField
-              id="dueDate"
-              label="Due date (optional)"
-              type="date"
-              value={values.dueDate}
-              onChange={(event) => updateValue('dueDate', event.target.value)}
-              error={fieldError(errors, 'dueDate')}
-            />
-            <div className="form-grid form-grid--two">
+            <PresentedControls toolId={tool.id}>
               <SelectField
-                id="supplyType"
-                label="Supply type"
-                value={values.supplyType}
+                id="recipientRegistrationStatus"
+                label="Recipient registration status"
+                value={values.recipientRegistrationStatus}
                 onChange={(event) =>
-                  updateValue('supplyType', event.target.value as GstInvoiceInput['supplyType'])
+                  updateValue(
+                    'recipientRegistrationStatus',
+                    event.target.value as GstInvoiceInput['recipientRegistrationStatus'],
+                  )
                 }
-                error={fieldError(errors, 'supplyType')}
+                error={fieldError(errors, 'recipientRegistrationStatus')}
+                help="Choose the status from your records; the tool does not infer or verify it."
                 required
               >
-                <option value="intra-state">Intra-State · CGST + SGST/UTGST</option>
-                <option value="inter-state">Inter-State · IGST</option>
+                <option value="registered">Registered</option>
+                <option value="unregistered">Unregistered</option>
+                <option value="unknown">Unknown · review before issue</option>
               </SelectField>
-              <CheckboxField
-                id="reverseCharge"
-                label="Mark reverse charge (user selected)"
-                checked={values.reverseCharge}
-                onChange={(event) => updateValue('reverseCharge', event.target.checked)}
-              />
-            </div>
-            <div className="form-grid form-grid--two">
+              {renderPartyFields('recipient')}
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" className="document-form-section">
+            <legend>Invoice details</legend>
+            <PresentedControls toolId={tool.id}>
+              <div className="form-grid form-grid--two">
+                <InputField
+                  id="invoiceNumber"
+                  label="Invoice number"
+                  value={values.invoiceNumber}
+                  onChange={(event) => updateValue('invoiceNumber', event.target.value)}
+                  error={fieldError(errors, 'invoiceNumber')}
+                  required
+                  help="Up to 16 letters, numbers, hyphens or slashes. Uniqueness is not checked."
+                />
+                <InputField
+                  id="invoiceDate"
+                  label="Invoice date"
+                  type="date"
+                  value={values.invoiceDate}
+                  max={GST_POLICY_AS_OF}
+                  onChange={(event) => updateValue('invoiceDate', event.target.value)}
+                  error={fieldError(errors, 'invoiceDate')}
+                  required
+                />
+              </div>
               <InputField
-                id="placeOfSupply.state"
-                label={`Place of supply state${values.supplyType === 'inter-state' ? '' : ' (optional)'}`}
-                value={values.placeOfSupply.state}
-                onChange={(event) => updatePlaceOfSupply('state', event.target.value)}
-                error={fieldError(errors, 'placeOfSupply.state')}
-                required={values.supplyType === 'inter-state'}
-                help="Enter it explicitly; the tool never infers place of supply."
+                id="dueDate"
+                label="Due date (optional)"
+                type="date"
+                value={values.dueDate}
+                onChange={(event) => updateValue('dueDate', event.target.value)}
+                error={fieldError(errors, 'dueDate')}
               />
-              <InputField
-                id="placeOfSupply.stateCode"
-                label={`Place of supply code${values.supplyType === 'inter-state' ? '' : ' (optional)'}`}
-                value={values.placeOfSupply.stateCode}
-                onChange={(event) => updatePlaceOfSupply('stateCode', event.target.value)}
-                error={fieldError(errors, 'placeOfSupply.stateCode')}
-                required={values.supplyType === 'inter-state'}
-                inputMode="numeric"
-              />
-            </div>
-          </fieldset>
-          <fieldset className="document-form-section">
+              <div className="form-grid form-grid--two">
+                <SelectField
+                  id="supplyType"
+                  label="Supply type"
+                  value={values.supplyType}
+                  onChange={(event) =>
+                    updateValue('supplyType', event.target.value as GstInvoiceInput['supplyType'])
+                  }
+                  error={fieldError(errors, 'supplyType')}
+                  required
+                >
+                  <option value="intra-state">Intra-State · CGST + SGST/UTGST</option>
+                  <option value="inter-state">Inter-State · IGST</option>
+                </SelectField>
+                <CheckboxField
+                  id="reverseCharge"
+                  label="Mark reverse charge (user selected)"
+                  checked={values.reverseCharge}
+                  onChange={(event) => updateValue('reverseCharge', event.target.checked)}
+                />
+              </div>
+              <div className="form-grid form-grid--two">
+                <InputField
+                  id="placeOfSupply.state"
+                  label={`Place of supply state${values.supplyType === 'inter-state' ? '' : ' (optional)'}`}
+                  value={values.placeOfSupply.state}
+                  onChange={(event) => updatePlaceOfSupply('state', event.target.value)}
+                  error={fieldError(errors, 'placeOfSupply.state')}
+                  required={values.supplyType === 'inter-state'}
+                  help="Enter it explicitly; the tool never infers place of supply."
+                />
+                <InputField
+                  id="placeOfSupply.stateCode"
+                  label={`Place of supply code${values.supplyType === 'inter-state' ? '' : ' (optional)'}`}
+                  value={values.placeOfSupply.stateCode}
+                  onChange={(event) => updatePlaceOfSupply('stateCode', event.target.value)}
+                  error={fieldError(errors, 'placeOfSupply.stateCode')}
+                  required={values.supplyType === 'inter-state'}
+                  inputMode="numeric"
+                />
+              </div>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Line items</legend>
-            <p className="field__help">
-              Prices are treated as pre-GST. HSN/SAC is an issuer-supplied field; no code lookup or
-              classification is performed.
-            </p>
-            <div className="invoice-editor-items">
-              {values.items.map((item, index) => {
-                const prefix = `items.${index}`;
-                const customRate = item.ratePresetId === GST_CUSTOM_RATE_ID;
-                return (
-                  <fieldset className="invoice-editor-item" key={item.id}>
-                    <legend>Item {index + 1}</legend>
-                    <TextareaField
-                      id={`${prefix}.description`}
-                      label="Description"
-                      value={item.description}
-                      onChange={(event) => updateItem(index, 'description', event.target.value)}
-                      error={fieldError(errors, `${prefix}.description`)}
-                      rows={2}
-                      required
-                    />
-                    <div className="form-grid form-grid--two">
-                      <InputField
-                        id={`${prefix}.hsnOrSac`}
-                        label="HSN/SAC (optional)"
-                        value={item.hsnOrSac}
-                        onChange={(event) => updateItem(index, 'hsnOrSac', event.target.value)}
-                        error={fieldError(errors, `${prefix}.hsnOrSac`)}
-                        help="Enter a code from your records; correctness and required digit count are not checked."
-                      />
-                      <InputField
-                        id={`${prefix}.unit`}
-                        label="Unit (optional)"
-                        value={item.unit}
-                        onChange={(event) => updateItem(index, 'unit', event.target.value)}
-                        error={fieldError(errors, `${prefix}.unit`)}
-                      />
-                    </div>
-                    <div className="form-grid form-grid--three">
-                      <InputField
-                        id={`${prefix}.quantity`}
-                        label="Quantity"
-                        value={item.quantity}
-                        onChange={(event) => updateItem(index, 'quantity', event.target.value)}
-                        error={fieldError(errors, `${prefix}.quantity`)}
-                        inputMode="decimal"
+            <PresentedControls toolId={tool.id}>
+              <p className="field__help">
+                Prices are treated as pre-GST. HSN/SAC is an issuer-supplied field; no code lookup or
+                classification is performed.
+              </p>
+              <div className="invoice-editor-items">
+                {values.items.map((item, index) => {
+                  const prefix = `items.${index}`;
+                  const customRate = item.ratePresetId === GST_CUSTOM_RATE_ID;
+                  return (
+                    <fieldset className="invoice-editor-item" key={item.id}>
+                      <legend>Item {index + 1}</legend>
+                      <TextareaField
+                        id={`${prefix}.description`}
+                        label="Description"
+                        value={item.description}
+                        onChange={(event) => updateItem(index, 'description', event.target.value)}
+                        error={fieldError(errors, `${prefix}.description`)}
+                        rows={2}
                         required
                       />
-                      <InputField
-                        id={`${prefix}.unitPrice`}
-                        label="Unit price (pre-GST)"
-                        value={item.unitPrice}
-                        onChange={(event) => updateItem(index, 'unitPrice', event.target.value)}
-                        error={fieldError(errors, `${prefix}.unitPrice`)}
-                        inputMode="decimal"
-                        required
-                      />
+                      <div className="form-grid form-grid--two">
+                        <InputField
+                          id={`${prefix}.hsnOrSac`}
+                          label="HSN/SAC (optional)"
+                          value={item.hsnOrSac}
+                          onChange={(event) => updateItem(index, 'hsnOrSac', event.target.value)}
+                          error={fieldError(errors, `${prefix}.hsnOrSac`)}
+                          help="Enter a code from your records; correctness and required digit count are not checked."
+                        />
+                        <InputField
+                          id={`${prefix}.unit`}
+                          label="Unit (optional)"
+                          value={item.unit}
+                          onChange={(event) => updateItem(index, 'unit', event.target.value)}
+                          error={fieldError(errors, `${prefix}.unit`)}
+                        />
+                      </div>
+                      <div className="form-grid form-grid--three">
+                        <InputField
+                          id={`${prefix}.quantity`}
+                          label="Quantity"
+                          value={item.quantity}
+                          onChange={(event) => updateItem(index, 'quantity', event.target.value)}
+                          error={fieldError(errors, `${prefix}.quantity`)}
+                          inputMode="decimal"
+                          required
+                        />
+                        <InputField
+                          id={`${prefix}.unitPrice`}
+                          label="Unit price (pre-GST)"
+                          value={item.unitPrice}
+                          onChange={(event) => updateItem(index, 'unitPrice', event.target.value)}
+                          error={fieldError(errors, `${prefix}.unitPrice`)}
+                          inputMode="decimal"
+                          required
+                        />
+                        <SelectField
+                          id={`${prefix}.discountType`}
+                          label="Discount"
+                          value={item.discountType}
+                          onChange={(event) =>
+                            updateItem(
+                              index,
+                              'discountType',
+                              event.target.value as InvoiceItemInput['discountType'],
+                            )
+                          }
+                          error={fieldError(errors, `${prefix}.discountType`)}
+                        >
+                          <option value="none">None</option>
+                          <option value="percentage">Percentage</option>
+                          <option value="fixed">Fixed INR</option>
+                        </SelectField>
+                      </div>
+                      {item.discountType !== 'none' ? (
+                        <InputField
+                          id={`${prefix}.discountValue`}
+                          label={
+                            item.discountType === 'percentage'
+                              ? 'Discount percentage'
+                              : 'Discount amount (INR)'
+                          }
+                          value={item.discountValue}
+                          onChange={(event) => updateItem(index, 'discountValue', event.target.value)}
+                          error={fieldError(errors, `${prefix}.discountValue`)}
+                          inputMode="decimal"
+                          required
+                        />
+                      ) : null}
                       <SelectField
-                        id={`${prefix}.discountType`}
-                        label="Discount"
-                        value={item.discountType}
-                        onChange={(event) =>
-                          updateItem(
-                            index,
-                            'discountType',
-                            event.target.value as InvoiceItemInput['discountType'],
-                          )
-                        }
-                        error={fieldError(errors, `${prefix}.discountType`)}
+                        id={`${prefix}.ratePresetId`}
+                        label="GST rate"
+                        value={item.ratePresetId}
+                        onChange={(event) => updateItem(index, 'ratePresetId', event.target.value)}
+                        error={fieldError(errors, `${prefix}.ratePresetId`)}
+                        required
+                        help="Presets come from the reviewed policy for the invoice date."
                       >
-                        <option value="none">None</option>
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed INR</option>
+                        <option value="">Choose a rate</option>
+                        {rateOptions.map((option) => (
+                          <option value={option.id} key={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                        <option value={invoiceCustomRateOption.value}>{invoiceCustomRateOption.label}</option>
                       </SelectField>
-                    </div>
-                    {item.discountType !== 'none' ? (
-                      <InputField
-                        id={`${prefix}.discountValue`}
-                        label={
-                          item.discountType === 'percentage' ? 'Discount percentage' : 'Discount amount (INR)'
-                        }
-                        value={item.discountValue}
-                        onChange={(event) => updateItem(index, 'discountValue', event.target.value)}
-                        error={fieldError(errors, `${prefix}.discountValue`)}
-                        inputMode="decimal"
-                        required
-                      />
-                    ) : null}
-                    <SelectField
-                      id={`${prefix}.ratePresetId`}
-                      label="GST rate"
-                      value={item.ratePresetId}
-                      onChange={(event) => updateItem(index, 'ratePresetId', event.target.value)}
-                      error={fieldError(errors, `${prefix}.ratePresetId`)}
-                      required
-                      help="Presets come from the reviewed policy for the invoice date."
-                    >
-                      <option value="">Choose a rate</option>
-                      {rateOptions.map((option) => (
-                        <option value={option.id} key={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                      <option value={invoiceCustomRateOption.value}>{invoiceCustomRateOption.label}</option>
-                    </SelectField>
-                    {customRate ? (
-                      <InputField
-                        id={`${prefix}.customRate`}
-                        label="Custom GST rate"
-                        value={item.customRate}
-                        onChange={(event) => updateItem(index, 'customRate', event.target.value)}
-                        error={fieldError(errors, `${prefix}.customRate`)}
-                        inputMode="decimal"
-                        required
-                        help="0–100%, up to two decimal places. You are responsible for choosing the applicable rate."
-                      />
-                    ) : null}
-                    <div className="invoice-item-actions">
-                      <Button type="button" variant="secondary" onClick={() => duplicateItem(index)}>
-                        Duplicate item
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        onClick={() => removeItem(index)}
-                        disabled={values.items.length <= 1}
-                        aria-label={`Remove item ${index + 1}`}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </fieldset>
-                );
-              })}
-            </div>
-            <Button type="button" variant="secondary" onClick={addItem} disabled={values.items.length >= 50}>
-              Add item
-            </Button>
-            <p className="field__help">
-              At least one item is required. The editor supports up to 50 items and exports long invoices
-              across A4 pages.
-            </p>
-          </fieldset>
-          <fieldset className="document-form-section">
+                      {customRate ? (
+                        <InputField
+                          id={`${prefix}.customRate`}
+                          label="Custom GST rate"
+                          value={item.customRate}
+                          onChange={(event) => updateItem(index, 'customRate', event.target.value)}
+                          error={fieldError(errors, `${prefix}.customRate`)}
+                          inputMode="decimal"
+                          required
+                          help="0–100%, up to two decimal places. You are responsible for choosing the applicable rate."
+                        />
+                      ) : null}
+                      <div className="invoice-item-actions">
+                        <Button type="button" variant="secondary" onClick={() => duplicateItem(index)}>
+                          Duplicate item
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="danger"
+                          onClick={() => removeItem(index)}
+                          disabled={values.items.length <= 1}
+                          aria-label={`Remove item ${index + 1}`}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </fieldset>
+                  );
+                })}
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={addItem}
+                disabled={values.items.length >= 50}
+              >
+                Add item
+              </Button>
+              <p className="field__help">
+                At least one item is required. The editor supports up to 50 items and exports long invoices
+                across A4 pages.
+              </p>
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="details" optional="Customize document" className="document-form-section">
             <legend>Optional details</legend>
-            <TextareaField
-              id="paymentDetails"
-              label="Payment details"
-              value={values.paymentDetails}
-              onChange={(event) => updateValue('paymentDetails', event.target.value)}
-              error={fieldError(errors, 'paymentDetails')}
-              rows={2}
-              help="Display-only text; no payment processing or verification is performed."
-            />
-            <TextareaField
-              id="notes"
-              label="Notes"
-              value={values.notes}
-              onChange={(event) => updateValue('notes', event.target.value)}
-              error={fieldError(errors, 'notes')}
-              rows={2}
-            />
-            <TextareaField
-              id="terms"
-              label="Terms and conditions"
-              value={values.terms}
-              onChange={(event) => updateValue('terms', event.target.value)}
-              error={fieldError(errors, 'terms')}
-              rows={3}
-            />
-          </fieldset>
-          <div className="document-form__actions">
-            <Button type="submit" fullWidth>
-              Create GST invoice draft
-            </Button>
-            <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
-              Reset
-            </Button>
-          </div>
-        </form>
-        <PrivacyBlock>
-          Supplier, recipient, item descriptions, quantities, prices, discounts, GST choices and totals stay
-          in this browser. They are not uploaded, stored by default, sent in analytics or written to logs.
-        </PrivacyBlock>
+            <PresentedControls toolId={tool.id}>
+              <TextareaField
+                id="paymentDetails"
+                label="Payment details"
+                value={values.paymentDetails}
+                onChange={(event) => updateValue('paymentDetails', event.target.value)}
+                error={fieldError(errors, 'paymentDetails')}
+                rows={2}
+                help="Display-only text; no payment processing or verification is performed."
+              />
+              <TextareaField
+                id="notes"
+                label="Notes"
+                value={values.notes}
+                onChange={(event) => updateValue('notes', event.target.value)}
+                error={fieldError(errors, 'notes')}
+                rows={2}
+              />
+              <TextareaField
+                id="terms"
+                label="Terms and conditions"
+                value={values.terms}
+                onChange={(event) => updateValue('terms', event.target.value)}
+                error={fieldError(errors, 'terms')}
+                rows={3}
+              />
+            </PresentedControls>
+          </DocumentSection>
+          <DocumentSection stepId="review">
+            <div className="document-form__actions">
+              <Button type="submit" fullWidth>
+                Create GST invoice draft
+              </Button>
+              <Button type="button" variant="secondary" fullWidth onClick={resetForm}>
+                Reset
+              </Button>
+            </div>
+          </DocumentSection>
+        </GuidedDocumentForm>
       </section>
       <section
         className="calculator-result document-result"
@@ -898,10 +923,6 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               The layout is A4 and uses the shared local PDF/print engine. Review page breaks, fields,
               HSN/SAC, tax rate and applicability before issuing.
             </p>
-            <PrivacyBlock>
-              This draft is generated in your browser. It is not stored on KarobarKit servers or included in
-              analytics.
-            </PrivacyBlock>
           </>
         ) : (
           <StateBlock

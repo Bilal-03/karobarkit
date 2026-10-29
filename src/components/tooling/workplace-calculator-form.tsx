@@ -1,4 +1,7 @@
 'use client';
+import { PresentedControls } from '@/components/ui/field-groups';
+import { toolIdsByVariant } from '@/domain/registry/presentation';
+import { ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -20,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { CheckboxField, InputField, SelectField, TextareaField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 export type WorkplaceCalculatorKind = 'notice-period' | 'leave-balance';
@@ -67,7 +70,7 @@ function CalculatorFields({
 }) {
   if (kind === 'notice-period') {
     return (
-      <>
+      <PresentedControls toolId={toolIdsByVariant['business-document:' + kind]}>
         <div className="form-grid form-grid--two">
           <InputField
             id="workplace-startDate"
@@ -126,11 +129,11 @@ function CalculatorFields({
           rows={3}
           help="Use YYYY-MM-DD, separated by commas or spaces. These are user-declared exclusions."
         />
-      </>
+      </PresentedControls>
     );
   }
   return (
-    <>
+    <PresentedControls toolId={toolIdsByVariant['business-document:' + kind]}>
       <InputField
         id="workplace-annualQuota"
         label="Annual leave quota"
@@ -184,7 +187,7 @@ function CalculatorFields({
         <option value="monthly">Monthly proration</option>
         <option value="days">Day-based proration</option>
       </SelectField>
-    </>
+    </PresentedControls>
   );
 }
 
@@ -208,7 +211,7 @@ export function WorkplaceCalculatorForm({
   tool: WorkplaceCalculatorToolProps;
 }) {
   const initialValues = useMemo(() => (tool.defaultValues as CalculatorValues) ?? {}, [tool.defaultValues]);
-  const [values, setValues] = useState<CalculatorValues>(initialValues);
+  const [values, setValues] = useState<CalculatorValues>(() => emptyPrimaryValues(tool.id, initialValues));
   const isInteractive = useToolView(tool);
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -272,6 +275,7 @@ export function WorkplaceCalculatorForm({
         </div>
         <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
           <ErrorSummary ref={errorRef} errors={errors} />
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
           <CalculatorFields kind={kind} values={values} errors={errors} update={update} />
           {calculationError ? (
             <StateBlock title="Check the entered values" tone="error">
@@ -295,7 +299,6 @@ export function WorkplaceCalculatorForm({
             </Button>
           </div>
         </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
       </section>
       <section
         className="calculator-result"

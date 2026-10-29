@@ -17,11 +17,7 @@ export function Footer() {
             <p className="footer-heading">Explore</p>
             <Link href="/tools">All tools</Link>
             <Link href="/categories">Categories</Link>
-            <Link href="/categories/business">Business</Link>
-            <Link href="/categories/gst-tax">GST & Tax</Link>
-            <Link href="/categories/finance">Finance</Link>
-            <Link href="/categories/generators">Generators</Link>
-            <Link href="/faq">FAQ</Link>
+            <Link href="/faq">Help</Link>
           </div>
           <div>
             <p className="footer-heading">Trust</p>

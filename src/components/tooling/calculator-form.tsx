@@ -1,4 +1,5 @@
 'use client';
+import { ExampleButton, emptyPrimaryValues } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
 import { ResultPanel } from '@/components/ui/result-panel';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from './use-live-calculation';
 
 type CalculatorKind = 'cagr' | 'roi';
@@ -45,7 +46,9 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
     return tool.defaultValues as unknown as RoiInput;
   }, [kind, tool]);
 
-  const [values, setValues] = useState<CagrInput | RoiInput>(initialValues);
+  const [values, setValues] = useState<CagrInput | RoiInput>(() =>
+    emptyPrimaryValues(tool.id, initialValues),
+  );
   const [isInteractive, setIsInteractive] = useState(false);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -128,6 +131,7 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
           inert={!isInteractive}
         >
           <ErrorSummary ref={errorSummaryRef} errors={errors} />
+          <ExampleButton onClick={() => setValues({ ...initialValues })} />
           {isCagr ? (
             <>
               <InputField
@@ -290,7 +294,6 @@ export function CalculatorForm({ kind, tool }: CalculatorFormProps) {
                 </ResultPanel>
               </>
             ) : null}
-            <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
           </>
         ) : (
           <StateBlock titleId="calculator-result-title" title="Your result will appear here" tone="empty">

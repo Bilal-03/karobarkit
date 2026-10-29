@@ -54,7 +54,7 @@ export default async function CategoryPage({ params }: CategoryRouteProps) {
         <Container narrow>
           <p className="eyebrow">Category</p>
           <h1>{category.name}</h1>
-          <p className="lede">{category.description}</p>
+          <p className="lede">{category.shortDescription}</p>
         </Container>
       </section>
       <Container>

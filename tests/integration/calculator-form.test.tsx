@@ -6,9 +6,10 @@ import { CalculatorForm } from '@/components/tooling/calculator-form';
 import { cagrTool, roiTool } from '@/domain/registry';
 
 describe('calculator form integration', () => {
-  it('shows the seeded ROI result immediately and updates it while typing', async () => {
+  it('loads an explicit ROI example and updates it while typing', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="roi" tool={roiTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
 
     expect(await screen.findByText('25.00%')).toBeInTheDocument();
 
@@ -23,6 +24,7 @@ describe('calculator form integration', () => {
   it('shows linked validation errors and preserves the entered values', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="cagr" tool={cagrTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
 
     const beginning = screen.getByRole('textbox', { name: /Beginning value/ });
     await user.clear(beginning);
@@ -41,6 +43,7 @@ describe('calculator form integration', () => {
   it('renders a long-horizon negative CAGR without crashing the page', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="cagr" tool={cagrTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
 
     await user.clear(screen.getByRole('textbox', { name: /Beginning value/ }));
     await user.type(screen.getByRole('textbox', { name: /Beginning value/ }), '100000');
@@ -57,6 +60,7 @@ describe('calculator form integration', () => {
   it('renders the ROI result after a valid submission', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="roi" tool={roiTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
 
     await user.click(screen.getByRole('button', { name: 'Calculate result' }));
 
@@ -67,6 +71,7 @@ describe('calculator form integration', () => {
   it('clears stale results and focuses the announced error summary after invalid edits', async () => {
     const user = userEvent.setup();
     render(<CalculatorForm kind="roi" tool={roiTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
 
     await user.click(screen.getByRole('button', { name: 'Calculate result' }));
     expect(await screen.findByText('25.00%')).toBeInTheDocument();

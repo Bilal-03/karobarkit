@@ -130,6 +130,7 @@ export interface ToolCategoryDefinition {
 }
 
 export interface ToolDiscoveryRecord {
+  taskGroup?: import('./presentation').TaskGroup;
   id: string;
   slug: string;
   kind: ToolKind;
@@ -142,6 +143,7 @@ export interface ToolDiscoveryRecord {
   tags: readonly string[];
   searchTerms: readonly string[];
   summary: string;
+  presentation?: { description?: string; iconKey?: string };
   capabilities: readonly ToolCapability[];
   featured: boolean;
   launchPriority?: number;
@@ -266,6 +268,7 @@ export interface ToolDefinition<TInput, TResult> {
   tags: string[];
   searchTerms: string[];
   summary: string;
+  presentation?: { description?: string; iconKey?: string };
   capabilities: readonly ToolCapability[];
   audience?: string[];
   featured?: boolean;

@@ -1,3 +1,4 @@
+import { CircleHelp } from 'lucide-react';
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
 interface FieldShellProps {
@@ -18,9 +19,12 @@ function FieldShell({ id, label, help, error, required, children }: FieldShellPr
       </label>
       {children}
       {help ? (
-        <div className="field__help" id={`${id}-help`}>
-          {help}
-        </div>
+        <details className="field__help" id={`${id}-help`}>
+          <summary aria-label={`About ${label.toLowerCase()}`}>
+            <CircleHelp size={16} />
+          </summary>
+          <div className="field-hint-content">{help}</div>
+        </details>
       ) : null}
       {error ? (
         <div className="field__error" id={`${id}-error`} role="alert">

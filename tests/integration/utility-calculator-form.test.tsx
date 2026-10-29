@@ -9,6 +9,8 @@ describe('everyday utility calculator form', () => {
   it('shows a seeded percentage result and recalculates after an input change', async () => {
     const user = userEvent.setup();
     render(<UtilityCalculatorForm kind="percentage" tool={percentageTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     expect(await screen.findByText('200')).toBeInTheDocument();
 
@@ -22,6 +24,8 @@ describe('everyday utility calculator form', () => {
   it('calculates percentage-of without changing the existing calculator adapters', async () => {
     const user = userEvent.setup();
     render(<UtilityCalculatorForm kind="percentage" tool={percentageTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     const base = screen.getByRole('textbox', { name: 'Base value' });
     await user.clear(base);
@@ -34,14 +38,17 @@ describe('everyday utility calculator form', () => {
     await user.click(screen.getByRole('button', { name: 'Calculate result' }));
 
     expect(await screen.findByText('156.25')).toBeInTheDocument();
-    expect(screen.getByText(/1250 × 12.5 ÷ 100/)).toBeInTheDocument();
-    expect(screen.getByText(/Inputs and results stay in this browser/)).toBeInTheDocument();
+    expect(screen.queryByText(/1250 × 12.5 ÷ 100/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Inputs and results stay in this browser/)).not.toBeInTheDocument();
   });
 
   it('shows successive discount savings and keeps GST outside the result', async () => {
     const user = userEvent.setup();
     render(<UtilityCalculatorForm kind="discount" tool={discountTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
+    await user.click(screen.getByText('Additional assumptions', { exact: true }));
     await user.type(screen.getByRole('textbox', { name: /Second discount/ }), '5');
     await user.click(screen.getByRole('button', { name: 'Calculate result' }));
 
@@ -56,6 +63,8 @@ describe('everyday utility calculator form', () => {
   it('counts an inclusive weekday range and exposes excluded-day details', async () => {
     const user = userEvent.setup();
     render(<UtilityCalculatorForm kind="business-days" tool={businessDaysTool} />);
+    const example = screen.queryByRole('button', { name: 'Try an example' });
+    if (example) await user.click(example);
 
     await user.click(screen.getByRole('button', { name: 'Calculate result' }));
 

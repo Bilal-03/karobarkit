@@ -13,6 +13,7 @@ import '@fontsource/plus-jakarta-sans/latin-500.css';
 import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import '@/styles/globals.css';
+import '@/styles/studio.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -30,8 +31,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN" data-scroll-behavior="smooth">
+    <html lang="en-IN" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{document.documentElement.dataset.theme=localStorage.getItem('kk-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}",
+          }}
+        />
         <SiteShell>{children}</SiteShell>
         <VercelWebAnalytics />
       </body>

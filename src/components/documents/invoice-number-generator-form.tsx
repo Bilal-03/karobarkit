@@ -15,7 +15,7 @@ import { trackEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField } from '@/components/ui/form-field';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 interface InvoiceNumberToolProps {
@@ -142,10 +142,6 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
             </Button>
           </div>
         </form>
-        <PrivacyBlock>
-          These values stay in this browser. The tool does not reserve numbers, store them by default or send
-          them to analytics.
-        </PrivacyBlock>
       </section>
       <section className="calculator-result" aria-labelledby="invoice-number-result-title">
         {result ? (
@@ -164,7 +160,6 @@ export function InvoiceNumberGeneratorForm({ tool }: { tool: InvoiceNumberToolPr
                 Copy number
               </Button>
             </div>
-            <PrivacyBlock>{result.limitation}</PrivacyBlock>
           </>
         ) : (
           <StateBlock

@@ -1,4 +1,28 @@
 'use client';
+import { GuidedDocumentForm, DocumentSection, type DocumentFlow } from './guided-document-form';
+import { toolPresentations } from '@/domain/registry/presentation';
+const retailItemFields = [
+  'itemsText',
+  'items',
+  'sections',
+  'reason',
+  'vehicleNumber',
+  'deliveryDate',
+  'taxDisplay',
+  'terms',
+  'orderReference',
+  'parcelCount',
+  'weight',
+  'barcode',
+  'period',
+  'grossEarnings',
+  'deductions',
+  'amount',
+  'receiptNumber',
+  'date',
+  'pageProfile',
+  'footerText',
+];
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -36,7 +60,7 @@ import { DocumentPreview } from '@/components/documents/document-preview';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/form-error';
 import { InputField, SelectField, TextareaField, CheckboxField } from '@/components/ui/form-field';
-import { PrivacyBlock, StateBlock } from '@/components/ui/trust-blocks';
+import { StateBlock } from '@/components/ui/trust-blocks';
 import { focusResult, useLiveCalculation } from '@/components/tooling/use-live-calculation';
 
 export type WorkplaceDocumentKind =
@@ -126,28 +150,32 @@ function WorkplaceFields({
   update: (name: string, value: unknown) => void;
 }) {
   const field = (name: string, label: string, type?: string, required?: boolean) => (
-    <Field
-      key={name}
-      values={values}
-      errors={errors}
-      name={name}
-      label={label}
-      type={type}
-      required={required}
-      onChange={update}
-    />
+    <DocumentSection stepId={retailItemFields.includes(name) ? 'items' : 'parties'} key={name}>
+      <Field
+        key={name}
+        values={values}
+        errors={errors}
+        name={name}
+        label={label}
+        type={type}
+        required={required}
+        onChange={update}
+      />
+    </DocumentSection>
   );
   const area = (name: string, label: string, required = false) => (
-    <TextareaField
-      key={name}
-      id={`workplace-${name}`}
-      label={label}
-      value={getString(values, name)}
-      onChange={(event) => update(name, event.target.value)}
-      error={getFieldError(errors, name)}
-      rows={3}
-      required={required}
-    />
+    <DocumentSection stepId={retailItemFields.includes(name) ? 'items' : 'parties'} key={name}>
+      <TextareaField
+        key={name}
+        id={`workplace-${name}`}
+        label={label}
+        value={getString(values, name)}
+        onChange={(event) => update(name, event.target.value)}
+        error={getFieldError(errors, name)}
+        rows={3}
+        required={required}
+      />
+    </DocumentSection>
   );
 
   let fields: React.ReactNode;
@@ -226,7 +254,7 @@ function WorkplaceFields({
           {field('poDate', 'PO date', 'date', true)}
         </div>
         {items.map((item, index) => (
-          <fieldset className="document-form-section" key={`purchase-item-${index}`}>
+          <DocumentSection stepId="items" className="document-form-section" key={`purchase-item-${index}`}>
             <legend>Item {index + 1}</legend>
             <InputField
               id={`workplace-item-${index}-description`}
@@ -281,31 +309,35 @@ function WorkplaceFields({
                 Remove item {index + 1}
               </Button>
             ) : null}
-          </fieldset>
+          </DocumentSection>
         ))}
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={items.length >= 25}
-          onClick={() =>
-            update('items', [
-              ...items,
-              { description: '', quantity: '1', unit: 'pcs', unitPrice: '0', taxRate: '0' },
-            ])
-          }
-        >
-          Add item
-        </Button>
-        <SelectField
-          id="workplace-taxDisplay"
-          label="Tax display"
-          value={getString(values, 'taxDisplay')}
-          onChange={(event) => update('taxDisplay', event.target.value)}
-          error={getFieldError(errors, 'taxDisplay')}
-        >
-          <option value="none">Do not show tax</option>
-          <option value="declared">Show declared rate</option>
-        </SelectField>
+        <DocumentSection stepId="items">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={items.length >= 25}
+            onClick={() =>
+              update('items', [
+                ...items,
+                { description: '', quantity: '1', unit: 'pcs', unitPrice: '0', taxRate: '0' },
+              ])
+            }
+          >
+            Add item
+          </Button>
+        </DocumentSection>
+        <DocumentSection stepId="items">
+          <SelectField
+            id="workplace-taxDisplay"
+            label="Tax display"
+            value={getString(values, 'taxDisplay')}
+            onChange={(event) => update('taxDisplay', event.target.value)}
+            error={getFieldError(errors, 'taxDisplay')}
+          >
+            <option value="none">Do not show tax</option>
+            <option value="declared">Show declared rate</option>
+          </SelectField>
+        </DocumentSection>
         {area('terms', 'Terms (optional)')}
       </>
     );
@@ -322,7 +354,11 @@ function WorkplaceFields({
         {area('address', 'Address (optional)')}
         {field('phone', 'Phone (optional)')}
         {sections.map((section, sectionIndex) => (
-          <fieldset className="document-form-section" key={`menu-section-${sectionIndex}`}>
+          <DocumentSection
+            stepId="items"
+            className="document-form-section"
+            key={`menu-section-${sectionIndex}`}
+          >
             <legend>Menu section {sectionIndex + 1}</legend>
             <InputField
               id={`workplace-section-${sectionIndex}-heading`}
@@ -420,24 +456,28 @@ function WorkplaceFields({
                 Remove section {sectionIndex + 1}
               </Button>
             ) : null}
-          </fieldset>
+          </DocumentSection>
         ))}
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={sections.length >= 10}
-          onClick={() =>
-            update('sections', [...sections, { heading: '', items: [{ name: '', price: '', note: '' }] }])
-          }
-        >
-          Add menu section
-        </Button>
-        <CheckboxField
-          id="workplace-includeQr"
-          label="Prepare an optional QR destination"
-          checked={Boolean(values.includeQr)}
-          onChange={(event) => update('includeQr', event.target.checked)}
-        />
+        <DocumentSection stepId="items">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={sections.length >= 10}
+            onClick={() =>
+              update('sections', [...sections, { heading: '', items: [{ name: '', price: '', note: '' }] }])
+            }
+          >
+            Add menu section
+          </Button>
+        </DocumentSection>
+        <DocumentSection stepId="items">
+          <CheckboxField
+            id="workplace-includeQr"
+            label="Prepare an optional QR destination"
+            checked={Boolean(values.includeQr)}
+            onChange={(event) => update('includeQr', event.target.checked)}
+          />
+        </DocumentSection>
         {Boolean(values.includeQr) ? field('qrUrl', 'Menu URL', 'url', true) : null}
       </>
     );
@@ -474,24 +514,26 @@ function WorkplaceFields({
   return (
     <>
       {fields}
-      <SelectField
-        id="workplace-pageProfile"
-        label="Print profile"
-        value={getString(values, 'pageProfile')}
-        onChange={(event) => update('pageProfile', event.target.value as WorkplacePageProfile)}
-        error={getFieldError(errors, 'pageProfile')}
-      >
-        {profileOptions()}
-      </SelectField>
-      <TextareaField
-        id="workplace-footerText"
-        label="Footer note (optional)"
-        value={getString(values, 'footerText')}
-        onChange={(event) => update('footerText', event.target.value)}
-        error={getFieldError(errors, 'footerText')}
-        rows={2}
-        help="Keep this as a user-facing note; no official seals or acceptance language is added."
-      />
+      <DocumentSection stepId="items" optional="Customize print">
+        <SelectField
+          id="workplace-pageProfile"
+          label="Print profile"
+          value={getString(values, 'pageProfile')}
+          onChange={(event) => update('pageProfile', event.target.value as WorkplacePageProfile)}
+          error={getFieldError(errors, 'pageProfile')}
+        >
+          {profileOptions()}
+        </SelectField>
+        <TextareaField
+          id="workplace-footerText"
+          label="Footer note (optional)"
+          value={getString(values, 'footerText')}
+          onChange={(event) => update('footerText', event.target.value)}
+          error={getFieldError(errors, 'footerText')}
+          rows={2}
+          help="Keep this as a user-facing note; no official seals or acceptance language is added."
+        />
+      </DocumentSection>
     </>
   );
 }
@@ -551,6 +593,7 @@ export function WorkplaceDocumentForm({
   tool: WorkplaceToolProps;
 }) {
   const initialValues = useMemo(() => (tool.defaultValues as WorkplaceValues) ?? {}, [tool.defaultValues]);
+  const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<WorkplaceValues>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
@@ -566,6 +609,7 @@ export function WorkplaceDocumentForm({
     clearFieldError,
     clearErrors,
     submit: evaluate,
+    reportErrors,
   } = useLiveCalculation<WorkplaceValues, WorkplaceDocument>({
     values,
     debounceMs: 80,
@@ -643,7 +687,35 @@ export function WorkplaceDocumentForm({
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <form onSubmit={submit} noValidate data-interactive={isInteractive ? 'true' : 'false'}>
+        <GuidedDocumentForm
+          key={resetVersion}
+          simple={kind === 'price-tag'}
+          definition={
+            {
+              steps: [
+                {
+                  id: 'parties',
+                  label: 'Details',
+                  fields: toolPresentations[tool.id].primaryFields.filter(
+                    (name) => !retailItemFields.includes(name),
+                  ),
+                },
+                { id: 'items', label: 'Items', fields: retailItemFields },
+                { id: 'review', label: 'Review', fields: [] },
+              ],
+            } satisfies DocumentFlow
+          }
+          validate={() => {
+            const checked = validateWorkplaceDocument(kind, values);
+            return checked.success ? [] : checked.errors;
+          }}
+          errors={errors}
+          onStepErrors={reportErrors}
+          onPreview={evaluate}
+          onSubmit={submit}
+          noValidate
+          data-interactive={isInteractive ? 'true' : 'false'}
+        >
           <ErrorSummary ref={errorRef} errors={errors} />
           <WorkplaceFields kind={kind} values={values} errors={errors} update={update} />
           {calculationError ? (
@@ -651,26 +723,28 @@ export function WorkplaceDocumentForm({
               {calculationError}
             </StateBlock>
           ) : null}
-          <div className="document-form__actions">
-            <Button type="submit" fullWidth>
-              {kind === 'menu' ? 'Generate menu' : `Generate ${titleFor(kind)}`}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              onClick={() => {
-                setValues(initialValues);
-                clearErrors();
-                setExportError(null);
-                setExportStatus(null);
-              }}
-            >
-              Clear form
-            </Button>
-          </div>
-        </form>
-        <PrivacyBlock>{tool.privacyNote}</PrivacyBlock>
+          <DocumentSection stepId="review">
+            <div className="document-form__actions">
+              <Button type="submit" fullWidth>
+                {kind === 'menu' ? 'Generate menu' : `Generate ${titleFor(kind)}`}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  setResetVersion((value) => value + 1);
+                  setValues(initialValues);
+                  clearErrors();
+                  setExportError(null);
+                  setExportStatus(null);
+                }}
+              >
+                Clear form
+              </Button>
+            </div>
+          </DocumentSection>
+        </GuidedDocumentForm>
       </section>
       <section
         className="calculator-result document-result"

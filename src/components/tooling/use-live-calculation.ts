@@ -35,6 +35,7 @@ interface LiveCalculationState<TResult> {
   clearFieldError: (field: string) => void;
   clearErrors: () => void;
   submit: () => void;
+  reportErrors: (errors: FieldError[]) => void;
 }
 
 /**
@@ -118,5 +119,14 @@ export function useLiveCalculation<TInput, TResult>({
 
   const clearErrors = useCallback(() => setErrors([]), []);
 
-  return { result, errors, calculationError, isCalculating, clearFieldError, clearErrors, submit };
+  return {
+    result,
+    errors,
+    calculationError,
+    isCalculating,
+    clearFieldError,
+    clearErrors,
+    submit,
+    reportErrors: setErrors,
+  };
 }
