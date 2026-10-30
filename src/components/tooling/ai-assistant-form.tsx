@@ -169,6 +169,7 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
   const [providerNotice, setProviderNotice] = useState('Checking the configured provider…');
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const inputRevision = useRef(0);
 
   useEffect(() => {
     trackEvent('tool_viewed', { toolId: tool.id, category: tool.category });
@@ -215,13 +216,18 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
   }, [errors]);
 
   function updateValue(field: string, value: string) {
+    inputRevision.current += 1;
     setValues((current) => ({ ...current, [field]: value }));
+    setResult(null);
+    setReviewed(false);
+    setEditableDraft('');
     setErrors((current) => current.filter((error) => error.field !== field));
     setRequestError(null);
     setActionStatus(null);
   }
 
   async function generateDraft() {
+    const submittedRevision = inputRevision.current;
     setIsGenerating(true);
     setRequestError(null);
     setActionStatus(null);
@@ -239,9 +245,10 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
         fieldErrors?: FieldError[];
       };
       if (!response.ok || !body.ok || !body.result) {
-        if (body.fieldErrors) setErrors(body.fieldErrors);
+        if (body.fieldErrors && submittedRevision === inputRevision.current) setErrors(body.fieldErrors);
         throw new Error(body.error || 'The assistant could not generate a draft.');
       }
+      if (submittedRevision !== inputRevision.current) return;
       setResult(body.result);
       setEditableDraft(draftText(body.result));
       setReviewed(false);
@@ -251,7 +258,8 @@ export function AIAssistantForm({ kind, tool }: AIAssistantFormProps) {
       trackEvent('tool_completed', { toolId: tool.id });
       trackEvent('result_generated', { toolId: tool.id });
     } catch (error) {
-      setRequestError(error instanceof Error ? error.message : 'The assistant could not generate a draft.');
+      if (submittedRevision === inputRevision.current)
+        setRequestError(error instanceof Error ? error.message : 'The assistant could not generate a draft.');
     } finally {
       setIsGenerating(false);
     }

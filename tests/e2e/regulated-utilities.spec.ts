@@ -35,6 +35,14 @@ test.describe('data-backed and regulated utilities wave', () => {
     await expect(page.getByText(/Reference search only/)).toBeVisible();
   });
 
+  test('keeps the overdue GST filing calendar unavailable before data entry', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-1440', 'Run once at the reference desktop width.');
+    await page.clock.setFixedTime(new Date('2026-10-30T12:00:00Z'));
+    await page.goto('/tools/gst-filing-due-date-calendar');
+    await expect(page.getByText(/Temporarily unavailable/)).toBeVisible();
+    await expect(page.locator('form')).toHaveCount(0);
+  });
+
   test('keeps currency conversion manual on mobile until a quote is explicitly requested', async ({
     page,
   }, testInfo) => {

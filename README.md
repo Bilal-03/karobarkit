@@ -24,7 +24,7 @@
     <img src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" alt="React 19" />
     <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5" />
     <img src="https://img.shields.io/badge/Node.js-%3E%3D20.9-339933?logo=nodedotjs&logoColor=white" alt="Node.js 20.9 or newer" />
-    <img src="https://img.shields.io/badge/tools-82-0FA89A" alt="82 tools" />
+    <img src="https://img.shields.io/badge/tools-83-0FA89A" alt="83 tools" />
     <img src="https://img.shields.io/badge/privacy-local--first-0D1B2A" alt="Local-first privacy" />
   </p>
 </div>
@@ -34,7 +34,7 @@
 ## Overview
 
 KarobarKit is an original, source-aware toolkit for Indian freelancers, retailers, sellers,
-founders, and small teams. It brings **82 calculators, generators, document workflows, and
+founders, and small teams. It brings **83 calculators, generators, document workflows, and
 utilities** into a single searchable application—without requiring an account.
 
 The project is designed around three principles:

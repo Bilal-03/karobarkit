@@ -1,0 +1,250 @@
+[
+  {
+    "tool": "cagr-calculator",
+    "path": "percentage",
+    "expected": "10.000000000000009",
+    "actual": "10",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "roi-calculator",
+    "path": "profit",
+    "expected": "25000",
+    "actual": "25000",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "roi-calculator",
+    "path": "percentage",
+    "expected": "25",
+    "actual": "25",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "margin-calculator",
+    "path": "headline.value",
+    "expected": "30",
+    "actual": "30",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "markup-calculator",
+    "path": "headline.value",
+    "expected": "42.857142857142854",
+    "actual": "42.857142857142857143",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "break-even-calculator",
+    "path": "headline.value",
+    "expected": "250",
+    "actual": "250",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "pricing-calculator",
+    "path": "headline.value",
+    "expected": "1180",
+    "actual": "1180",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "cash-flow-calculator",
+    "path": "headline.value",
+    "expected": "270000",
+    "actual": "270000",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "burn-rate-calculator",
+    "path": "headline.value",
+    "expected": "100000",
+    "actual": "100000",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "runway-calculator",
+    "path": "headline.value",
+    "expected": "4.5",
+    "actual": "4.5",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "marketplace-margin-calculator",
+    "path": "headline.value",
+    "expected": "32",
+    "actual": "32",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "roas-calculator",
+    "path": "headline.value",
+    "expected": "4",
+    "actual": "4",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "emi-calculator",
+    "path": "headline.value",
+    "expected": "21247.044711268332",
+    "actual": "21247.044711268274447",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "sip-calculator",
+    "path": "headline.value",
+    "expected": "2300386.8945736685",
+    "actual": "2300386.8945736650479",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "fd-calculator",
+    "path": "headline.value",
+    "expected": "107185.90312890628",
+    "actual": "107185.90312890625",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "xirr-calculator",
+    "path": "headline.value",
+    "expected": "9.971358593414138",
+    "actual": "9.971358593414124129",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "ltv-calculator",
+    "path": "headline.value",
+    "expected": "28000.0",
+    "actual": "28000",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "equity-dilution-calculator",
+    "path": "headline.value",
+    "expected": "20.0",
+    "actual": "20",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "percentage-calculator",
+    "path": "result",
+    "expected": "200",
+    "actual": "200",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "discount-calculator",
+    "path": "finalPrice",
+    "expected": "900",
+    "actual": "900",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "area-converter",
+    "path": "convertedValue",
+    "expected": "10.763910416709722",
+    "actual": "10.763910416709722308",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "business-days-calculator",
+    "path": "businessDays",
+    "expected": "5",
+    "actual": "5",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "fuel-expense-calculator",
+    "path": "fuelCost",
+    "expected": "666.6666666666667",
+    "actual": "666.66666666666666667",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "volumetric-weight-calculator",
+    "path": "dimensionalWeightKg",
+    "expected": "1.8",
+    "actual": "1.8",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "volumetric-weight-calculator",
+    "path": "chargeableWeightKg",
+    "expected": "2",
+    "actual": "2",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "depreciation-calculator",
+    "path": "annualDepreciation",
+    "expected": "19000.0",
+    "actual": "19000",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "professional-tax-calculator",
+    "path": "monthlyTax",
+    "expected": "200",
+    "actual": "200",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "leave-balance-calculator",
+    "path": "remainingLeave",
+    "expected": "12.0",
+    "actual": "12",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "currency-converter",
+    "path": "convertedAmount",
+    "expected": "12",
+    "actual": "12",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "pricing-assistant",
+    "path": "metrics.0.value",
+    "expected": "1111.111111111111",
+    "actual": "1111.1111111111111111",
+    "tolerance": 0.005,
+    "passed": true
+  },
+  {
+    "tool": "startup-cost-estimator",
+    "path": "metrics.4.value",
+    "expected": "533500.0",
+    "actual": "533500",
+    "tolerance": 0.005,
+    "passed": true
+  }
+]

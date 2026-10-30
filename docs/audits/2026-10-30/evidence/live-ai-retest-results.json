@@ -1,0 +1,759 @@
+[
+  {
+    "id": "name-english",
+    "assistant": "business-name",
+    "input": {
+      "businessType": "Home-made healthy snacks",
+      "location": "Pune",
+      "language": "english",
+      "tone": "modern",
+      "keywords": "fresh, local",
+      "avoid": "instant"
+    },
+    "status": 200,
+    "elapsedMs": 1560,
+    "remaining": "7",
+    "providerAttempted": true,
+    "fallbackReason": null,
+    "provider": "groq",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "business-name",
+        "title": "Draft Business Name Ideas",
+        "summary": "A concise list of modern, fresh, and local‑focused business name options for a Pune‑based home‑made healthy snack venture, avoiding the word ‘instant’.",
+        "suggestions": [
+          "FreshBite Pune",
+          "LocalCrunch",
+          "PuneSnackHub",
+          "HeritageBites",
+          "NourishNook",
+          "PureSnackCo"
+        ],
+        "sections": [
+          {
+            "heading": "Business Concept",
+            "body": "Home‑made healthy snacks crafted with fresh, local ingredients, catering to Pune’s health‑conscious consumers."
+          },
+          {
+            "heading": "Target Market",
+            "body": "Individuals seeking convenient, nutritious snack options that reflect local flavors and modern lifestyles."
+          },
+          {
+            "heading": "Brand Positioning",
+            "body": "Emphasizes authenticity, freshness, and community roots, standing out from generic instant snack brands."
+          },
+          {
+            "heading": "Marketing Approach",
+            "body": "Leverages social media, local events, and collaborations with wellness influencers to build brand awareness."
+          },
+          {
+            "heading": "Operations Overview",
+            "body": "Small‑scale production using local suppliers, with a focus on quality control and seasonal ingredient sourcing."
+          },
+          {
+            "heading": "Growth Outlook",
+            "body": "Potential to expand product lines and distribution channels while maintaining a strong local identity."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "Avoid list noted: instant. Review each candidate against it.",
+          "Review pronunciation, spelling and local-language meaning with real customers.",
+          "These are creative drafts only; no availability, ownership or registration claim is made.",
+          "Ensure the chosen name is not already in use or trademarked in India.",
+          "Verify domain availability if an online presence is planned.",
+          "Confirm that the name aligns with local cultural sensitivities and brand values.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-name-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "language",
+          "tone",
+          "keywords",
+          "avoid"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "id": "pricing-standard",
+    "assistant": "pricing-assistant",
+    "input": {
+      "productName": "Handmade soap",
+      "unitCost": "600",
+      "targetMargin": "40",
+      "discountPercent": "10",
+      "taxRate": "18",
+      "channelFeePercent": "5",
+      "shippingCost": "20",
+      "notes": "Consider a launch discount for Indian customers."
+    },
+    "status": 200,
+    "elapsedMs": 1128,
+    "remaining": "6",
+    "providerAttempted": true,
+    "fallbackReason": "invalid-provider-output",
+    "provider": "deterministic-fallback",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "pricing-assistant",
+        "title": "Handmade soap pricing draft",
+        "summary": "A deterministic price scenario with an AI-ready explanation layer.",
+        "suggestions": [
+          "Compare the list price with a no-discount scenario before choosing a launch offer.",
+          "Re-run with seller-dashboard or payment-provider fees when the channel is known."
+        ],
+        "sections": [
+          {
+            "heading": "How to read this scenario",
+            "body": "The list price targets a 40% contribution margin after the expected discount, entered channel fee and shipping cost. Tax is shown separately as arithmetic only."
+          },
+          {
+            "heading": "Decision prompts",
+            "body": "Consider a launch discount for Indian customers."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "Suggested list price",
+            "value": "1200",
+            "format": "currency"
+          },
+          {
+            "label": "Expected price after discount",
+            "value": "1080",
+            "format": "currency"
+          },
+          {
+            "label": "Arithmetic tax amount",
+            "value": "194.4",
+            "format": "currency"
+          },
+          {
+            "label": "Channel fee amount",
+            "value": "60",
+            "format": "currency"
+          },
+          {
+            "label": "Net before tax and cost of goods",
+            "value": "1000",
+            "format": "currency"
+          },
+          {
+            "label": "Contribution after unit cost",
+            "value": "400",
+            "format": "currency"
+          },
+          {
+            "label": "Realized contribution margin",
+            "value": "40",
+            "format": "percentage"
+          }
+        ],
+        "warnings": [
+          "Tax is arithmetic only; confirm the applicable GST or tax treatment separately.",
+          "Marketplace, payment and shipping charges vary by account, category and service level; enter current values yourself.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "pricing-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "productName",
+          "unitCost",
+          "targetMargin",
+          "discountPercent",
+          "taxRate",
+          "channelFeePercent",
+          "shippingCost",
+          "notes"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "id": "startup-original-regression",
+    "assistant": "startup-cost-estimator",
+    "input": {
+      "businessType": "Food brand",
+      "location": "Pune",
+      "oneTimeCosts": "Equipment: 50000\nBranding: 15000",
+      "monthlyCosts": "Rent: 25000\nPeople: 40000\nSoftware: 5000",
+      "runwayMonths": "6",
+      "contingencyPercent": "10"
+    },
+    "expectedFunding": "533500",
+    "status": 200,
+    "elapsedMs": 1032,
+    "remaining": "5",
+    "providerAttempted": true,
+    "fallbackReason": "invalid-provider-output",
+    "provider": "deterministic-fallback",
+    "funding": "533500",
+    "matchesExpectedFunding": true,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "startup-cost-estimator",
+        "title": "Food brand startup cost draft",
+        "summary": "A 6-month scenario for the costs you entered in Pune.",
+        "suggestions": [
+          "Decide whether to add an explicit line for working capital.",
+          "Decide whether to add an explicit line for customer acquisition.",
+          "Decide whether to add an explicit line for tax and professional support."
+        ],
+        "sections": [
+          {
+            "heading": "Scenario basis",
+            "body": "Totals use only your line items, the selected runway and the contingency percentage. No rent, salary, licence or permit rate is fetched or invented."
+          },
+          {
+            "heading": "Next review",
+            "body": "Replace estimates with supplier quotes, signed contracts or professional advice before committing funds."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "One-time costs",
+            "value": "65000",
+            "format": "currency"
+          },
+          {
+            "label": "Monthly costs",
+            "value": "70000",
+            "format": "currency"
+          },
+          {
+            "label": "Runway selected",
+            "value": "6",
+            "format": "number"
+          },
+          {
+            "label": "Contingency",
+            "value": "10",
+            "format": "percentage"
+          },
+          {
+            "label": "Estimated funding for scenario",
+            "value": "533500",
+            "format": "currency"
+          }
+        ],
+        "warnings": [
+          "This is a user-entered scenario, not a market benchmark, funding recommendation or permit-cost quote.",
+          "Review one-time versus recurring classification and include taxes or deposits only when you have a source for them.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "startup-cost-estimator-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "oneTimeCosts",
+          "monthlyCosts",
+          "runwayMonths",
+          "contingencyPercent"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "id": "plan-food",
+    "assistant": "business-plan-assistant",
+    "input": {
+      "businessName": "FreshBox Foods",
+      "industry": "Food and beverage",
+      "targetCustomer": "Busy office workers",
+      "problem": "Healthy snacks are hard to order during workdays.",
+      "solution": "Weekly snack boxes delivered to offices.",
+      "region": "Bengaluru",
+      "revenueModel": "Monthly subscription",
+      "firstYearGoal": "Reach 100 recurring customers",
+      "milestones": "Pilot, repeat-order test, local launch",
+      "constraints": "Limited founder budget"
+    },
+    "status": 200,
+    "elapsedMs": 1113,
+    "remaining": "4",
+    "providerAttempted": true,
+    "fallbackReason": "invalid-provider-output",
+    "provider": "deterministic-fallback",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "business-plan-assistant",
+        "title": "FreshBox Foods working business plan",
+        "summary": "A reviewable first draft for a food and beverage business starting in Bengaluru.",
+        "suggestions": [
+          "Attach evidence to each assumption before presenting this plan to a lender, investor or partner.",
+          "Turn the milestones into owners, dates and measurable acceptance criteria."
+        ],
+        "sections": [
+          {
+            "heading": "Executive summary",
+            "body": "FreshBox Foods will serve Busy office workers through Weekly snack boxes delivered to offices.. The proposed revenue model is Monthly subscription."
+          },
+          {
+            "heading": "Problem and customer",
+            "body": "Busy office workers currently faces: Healthy snacks are hard to order during workdays."
+          },
+          {
+            "heading": "Solution and delivery",
+            "body": "Weekly snack boxes delivered to offices. Define the first version, delivery process and quality checks before launch."
+          },
+          {
+            "heading": "First-year goal",
+            "body": "Reach 100 recurring customers"
+          },
+          {
+            "heading": "Milestones",
+            "body": "Pilot, repeat-order test, local launch"
+          },
+          {
+            "heading": "Constraints and risks",
+            "body": "Limited founder budget"
+          },
+          {
+            "heading": "Assumptions to validate",
+            "body": "Validate customer demand, pricing, delivery capacity, repeat behaviour and any applicable legal or tax obligations with primary evidence."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "No market size, competitor, financial forecast or regulatory claim is invented by this draft.",
+          "Review every section and replace placeholders with evidence before sharing or exporting it.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "business-plan-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessName",
+          "industry",
+          "targetCustomer",
+          "problem",
+          "solution",
+          "region",
+          "revenueModel",
+          "firstYearGoal",
+          "milestones",
+          "constraints"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "id": "name-hindi",
+    "assistant": "business-name",
+    "input": {
+      "businessType": "घर पर बने मसाले",
+      "location": "जयपुर",
+      "language": "hindi",
+      "tone": "trustworthy",
+      "keywords": "घरेलू, स्वाद",
+      "avoid": "विदेशी शब्द"
+    },
+    "status": 200,
+    "elapsedMs": 1021,
+    "remaining": "3",
+    "providerAttempted": true,
+    "fallbackReason": null,
+    "provider": "groq",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "business-name",
+        "title": "घर पर बने मसाले के लिए नाम सुझाव",
+        "summary": "जयपुर स्थित घरेलू मसाला व्यवसाय के लिए विश्वसनीय और स्वादिष्ट नामों की सूची।",
+        "suggestions": [
+          "घरेलू मसाला मंडी",
+          "स्वादिष्ट मसाला घर",
+          "जयपुर मसाला घर",
+          "सुगंधित मसाला",
+          "घर का मसाला",
+          "स्वाद का घर"
+        ],
+        "sections": [
+          {
+            "heading": "व्यवसाय का परिचय",
+            "body": "जयपुर में स्थित यह घरेलू मसाला व्यवसाय ताज़ा और प्राकृतिक मसालों की पेशकश करता है। यह ग्राहकों को घर के समान स्वाद और गुणवत्ता प्रदान करता है।"
+          },
+          {
+            "heading": "लक्षित ग्राहक",
+            "body": "मुख्य रूप से स्थानीय परिवार और रेस्टोरेंट्स, जो ताज़ा और बिना किसी विदेशी शब्द के मसालों की खोज में हैं।"
+          },
+          {
+            "heading": "उत्पाद श्रेणी",
+            "body": "विविध घरेलू मसालों का संग्रह, जैसे हल्दी, जीरा, धनिया, और मिश्रित मसाला।"
+          },
+          {
+            "heading": "मूल्य निर्धारण रणनीति",
+            "body": "मूल्य निर्धारण में पारदर्शिता और प्रतिस्पर्धात्मकता पर जोर दिया जाता है, जिससे ग्राहक संतुष्ट रहें।"
+          },
+          {
+            "heading": "विपणन और प्रचार",
+            "body": "सामाजिक मीडिया और स्थानीय बाजारों में प्रचार के माध्यम से ब्रांड जागरूकता बढ़ाई जाती है।"
+          },
+          {
+            "heading": "भविष्य की योजनाएँ",
+            "body": "उत्पादन क्षमता बढ़ाने और नए स्वादों को जोड़ने की योजना है, ताकि बाजार की मांग पूरी हो सके।"
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "इन शब्दों से बचें: विदेशी शब्द। हर नाम की अलग से समीक्षा करें।",
+          "यह एक सीमित भाषा नमूना है। स्थानीय वक्ताओं से उच्चारण, वर्तनी और अर्थ की जाँच करें।",
+          "ये केवल रचनात्मक सुझाव हैं। उपलब्धता, स्वामित्व या पंजीकरण का कोई दावा नहीं है।",
+          "यह केवल नाम सुझाव हैं, किसी भी ट्रेडमार्क या पंजीकरण के लिए कानूनी जाँच आवश्यक है।",
+          "व्यवसाय की सफलता के लिए स्थानीय नियमों और मानकों का पालन अनिवार्य है।",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-name-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "language",
+          "tone",
+          "keywords",
+          "avoid"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "id": "pricing-indian-grouping",
+    "assistant": "pricing-assistant",
+    "input": {
+      "productName": "Craft equipment",
+      "unitCost": "1,00,000",
+      "targetMargin": "20",
+      "discountPercent": "0",
+      "taxRate": "0",
+      "channelFeePercent": "0",
+      "shippingCost": "0",
+      "notes": ""
+    },
+    "status": 200,
+    "elapsedMs": 616,
+    "remaining": "2",
+    "providerAttempted": true,
+    "fallbackReason": "invalid-provider-output",
+    "provider": "deterministic-fallback",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "pricing-assistant",
+        "title": "Craft equipment pricing draft",
+        "summary": "A deterministic price scenario with an AI-ready explanation layer.",
+        "suggestions": [
+          "Compare the list price with a no-discount scenario before choosing a launch offer.",
+          "Re-run with seller-dashboard or payment-provider fees when the channel is known."
+        ],
+        "sections": [
+          {
+            "heading": "How to read this scenario",
+            "body": "The list price targets a 20% contribution margin after the expected discount, entered channel fee and shipping cost. Tax is shown separately as arithmetic only."
+          },
+          {
+            "heading": "Decision prompts",
+            "body": "Test willingness to pay, repeat purchase behaviour and contribution after every channel-specific cost."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "Suggested list price",
+            "value": "125000",
+            "format": "currency"
+          },
+          {
+            "label": "Expected price after discount",
+            "value": "125000",
+            "format": "currency"
+          },
+          {
+            "label": "Arithmetic tax amount",
+            "value": "0",
+            "format": "currency"
+          },
+          {
+            "label": "Channel fee amount",
+            "value": "0",
+            "format": "currency"
+          },
+          {
+            "label": "Net before tax and cost of goods",
+            "value": "125000",
+            "format": "currency"
+          },
+          {
+            "label": "Contribution after unit cost",
+            "value": "25000",
+            "format": "currency"
+          },
+          {
+            "label": "Realized contribution margin",
+            "value": "20",
+            "format": "percentage"
+          }
+        ],
+        "warnings": [
+          "Tax is arithmetic only; confirm the applicable GST or tax treatment separately.",
+          "Marketplace, payment and shipping charges vary by account, category and service level; enter current values yourself.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "pricing-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "productName",
+          "unitCost",
+          "targetMargin",
+          "discountPercent",
+          "taxRate",
+          "channelFeePercent",
+          "shippingCost",
+          "notes"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "id": "startup-indian-grouping",
+    "assistant": "startup-cost-estimator",
+    "input": {
+      "businessType": "Repair service",
+      "location": "Jaipur",
+      "oneTimeCosts": "Equipment: 1,00,000\nBranding: 25,000",
+      "monthlyCosts": "Rent: 30,000\nStaff: 70,000",
+      "runwayMonths": "3",
+      "contingencyPercent": "5"
+    },
+    "expectedFunding": "446250",
+    "status": 200,
+    "elapsedMs": 1129,
+    "remaining": "1",
+    "providerAttempted": true,
+    "fallbackReason": "invalid-provider-output",
+    "provider": "deterministic-fallback",
+    "funding": "446250",
+    "matchesExpectedFunding": true,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "startup-cost-estimator",
+        "title": "Repair service startup cost draft",
+        "summary": "A 3-month scenario for the costs you entered in Jaipur.",
+        "suggestions": [
+          "Decide whether to add an explicit line for working capital.",
+          "Decide whether to add an explicit line for customer acquisition.",
+          "Decide whether to add an explicit line for tax and professional support."
+        ],
+        "sections": [
+          {
+            "heading": "Scenario basis",
+            "body": "Totals use only your line items, the selected runway and the contingency percentage. No rent, salary, licence or permit rate is fetched or invented."
+          },
+          {
+            "heading": "Next review",
+            "body": "Replace estimates with supplier quotes, signed contracts or professional advice before committing funds."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "One-time costs",
+            "value": "125000",
+            "format": "currency"
+          },
+          {
+            "label": "Monthly costs",
+            "value": "100000",
+            "format": "currency"
+          },
+          {
+            "label": "Runway selected",
+            "value": "3",
+            "format": "number"
+          },
+          {
+            "label": "Contingency",
+            "value": "5",
+            "format": "percentage"
+          },
+          {
+            "label": "Estimated funding for scenario",
+            "value": "446250",
+            "format": "currency"
+          }
+        ],
+        "warnings": [
+          "This is a user-entered scenario, not a market benchmark, funding recommendation or permit-cost quote.",
+          "Review one-time versus recurring classification and include taxes or deposits only when you have a source for them.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "startup-cost-estimator-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "oneTimeCosts",
+          "monthlyCosts",
+          "runwayMonths",
+          "contingencyPercent"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "id": "plan-tailoring",
+    "assistant": "business-plan-assistant",
+    "input": {
+      "businessName": "Seher Stitch",
+      "industry": "Tailoring services",
+      "targetCustomer": "Local families seeking clothing alterations",
+      "problem": "Customers need reliable alterations near home.",
+      "solution": "Appointment-based tailoring and alterations.",
+      "region": "Lucknow",
+      "revenueModel": "Service fee per order",
+      "firstYearGoal": "Build repeat local demand",
+      "milestones": "Pilot with neighbours, collect feedback, refine appointment slots",
+      "constraints": "No shop lease; founder works from a home studio."
+    },
+    "status": 200,
+    "elapsedMs": 126,
+    "remaining": "0",
+    "providerAttempted": true,
+    "fallbackReason": "provider-rate-limited",
+    "provider": "deterministic-fallback",
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": true,
+      "result": {
+        "kind": "business-plan-assistant",
+        "title": "Seher Stitch working business plan",
+        "summary": "A reviewable first draft for a tailoring services business starting in Lucknow.",
+        "suggestions": [
+          "Attach evidence to each assumption before presenting this plan to a lender, investor or partner.",
+          "Turn the milestones into owners, dates and measurable acceptance criteria."
+        ],
+        "sections": [
+          {
+            "heading": "Executive summary",
+            "body": "Seher Stitch will serve Local families seeking clothing alterations through Appointment-based tailoring and alterations.. The proposed revenue model is Service fee per order."
+          },
+          {
+            "heading": "Problem and customer",
+            "body": "Local families seeking clothing alterations currently faces: Customers need reliable alterations near home."
+          },
+          {
+            "heading": "Solution and delivery",
+            "body": "Appointment-based tailoring and alterations. Define the first version, delivery process and quality checks before launch."
+          },
+          {
+            "heading": "First-year goal",
+            "body": "Build repeat local demand"
+          },
+          {
+            "heading": "Milestones",
+            "body": "Pilot with neighbours, collect feedback, refine appointment slots"
+          },
+          {
+            "heading": "Constraints and risks",
+            "body": "No shop lease; founder works from a home studio."
+          },
+          {
+            "heading": "Assumptions to validate",
+            "body": "Validate customer demand, pricing, delivery capacity, repeat behaviour and any applicable legal or tax obligations with primary evidence."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "No market size, competitor, financial forecast or regulatory claim is invented by this draft.",
+          "Review every section and replace placeholders with evidence before sharing or exporting it.",
+          "The provider rate limit was reached, so this deterministic draft is shown."
+        ],
+        "promptVersion": "business-plan-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessName",
+          "industry",
+          "targetCustomer",
+          "problem",
+          "solution",
+          "region",
+          "revenueModel",
+          "firstYearGoal",
+          "milestones",
+          "constraints"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "provider-rate-limited"
+    }
+  },
+  {
+    "id": "name-hinglish-rate-limit-probe",
+    "assistant": "business-name",
+    "input": {
+      "businessType": "Local cycle repair",
+      "location": "Delhi",
+      "language": "hinglish",
+      "tone": "playful",
+      "keywords": "cycle, saathi",
+      "avoid": ""
+    },
+    "status": 429,
+    "elapsedMs": 9,
+    "remaining": "0",
+    "providerAttempted": false,
+    "fallbackReason": null,
+    "provider": null,
+    "funding": null,
+    "matchesExpectedFunding": null,
+    "response": {
+      "ok": false,
+      "error": "The assistant limit has been reached. Try again after the rate window resets."
+    }
+  }
+]

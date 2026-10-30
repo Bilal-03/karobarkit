@@ -53,7 +53,8 @@ export interface AssistantFieldConfig {
   sensitive?: boolean;
 }
 
-const numericLiteralPattern = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/;
+const groupedNumber = String.raw`(?:\d+|\d{1,3}(?:,\d{3})+|\d{1,3}(?:,\d{2})+,\d{3})`;
+const numericLiteralPattern = new RegExp(`^-?${groupedNumber}(?:\\.\\d+)?$`);
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max).optional().default('');
 const numberText = (max = 40) =>
@@ -516,7 +517,12 @@ export function redactAssistantInput(kind: AIAssistantKind, input: unknown) {
   const safeInput: AIAssistantInput = {};
   for (const [field, raw] of Object.entries(parsed.data)) {
     const original = String(raw ?? '').trim();
-    let safeValue = cleanText(original);
+    // Cost rows are records. Collapsing their newlines joins amounts into one
+    // label and silently discards all but the final cost.
+    let safeValue =
+      kind === 'startup-cost-estimator' && (field === 'oneTimeCosts' || field === 'monthlyCosts')
+        ? original.split(/\r?\n/u).map(cleanText).join('\n')
+        : cleanText(original);
     if (safeValue !== original) normalizedFields.push(field);
     for (const { pattern, label } of blockedSensitivePatterns) {
       pattern.lastIndex = 0;
@@ -668,7 +674,7 @@ function parseCostLines(raw: string): ParsedCostLines {
   raw.split(/\n+/).forEach((line, index) => {
     const cleaned = cleanText(line);
     if (!cleaned) return;
-    const match = cleaned.match(/^(.*?)(?:[:=]\s*|\s+)(-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?)\s*$/);
+    const match = cleaned.match(new RegExp(`^(.*?)(?:[:=]\\s*|\\s+)(-?${groupedNumber}(?:\\.\\d+)?)\\s*$`));
     if (!match) {
       errors.push(`Line ${index + 1} must use “Label: amount” format.`);
       return;
@@ -718,38 +724,75 @@ function fallbackBusinessName(
         : tone === 'playful'
           ? 'Joy'
           : 'Works');
-  const candidates = unique([
-    `${core} ${toneWord}`,
-    `${core} ${typeWord}`,
-    locationWord ? `${locationWord} ${core}` : '',
-    `${core} & Co`,
-    `${typeWord} ${toneWord}`,
-    keywords.length > 1 ? `${keywords[0]} ${keywords[1]}` : '',
-  ]).slice(0, 6);
+  const hindiTheme = /food|snack|cafe|restaurant|खाना|भोजन/iu.test(businessType)
+    ? 'स्वाद'
+    : /repair|service|सेवा|मरम्मत/iu.test(businessType)
+      ? 'सेवा'
+      : /cloth|fashion|garment|कपड़|वस्त्र/iu.test(businessType)
+        ? 'रंग'
+        : 'साथ';
+  const hindiCore = /[\u0900-\u097f]/u.test(core) ? core : hindiTheme;
+  const candidates =
+    language === 'hindi'
+      ? unique([
+          `${hindiCore} ${toneWord}`,
+          `नव ${hindiCore}`,
+          `अपना ${hindiCore}`,
+          `${hindiCore} साथी`,
+          `उदय ${hindiCore}`,
+          `${hindiCore} घर`,
+        ]).slice(0, 6)
+      : unique([
+          `${core} ${toneWord}`,
+          `${core} ${typeWord}`,
+          locationWord ? `${locationWord} ${core}` : '',
+          `${core} & Co`,
+          `${typeWord} ${toneWord}`,
+          keywords.length > 1 ? `${keywords[0]} ${keywords[1]}` : '',
+        ]).slice(0, 6);
   const avoid = value(input, 'avoid');
   return {
     kind: 'business-name',
-    title: 'A first naming shortlist',
-    summary: `Six concise options for a ${businessType.toLowerCase()} brand${location ? ` serving ${location}` : ''}.`,
+    title: language === 'hindi' ? 'नामों की प्रारंभिक सूची' : 'A first naming shortlist',
+    summary:
+      language === 'hindi'
+        ? 'आपके व्यवसाय विवरण के आधार पर नामों का प्रारंभिक मसौदा।'
+        : `${candidates.length} options for a ${businessType.toLowerCase()} brand${location ? ` serving ${location}` : ''}.`,
     suggestions: candidates,
-    sections: [
-      {
-        heading: 'Naming brief',
-        body: `Tone: ${tone}. Language style: ${language || 'english'}. Core themes: ${keywords.join(', ') || 'not specified'}.`,
-      },
-      {
-        heading: 'Next checks',
-        body: 'Check company-name, trademark, domain and social-handle availability independently before adopting a name.',
-      },
-    ],
+    sections:
+      language === 'hindi'
+        ? [
+            { heading: 'नाम की दिशा', body: 'ये नाम आपके दिए गए विवरण से प्रेरित रचनात्मक सुझाव हैं।' },
+            {
+              heading: 'अगली जाँच',
+              body: 'नाम चुनने से पहले कंपनी नाम, ट्रेडमार्क, डोमेन और सोशल हैंडल की उपलब्धता अलग से जाँचें।',
+            },
+          ]
+        : [
+            {
+              heading: 'Naming brief',
+              body: `Tone: ${tone}. Language style: ${language || 'english'}. Core themes: ${keywords.join(', ') || 'not specified'}.`,
+            },
+            {
+              heading: 'Next checks',
+              body: 'Check company-name, trademark, domain and social-handle availability independently before adopting a name.',
+            },
+          ],
     metrics: [],
-    warnings: [
-      ...(avoid ? [`Avoid list noted: ${avoid}. Review each candidate against it.`] : []),
-      language === 'english'
-        ? 'Review pronunciation, spelling and local-language meaning with real customers.'
-        : 'The deterministic fallback uses a small bilingual template; review spelling, pronunciation and cultural meaning with local speakers.',
-      'These are creative drafts only; no availability, ownership or registration claim is made.',
-    ],
+    warnings:
+      language === 'hindi'
+        ? [
+            ...(avoid ? [`इन शब्दों से बचें: ${avoid}। हर नाम की अलग से समीक्षा करें।`] : []),
+            'यह एक सीमित भाषा नमूना है। स्थानीय वक्ताओं से उच्चारण, वर्तनी और अर्थ की जाँच करें।',
+            'ये केवल रचनात्मक सुझाव हैं। उपलब्धता, स्वामित्व या पंजीकरण का कोई दावा नहीं है।',
+          ]
+        : [
+            ...(avoid ? [`Avoid list noted: ${avoid}. Review each candidate against it.`] : []),
+            language === 'english'
+              ? 'Review pronunciation, spelling and local-language meaning with real customers.'
+              : 'The deterministic fallback uses a small bilingual template; review spelling, pronunciation and cultural meaning with local speakers.',
+            'These are creative drafts only; no availability, ownership or registration claim is made.',
+          ],
     promptVersion: AI_PROMPT_VERSIONS['business-name'],
     reviewRequired: true,
   };
@@ -782,7 +825,7 @@ function fallbackPricing(
   return {
     kind: 'pricing-assistant',
     title: `${value(input, 'productName') || 'Product'} pricing draft`,
-    summary: 'A deterministic price scenario with an AI-ready explanation layer.',
+    summary: 'A price scenario based on the costs and targets you entered.',
     suggestions: [
       'Compare the list price with a no-discount scenario before choosing a launch offer.',
       'Re-run with seller-dashboard or payment-provider fees when the channel is known.',
@@ -882,6 +925,7 @@ function fallbackBusinessPlan(
   const constraints =
     value(input, 'constraints') ||
     'No constraints were entered; add budget, capacity and compliance assumptions.';
+  const solutionPhrase = solution.replace(/[.!?]+$/u, '');
   return {
     kind: 'business-plan-assistant',
     title: `${name} working business plan`,
@@ -893,9 +937,9 @@ function fallbackBusinessPlan(
     sections: [
       {
         heading: 'Executive summary',
-        body: `${name} will serve ${customer} through ${solution}. The proposed revenue model is ${revenueModel}.`,
+        body: `${name} proposes to serve ${customer} with ${solutionPhrase}. The proposed revenue model is ${revenueModel}.`,
       },
-      { heading: 'Problem and customer', body: `${customer} currently faces: ${problem}` },
+      { heading: 'Problem and customer', body: `${customer} experience this problem: ${problem}` },
       {
         heading: 'Solution and delivery',
         body: `${solution} Define the first version, delivery process and quality checks before launch.`,
@@ -948,6 +992,9 @@ export function buildAssistantSystemInstruction(kind: AIAssistantKind) {
     'Produce only an editable draft based on the supplied facts.',
     'Do not claim a business name, domain, trademark, company registration, tax treatment, legal compliance, market size, market share, current fee or funding outcome.',
     'Do not invent citations, statistics, prices, permits, salaries or competitor facts.',
+    'Write for an Indian audience. Monetary amounts are INR and must never be labelled with a foreign currency.',
+    'For pricing, startup-cost and business-plan drafts, discuss only qualitative decisions. Do not write any digits, currency symbols or numerical claims in prose; the application shows verified INR metrics or a fact-preserving local plan separately.',
+    'For the business-name assistant, put several distinct candidate names in suggestions. The application will ignore your other prose. Follow the requested English, Hindi or Hinglish language in the actual names.',
     'For pricing, startup-cost and business-plan assistants, never create or change a numeric result. If a number is not present in the locked metrics or user facts, leave it out and ask a question instead.',
     'For those assistants, do not use numeric list prefixes such as 1. or 2); the JSON arrays already provide structure. Reuse locked values exactly or with the same two-decimal display rounding, and do not add any other digits.',
     'For the business-plan assistant, keep the draft concise: use at most six sections, two short sentences per section, and no invented durations, counts, percentages or years.',
@@ -984,7 +1031,9 @@ function normalizeNumericToken(token: string) {
 function numericTokens(valueToInspect: string) {
   // Match Indian-grouped values as one token before the plain-digit branch.
   // Otherwise “₹1,111.11” would be split into “₹1” and “111.11”.
-  return valueToInspect.match(/₹?\s*-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?/g) ?? [];
+  return (
+    valueToInspect.match(/₹?\s*-?(?:\d{1,3}(?:,\d{2})+,\d{3}|\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?/g) ?? []
+  );
 }
 
 function numericAuthorityVariants(valueToUse: string) {
@@ -1054,10 +1103,44 @@ export function mergeProviderDraft(
   fallback: AIAssistantResult,
   draft: unknown,
   provider: Exclude<AIAssistantProvider, 'deterministic-fallback'>,
-  options: { approvedNumbers?: string[] } = {},
+  options: { approvedNumbers?: string[]; language?: string } = {},
 ) {
   const parsed = assistantDraftSchema.safeParse(draft);
   if (!parsed.success) return fallback;
+  if (fallback.kind === 'business-name') {
+    const language = options.language ?? 'english';
+    const safeNames = unique(parsed.data.suggestions.map(safeDraftText).filter(Boolean)).slice(0, 12);
+    if (
+      safeNames.length < 3 ||
+      safeNames.some((item) =>
+        /^(?:consider|explore|ask|check|review|validate|test|try|use|offer|develop)\b/iu.test(item),
+      ) ||
+      (language === 'hindi' && safeNames.some((item) => !/[\u0900-\u097f]/u.test(item))) ||
+      safeNames.some((item) => /[$€£]|\b(?:USD|EUR|GBP|dollars?|euros?|pounds?)\b/iu.test(item))
+    )
+      return fallback;
+    return { ...fallback, suggestions: safeNames, provider };
+  }
+  const providerProse = [
+    parsed.data.title,
+    parsed.data.summary,
+    ...parsed.data.suggestions,
+    ...parsed.data.sections.flatMap((section) => [section.heading, section.body]),
+    ...parsed.data.warnings,
+  ].join(' ');
+  if (/[$€£]|\b(?:USD|EUR|GBP|dollars?|euros?|pounds?)\b/iu.test(providerProse)) return fallback;
+  // Financial figures belong to the deterministic metric cards. Free prose
+  // can swap labels, units or currencies even when every digit is approved.
+  if (
+    (fallback.kind === 'pricing-assistant' ||
+      fallback.kind === 'startup-cost-estimator' ||
+      fallback.kind === 'business-plan-assistant') &&
+    (/[\p{Nd}₹$€£]/u.test(providerProse) ||
+      /\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|hundred|thousand|lakh|crore|million|billion|percent|percentage)\b|(?:शून्य|एक|दो|तीन|चार|पाँच|छह|सात|आठ|नौ|दस|सौ|हज़ार|लाख|करोड़|प्रतिशत|रुपये)/iu.test(
+        providerProse,
+      ))
+  )
+    return fallback;
   if (hasUnauthorizedNumericClaims(fallback.kind, parsed.data, options.approvedNumbers ?? []))
     return fallback;
   const safeSections = parsed.data.sections

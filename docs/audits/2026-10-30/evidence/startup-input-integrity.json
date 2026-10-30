@@ -1,0 +1,72 @@
+{
+  "original": {
+    "businessType": "Home-based food brand",
+    "location": "Bengaluru",
+    "oneTimeCosts": "Equipment: 50000\nBranding: 15000",
+    "monthlyCosts": "Rent: 25000\nPeople: 40000\nSoftware: 5000",
+    "runwayMonths": "6",
+    "contingencyPercent": "10"
+  },
+  "prepared": {
+    "businessType": "Home-based food brand",
+    "location": "Bengaluru",
+    "oneTimeCosts": "Equipment: 50000 Branding: 15000",
+    "monthlyCosts": "Rent: 25000 People: 40000 Software: 5000",
+    "runwayMonths": "6",
+    "contingencyPercent": "10"
+  },
+  "originalMetrics": [
+    {
+      "label": "One-time costs",
+      "value": "65000",
+      "format": "currency"
+    },
+    {
+      "label": "Monthly costs",
+      "value": "70000",
+      "format": "currency"
+    },
+    {
+      "label": "Runway selected",
+      "value": "6",
+      "format": "number"
+    },
+    {
+      "label": "Contingency",
+      "value": "10",
+      "format": "percentage"
+    },
+    {
+      "label": "Estimated funding for scenario",
+      "value": "533500",
+      "format": "currency"
+    }
+  ],
+  "preparedMetrics": [
+    {
+      "label": "One-time costs",
+      "value": "15000",
+      "format": "currency"
+    },
+    {
+      "label": "Monthly costs",
+      "value": "5000",
+      "format": "currency"
+    },
+    {
+      "label": "Runway selected",
+      "value": "6",
+      "format": "number"
+    },
+    {
+      "label": "Contingency",
+      "value": "10",
+      "format": "percentage"
+    },
+    {
+      "label": "Estimated funding for scenario",
+      "value": "49500",
+      "format": "currency"
+    }
+  ]
+}

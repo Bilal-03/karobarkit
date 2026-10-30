@@ -8,6 +8,7 @@ import {
   redactAssistantInput,
   validateAssistantInput,
 } from '@/domain/ai';
+import { prepareAssistantInput } from '@/domain/ai/gateway';
 import {
   AI_RATE_LIMIT,
   AI_RATE_LIMIT_MAX_CONFIGURED,
@@ -45,6 +46,62 @@ describe('Phase 6 AI assistant foundation', () => {
     expect(result.redactedFields).toEqual(expect.arrayContaining(['targetCustomer', 'problem']));
     expect(result.input.targetCustomer).not.toContain('owner@example.com');
     expect(result.input.problem).not.toContain('ABCDE1234F');
+  });
+
+  it('offers a Devanagari shortlist for a Hindi naming brief', () => {
+    const input = {
+      businessType: 'Healthy snack delivery',
+      location: 'Pune',
+      language: 'hindi',
+      tone: 'modern',
+      keywords: '',
+      avoid: '',
+    };
+    const fallback = fallbackAssistant('business-name', input);
+    expect(fallback.suggestions.length).toBeGreaterThanOrEqual(3);
+    expect(fallback.suggestions.every((name) => /[\u0900-\u097f]/u.test(name))).toBe(true);
+    expect(fallback.title).toMatch(/[\u0900-\u097f]/u);
+    const rejected = mergeProviderDraft(
+      fallback,
+      {
+        title: 'Names',
+        summary: 'A shortlist.',
+        suggestions: ['Fresh Bite', 'Snack Lab', 'Pune Pantry'],
+        sections: [{ heading: 'Next', body: 'Review the names.' }],
+        warnings: [],
+      },
+      'groq',
+      { language: 'hindi' },
+    );
+    expect(rejected.provider).toBe('deterministic-fallback');
+  });
+
+  it('keeps live name candidates but discards invented business-plan prose', () => {
+    const fallback = fallbackAssistant('business-name', {
+      businessType: 'Home-made snacks',
+      location: 'Pune',
+      language: 'english',
+      tone: 'modern',
+      keywords: 'fresh, local',
+      avoid: '',
+    });
+    const merged = mergeProviderDraft(
+      fallback,
+      {
+        title: 'Invented market position',
+        summary: 'The business uses seasonal ingredients and same-day delivery.',
+        suggestions: ['FreshBite Pune', 'LocalCrunch', 'NourishNook'],
+        sections: [{ heading: 'Operations', body: 'The founder has local suppliers and influencers.' }],
+        warnings: [],
+      },
+      'groq',
+      { language: 'english' },
+    );
+    expect(merged.provider).toBe('groq');
+    expect(merged.suggestions).toEqual(['FreshBite Pune', 'LocalCrunch', 'NourishNook']);
+    expect(merged.title).toBe(fallback.title);
+    expect(merged.summary).toBe(fallback.summary);
+    expect(merged.sections).toEqual(fallback.sections);
   });
 
   it('keeps pricing metrics deterministic and validates numeric inputs', () => {
@@ -106,6 +163,47 @@ describe('Phase 6 AI assistant foundation', () => {
     });
     expect(invalid.success).toBe(false);
     if (!invalid.success) expect(invalid.errors[0]?.message).toContain('Line 1');
+  });
+
+  it('preserves every startup-cost row through gateway preparation', () => {
+    const input = {
+      businessType: 'Food brand',
+      location: 'Pune',
+      oneTimeCosts: 'Equipment: 50000\nBranding: 15000',
+      monthlyCosts: 'Rent: 25000\nPeople: 40000\nSoftware: 5000',
+      runwayMonths: '6',
+      contingencyPercent: '10',
+    };
+    const prepared = prepareAssistantInput('startup-cost-estimator', input);
+    const result = fallbackAssistant('startup-cost-estimator', prepared.input);
+    expect(result.metrics.find((item) => item.label === 'One-time costs')?.value).toBe('65000');
+    expect(result.metrics.find((item) => item.label === 'Monthly costs')?.value).toBe('70000');
+    expect(result.metrics.find((item) => item.label === 'Estimated funding for scenario')?.value).toBe(
+      '533500',
+    );
+  });
+
+  it('accepts valid lakh grouping in assistant amounts and cost rows', () => {
+    const pricing = validateAssistantInput('pricing-assistant', {
+      productName: 'Sample',
+      unitCost: '1,00,000',
+      targetMargin: '40',
+      discountPercent: '0',
+      taxRate: '18',
+      channelFeePercent: '0',
+      shippingCost: '0',
+      notes: '',
+    });
+    expect(pricing.success).toBe(true);
+    const startup = validateAssistantInput('startup-cost-estimator', {
+      businessType: 'Retail',
+      location: '',
+      oneTimeCosts: 'Equipment: 1,00,000',
+      monthlyCosts: 'Rent: 25,000',
+      runwayMonths: '6',
+      contingencyPercent: '10',
+    });
+    expect(startup.success).toBe(true);
   });
 
   it('rejects silent percentage clamping and unsafe confidential identifiers', () => {
@@ -203,6 +301,19 @@ describe('Phase 6 AI assistant foundation', () => {
       { approvedNumbers: ['600', '40', '0', '1000'] },
     );
     expect(merged.provider).toBe('deterministic-fallback');
+    const writtenOut = mergeProviderDraft(
+      fallback,
+      {
+        title: 'Pricing wording',
+        summary: 'The margin is forty percent.',
+        suggestions: ['Test the price with customers.'],
+        sections: [{ heading: 'Next step', body: 'Review the entered assumptions.' }],
+        warnings: [],
+      },
+      'groq',
+      { approvedNumbers: ['40'] },
+    );
+    expect(writtenOut.provider).toBe('deterministic-fallback');
   });
 
   it('accepts display-rounded locked metrics and ignores structural list numbering', () => {
@@ -235,11 +346,11 @@ describe('Phase 6 AI assistant foundation', () => {
           .concat(['600', '40', '10', '18', '0']),
       },
     );
-    expect(merged.provider).toBe('groq');
-    expect(merged.summary).toContain('₹1,111.11');
+    expect(merged.provider).toBe('deterministic-fallback');
+    expect(merged.metrics).toEqual(fallback.metrics);
   });
 
-  it('accepts a concise business-plan draft with structural phases and user-owned numbers', () => {
+  it('uses the fact-preserving plan when provider prose adds numeric claims', () => {
     const input = {
       businessName: 'FreshBox Foods',
       industry: 'Food and beverage',
@@ -274,7 +385,7 @@ describe('Phase 6 AI assistant foundation', () => {
       'groq',
       { approvedNumbers: getAssistantNumericAuthority(input, fallback.metrics) },
     );
-    expect(merged.provider).toBe('groq');
+    expect(merged.provider).toBe('deterministic-fallback');
   });
 
   it('serializes facts as data without an injectable closing delimiter', () => {

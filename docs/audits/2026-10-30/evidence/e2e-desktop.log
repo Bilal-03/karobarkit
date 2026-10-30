@@ -1,0 +1,77 @@
+
+Running 67 tests using 2 workers
+
+(node:21646) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21647) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [desktop-1440] › tests/e2e/business-economics.spec.ts:9:7 › Phase 2 business economics › calculates a margin scenario and exposes a local CSV export (5.0s)
+  ✓   1 [desktop-1440] › tests/e2e/business-economics.spec.ts:26:7 › Phase 2 business economics › supports an explicit tab-only handoff of matching assumptions (6.6s)
+  ✓   4 [desktop-1440] › tests/e2e/document-generators.spec.ts:64:7 › document generators › letterhead keeps long plain text on multiple A4 pages (4.8s)
+  ✓   3 [desktop-1440] › tests/e2e/document-generators.spec.ts:15:7 › document generators › letterhead supports local logo processing, preview, PDF download and print (10.2s)
+  ✓   5 [desktop-1440] › tests/e2e/document-generators.spec.ts:80:7 › document generators › payment receipt formats amount in words and exports a declared-payment acknowledgement (7.6s)
+  ✓   6 [desktop-1440] › tests/e2e/document-generators.spec.ts:116:7 › document generators › payment receipt rejects invalid amount and resets from the keyboard journey (4.6s)
+  ✓   8 [desktop-1440] › tests/e2e/document-workflow-wave.spec.ts:46:7 › Phase 3 document workflow wave › creates a business-card proof and invoice-number preview (6.9s)
+  ✓   7 [desktop-1440] › tests/e2e/document-workflow-wave.spec.ts:10:7 › Phase 3 document workflow wave › creates, exports and prints a quotation, then exposes the invoice handoff (8.0s)
+  ✓   9 [desktop-1440] › tests/e2e/document-workflow-wave.spec.ts:69:7 › Phase 3 document workflow wave › creates a commercial invoice and continues to a receipt draft (7.6s)
+  ✓  11 [desktop-1440] › tests/e2e/everyday-utilities.spec.ts:13:7 › everyday utilities wave › publishes the new directory categories and keeps the feature flag explicit (2.3s)
+  ✓  10 [desktop-1440] › tests/e2e/document-workflow-wave.spec.ts:105:7 › Phase 3 document workflow wave › continues a GST invoice into receipt and UPI drafts with explicit import (10.8s)
+  -  13 [desktop-1440] › tests/e2e/everyday-utilities.spec.ts:38:7 › everyday utilities wave › keeps text and checklist inputs local on a mobile viewport
+  ✓  12 [desktop-1440] › tests/e2e/everyday-utilities.spec.ts:24:7 › everyday utilities wave › completes a percentage journey on the desktop reference viewport (3.3s)
+  ✓  14 [desktop-1440] › tests/e2e/everyday-utilities.spec.ts:60:7 › everyday utilities wave › hands a discounted amount to GST only after explicit import (4.1s)
+  ✓  15 [desktop-1440] › tests/e2e/finance.spec.ts:4:7 › Phase 3 finance foundation › calculates EMI, exposes the amortization output and links its sources (5.4s)
+  ✓  16 [desktop-1440] › tests/e2e/foundation.spec.ts:156:7 › foundation routes › supports homepage, search, category and related-tool discovery (5.8s)
+  ✓  17 [desktop-1440] › tests/e2e/foundation.spec.ts:171:7 › foundation routes › credits the creator and links to his professional profiles (2.8s)
+  ✓  18 [desktop-1440] › tests/e2e/foundation.spec.ts:193:7 › foundation routes › shows useful zero results and a noindex search policy (2.3s)
+  ✓  19 [desktop-1440] › tests/e2e/foundation.spec.ts:199:7 › foundation routes › hydrates scalable directory filters from a canonical query URL (3.1s)
+  ✓  21 [desktop-1440] › tests/e2e/foundation.spec.ts:232:7 › foundation routes › publishes the Phase 6 AI category without Beta badges (3.1s)
+  ✓  20 [desktop-1440] › tests/e2e/foundation.spec.ts:209:7 › foundation routes › caps directory cards, resets the window and preserves filter history (4.6s)
+  ✓  22 [desktop-1440] › tests/e2e/foundation.spec.ts:241:7 › foundation routes › calculator metadata and canonical identify the same tool (4.2s)
+  ✓  23 [desktop-1440] › tests/e2e/foundation.spec.ts:252:7 › foundation routes › CAGR completes the required worked input (4.2s)
+  ✓  24 [desktop-1440] › tests/e2e/foundation.spec.ts:265:7 › foundation routes › ROI keyboard journey reports a complete loss safely (3.8s)
+  ✓  26 [desktop-1440] › tests/e2e/foundation.spec.ts:291:7 › foundation routes › keyboard users can reach the mobile navigation and focus remains visible (2.5s)
+  -  27 [desktop-1440] › tests/e2e/foundation.spec.ts:301:7 › foundation routes › mobile navigation opens, focuses its close control and closes on selection
+  ✓  28 [desktop-1440] › tests/e2e/foundation.spec.ts:322:7 › foundation routes › invalid input is announced and linked to its field (3.2s)
+  -  29 [desktop-1440] › tests/e2e/foundation.spec.ts:338:7 › foundation routes › calculator controls meet the minimum touch target height
+  ✓  25 [desktop-1440] › tests/e2e/foundation.spec.ts:277:7 › foundation routes › mobile pages do not create horizontal overflow (11.1s)
+  ✓  31 [desktop-1440] › tests/e2e/foundation.spec.ts:383:7 › accessibility › home page has no serious or critical axe violations (6.6s)
+  ✓  30 [desktop-1440] › tests/e2e/foundation.spec.ts:360:7 › route metadata › every foundation route has a title, description, canonical URL and H1 (26.4s)
+  ✓  33 [desktop-1440] › tests/e2e/gst-calculator.spec.ts:6:7 › GST Calculator › supports a preset, exclusive calculation and separate source context (4.5s)
+  ✓  34 [desktop-1440] › tests/e2e/gst-calculator.spec.ts:21:7 › GST Calculator › completes an inclusive inter-state calculation from the keyboard (7.0s)
+  ✓  35 [desktop-1440] › tests/e2e/gst-calculator.spec.ts:37:7 › GST Calculator › keeps custom rates explicit and calculator values out of analytics (8.3s)
+  ✓  32 [desktop-1440] › tests/e2e/foundation.spec.ts:392:7 › accessibility › calculator page has no serious or critical axe violations (52.1s)
+  ✓  36 [desktop-1440] › tests/e2e/gst-calculator.spec.ts:70:7 › GST Calculator › has no serious or critical axe violations (14.4s)
+  ✓  37 [desktop-1440] › tests/e2e/gst-invoice-generator.spec.ts:5:7 › GST invoice generator › creates a local A4 draft, downloads a safe PDF and prepares print (16.1s)
+  ✓  38 [desktop-1440] › tests/e2e/gst-invoice-generator.spec.ts:33:7 › GST invoice generator › keeps long invoices on separate A4 preview pages and rejects unsafe input (18.4s)
+  ✓  39 [desktop-1440] › tests/e2e/hra.spec.ts:4:7 › Phase 4 HRA controlled beta › calculates a policy-scoped illustration and shows the review boundary (9.8s)
+  ✓  40 [desktop-1440] › tests/e2e/phase5.spec.ts:11:7 › Phase 5 startup and marketplace beta › publishes CAC with a local scenario result and CSV export (7.1s)
+  ✓  41 [desktop-1440] › tests/e2e/phase5.spec.ts:30:7 › Phase 5 startup and marketplace beta › shows the official marketplace snapshot and estimate boundary (10.0s)
+  ✓  42 [desktop-1440] › tests/e2e/production-smoke.spec.ts:4:5 › production-safe route smoke checks (14.0s)
+  ✓  43 [desktop-1440] › tests/e2e/production-smoke.spec.ts:38:5 › contact sends through its backend contract and error reports stay local-only (7.8s)
+  ✓  44 [desktop-1440] › tests/e2e/qr-generators.spec.ts:5:7 › QR generators › URL QR normalizes, renders, downloads and prints locally (6.7s)
+  ✓  45 [desktop-1440] › tests/e2e/qr-generators.spec.ts:33:7 › QR generators › URL QR rejects unsafe protocols accessibly (6.2s)
+  ✓  46 [desktop-1440] › tests/e2e/qr-generators.spec.ts:47:7 › QR generators › UPI standee encodes details and keeps the ownership limitation visible (7.9s)
+  ✓  47 [desktop-1440] › tests/e2e/qr-generators.spec.ts:74:7 › QR generators › UPI form can be completed with keyboard and reset safely (7.8s)
+  ✓  48 [desktop-1440] › tests/e2e/regulated-utilities.spec.ts:12:7 › data-backed and regulated utilities wave › publishes the six tools under their intended categories (6.9s)
+  -  50 [desktop-1440] › tests/e2e/regulated-utilities.spec.ts:38:7 › data-backed and regulated utilities wave › keeps currency conversion manual on mobile until a quote is explicitly requested
+  ✓  49 [desktop-1440] › tests/e2e/regulated-utilities.spec.ts:28:7 › data-backed and regulated utilities wave › searches a bundled HSN fixture on desktop (6.6s)
+  ✓  51 [desktop-1440] › tests/e2e/retail-workplace.spec.ts:30:7 › retail, documents and workplace operations wave › publishes the new tools in their intended categories (7.7s)
+  -  53 [desktop-1440] › tests/e2e/retail-workplace.spec.ts:56:7 › retail, documents and workplace operations wave › calculates a notice-period estimate on mobile
+  ✓  52 [desktop-1440] › tests/e2e/retail-workplace.spec.ts:44:7 › retail, documents and workplace operations wave › generates a declared price tag on desktop (9.2s)
+  ✓  55 [desktop-1440] › tests/e2e/retail-workplace.spec.ts:99:7 › retail, documents and workplace operations wave › exports a Devanagari menu with a scannable QR image (19.6s)
+  ✓  56 [desktop-1440] › tests/e2e/sharing-file-utilities.spec.ts:21:7 › sharing and file utilities wave › publishes QR, marketing and file categories behind the wave flag (5.3s)
+  ✓  54 [desktop-1440] › tests/e2e/retail-workplace.spec.ts:66:7 › retail, documents and workplace operations wave › downloads non-empty PDFs at every declared print profile (28.1s)
+  -  58 [desktop-1440] › tests/e2e/sharing-file-utilities.spec.ts:41:7 › sharing and file utilities wave › reviews decoded content and renders a barcode on mobile
+  ✓  57 [desktop-1440] › tests/e2e/sharing-file-utilities.spec.ts:31:7 › sharing and file utilities wave › generates a safe WhatsApp payload on desktop (7.3s)
+  ✓  59 [desktop-1440] › tests/e2e/sharing-file-utilities.spec.ts:60:7 › sharing and file utilities wave › merges PDFs in a worker and exposes per-file controls (9.7s)
+  ✓  61 [desktop-1440] › tests/e2e/studio-experience.spec.ts:40:5 › EMI has three primary inputs, retained extras and a result (8.5s)
+  ✓  62 [desktop-1440] › tests/e2e/studio-experience.spec.ts:54:5 › invoice parties, items, edit, reset and PDF export (15.4s)
+  ✓  63 [desktop-1440] › tests/e2e/studio-experience.spec.ts:78:5 › navigation drawers, collapsed sidebar and search restore keyboard focus (7.5s)
+  ✓  60 [desktop-1440] › tests/e2e/studio-experience.spec.ts:4:5 › studio discovery, themes, keyboard search and separate help (37.4s)
+  ✓  65 [desktop-1440] › tests/e2e/studio-experience.spec.ts:141:5 › contact hints stay below their controls and cards have no Beta badges (6.8s)
+  ✓  64 [desktop-1440] › tests/e2e/studio-experience.spec.ts:104:5 › toolkit links switch groups without retaining previous directory filters (8.7s)
+  -  67 [desktop-1440] › tests/e2e/studio-visual.spec.ts:5:5 › light and dark design references and zoom reflow
+  ✓  66 [desktop-1440] › tests/e2e/studio-visual.spec.ts:45:5 › discovery stays visible before JavaScript loads (2.0s)
+
+  7 skipped
+  60 passed (5.3m)

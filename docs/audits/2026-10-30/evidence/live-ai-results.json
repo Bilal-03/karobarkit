@@ -1,0 +1,1056 @@
+[
+  {
+    "tool": "business-name-generator",
+    "scenario": 1,
+    "input": {
+      "businessType": "Healthy snack delivery",
+      "location": "Pune",
+      "language": "english",
+      "tone": "modern",
+      "keywords": "fresh, local, simple",
+      "avoid": ""
+    },
+    "status": 200,
+    "durationMs": 1775,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-name",
+        "title": "Fresh & Simple",
+        "summary": "A modern healthy snack delivery service in Pune that focuses on fresh, local, and simple offerings.",
+        "suggestions": [
+          "Consider adding a subscription model for regular deliveries.",
+          "Explore collaborations with local farmers for sourcing."
+        ],
+        "sections": [
+          {
+            "heading": "Concept",
+            "body": "Deliver fresh, locally sourced snacks to Pune residents."
+          },
+          {
+            "heading": "Target Market",
+            "body": "Health-conscious individuals seeking convenient, simple snack options."
+          },
+          {
+            "heading": "Unique Selling Point",
+            "body": "Emphasis on freshness and local ingredients."
+          },
+          {
+            "heading": "Delivery Model",
+            "body": "Same-day delivery within Pune using eco-friendly packaging."
+          },
+          {
+            "heading": "Brand Voice",
+            "body": "Modern, friendly, and straightforward."
+          },
+          {
+            "heading": "Marketing Channels",
+            "body": "Social media, local events, and partnerships with gyms."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "Review pronunciation, spelling and local-language meaning with real customers.",
+          "These are creative drafts only; no availability, ownership or registration claim is made.",
+          "Verify local regulations for food delivery and packaging.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-name-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "language",
+          "tone",
+          "keywords",
+          "avoid"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "business-name-generator",
+    "scenario": 2,
+    "input": {
+      "businessType": "Healthy snack delivery",
+      "location": "Pune",
+      "language": "hindi",
+      "tone": "modern",
+      "keywords": "fresh, local, simple",
+      "avoid": ""
+    },
+    "status": 200,
+    "durationMs": 1000,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-name",
+        "title": "Fresh Bite Pune",
+        "summary": "A modern healthy snack delivery service in Pune that offers fresh, local, and simple options in Hindi.",
+        "suggestions": [
+          "Consider adding a tagline that highlights freshness and locality.",
+          "Explore a mobile-friendly ordering interface in Hindi."
+        ],
+        "sections": [
+          {
+            "heading": "Brand Essence",
+            "body": "Emphasize the freshness of locally sourced snacks, keeping the menu simple and approachable."
+          },
+          {
+            "heading": "Target Audience",
+            "body": "Health-conscious consumers in Pune who prefer convenient, locally sourced snacks delivered in Hindi."
+          },
+          {
+            "heading": "Delivery Model",
+            "body": "Use a reliable local logistics partner to ensure timely delivery of fresh snacks across Pune."
+          },
+          {
+            "heading": "Marketing Approach",
+            "body": "Leverage social media and local influencers to promote the brand’s modern, fresh, and simple positioning."
+          },
+          {
+            "heading": "Customer Experience",
+            "body": "Offer a user-friendly ordering experience in Hindi, with clear descriptions of snack ingredients."
+          },
+          {
+            "heading": "Sustainability",
+            "body": "Use eco-friendly packaging to align with the fresh and local brand values."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "The deterministic fallback uses a small bilingual template; review spelling, pronunciation and cultural meaning with local speakers.",
+          "These are creative drafts only; no availability, ownership or registration claim is made.",
+          "Verify local regulations for food delivery in Pune before launching.",
+          "Confirm that all snack ingredients comply with local health standards.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-name-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "language",
+          "tone",
+          "keywords",
+          "avoid"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "business-name-generator",
+    "scenario": 3,
+    "input": {
+      "businessType": "Healthy snack delivery",
+      "location": "Pune",
+      "language": "hinglish",
+      "tone": "modern",
+      "keywords": "fresh, local, simple",
+      "avoid": ""
+    },
+    "status": 200,
+    "durationMs": 796,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-name",
+        "title": "FreshBite",
+        "summary": "A modern Hinglish healthy snack delivery service in Pune, offering fresh, local, and simple snacks.",
+        "suggestions": [
+          "Consider adding a subscription option for regular deliveries.",
+          "Explore partnerships with local farms for fresh ingredients."
+        ],
+        "sections": [
+          {
+            "heading": "Brand Essence",
+            "body": "FreshBite delivers wholesome snacks that are fresh, local, and simple."
+          },
+          {
+            "heading": "Target Market",
+            "body": "Pune residents who value healthy, convenient snack options."
+          },
+          {
+            "heading": "Core Offerings",
+            "body": "A rotating menu of locally sourced, fresh snacks in easy-to-ship packs."
+          },
+          {
+            "heading": "Delivery Model",
+            "body": "Same-day or next-day delivery across Pune, using eco-friendly packaging."
+          },
+          {
+            "heading": "Brand Voice",
+            "body": "Modern Hinglish tone that feels relatable and energetic."
+          },
+          {
+            "heading": "Visual Identity",
+            "body": "Bright, fresh colors with simple, clean typography."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "The deterministic fallback uses a small bilingual template; review spelling, pronunciation and cultural meaning with local speakers.",
+          "These are creative drafts only; no availability, ownership or registration claim is made.",
+          "Ensure compliance with local food safety regulations.",
+          "Verify that all claims about freshness and locality are accurate.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-name-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "language",
+          "tone",
+          "keywords",
+          "avoid"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "pricing-assistant",
+    "scenario": 1,
+    "input": {
+      "productName": "Snack box",
+      "unitCost": "600",
+      "targetMargin": "40",
+      "discountPercent": "10",
+      "taxRate": "18",
+      "channelFeePercent": "0",
+      "shippingCost": "0",
+      "notes": ""
+    },
+    "status": 200,
+    "durationMs": 746,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "pricing-assistant",
+        "title": "Snack Box Pricing Draft",
+        "summary": "Draft pricing for Snack Box based on supplied cost, margin, discount, tax, and channel fee.",
+        "suggestions": [
+          "Confirm the tax jurisdiction and any additional fees that may apply.",
+          "Verify that the discount structure aligns with marketing strategy."
+        ],
+        "sections": [
+          {
+            "heading": "Suggested List Price",
+            "body": "The suggested list price is $1111.11."
+          },
+          {
+            "heading": "Discounted Price",
+            "body": "After a 10% discount, the price becomes $1000.00."
+          },
+          {
+            "heading": "Tax and Fees",
+            "body": "The tax amount is $180.00 and the channel fee is $0.00."
+          },
+          {
+            "heading": "Net Contribution",
+            "body": "Net before tax and cost of goods is $1000.00, yielding a contribution of $400.00."
+          },
+          {
+            "heading": "Margin",
+            "body": "The realized contribution margin is 40%."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "Suggested list price",
+            "value": "1111.1111111111111111",
+            "format": "currency"
+          },
+          {
+            "label": "Expected price after discount",
+            "value": "1000",
+            "format": "currency"
+          },
+          {
+            "label": "Arithmetic tax amount",
+            "value": "180",
+            "format": "currency"
+          },
+          {
+            "label": "Channel fee amount",
+            "value": "0",
+            "format": "currency"
+          },
+          {
+            "label": "Net before tax and cost of goods",
+            "value": "1000",
+            "format": "currency"
+          },
+          {
+            "label": "Contribution after unit cost",
+            "value": "400",
+            "format": "currency"
+          },
+          {
+            "label": "Realized contribution margin",
+            "value": "40",
+            "format": "percentage"
+          }
+        ],
+        "warnings": [
+          "Tax is arithmetic only; confirm the applicable GST or tax treatment separately.",
+          "Marketplace, payment and shipping charges vary by account, category and service level; enter current values yourself.",
+          "This draft assumes the provided figures are accurate and complete.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "pricing-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "productName",
+          "unitCost",
+          "targetMargin",
+          "discountPercent",
+          "taxRate",
+          "channelFeePercent",
+          "shippingCost",
+          "notes"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "pricing-assistant",
+    "scenario": 2,
+    "input": {
+      "productName": "Snack box",
+      "unitCost": "100000",
+      "targetMargin": "40",
+      "discountPercent": "10",
+      "taxRate": "18",
+      "channelFeePercent": "5",
+      "shippingCost": "20",
+      "notes": ""
+    },
+    "status": 200,
+    "durationMs": 833,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "pricing-assistant",
+        "title": "Snack Box Pricing Draft",
+        "summary": "Draft pricing for Snack Box with suggested list price, discount, tax, channel fee, and net contribution.",
+        "suggestions": [
+          "Confirm the currency and rounding conventions.",
+          "Verify that the shipping cost is included in the unit cost or added separately."
+        ],
+        "sections": [
+          {
+            "heading": "Suggested List Price",
+            "body": "The suggested list price is $196,101.96."
+          },
+          {
+            "heading": "Discounted Price",
+            "body": "After a 10% discount, the price becomes $176,491.76."
+          },
+          {
+            "heading": "Tax and Channel Fees",
+            "body": "The 18% tax adds $31,768.52, and the 5% channel fee is $9,805.10."
+          },
+          {
+            "heading": "Net Contribution",
+            "body": "Net before tax and cost of goods is $166,666.67, yielding a contribution of $66,666.67."
+          },
+          {
+            "heading": "Margin",
+            "body": "The realized contribution margin is 40%."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "Suggested list price",
+            "value": "196101.96078431372549",
+            "format": "currency"
+          },
+          {
+            "label": "Expected price after discount",
+            "value": "176491.76470588235294",
+            "format": "currency"
+          },
+          {
+            "label": "Arithmetic tax amount",
+            "value": "31768.517647058823529",
+            "format": "currency"
+          },
+          {
+            "label": "Channel fee amount",
+            "value": "9805.0980392156862745",
+            "format": "currency"
+          },
+          {
+            "label": "Net before tax and cost of goods",
+            "value": "166666.66666666666667",
+            "format": "currency"
+          },
+          {
+            "label": "Contribution after unit cost",
+            "value": "66666.666666666666667",
+            "format": "currency"
+          },
+          {
+            "label": "Realized contribution margin",
+            "value": "40",
+            "format": "percentage"
+          }
+        ],
+        "warnings": [
+          "Tax is arithmetic only; confirm the applicable GST or tax treatment separately.",
+          "Marketplace, payment and shipping charges vary by account, category and service level; enter current values yourself.",
+          "This draft is based solely on the supplied figures; actual pricing may vary with additional costs or regulatory requirements.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "pricing-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "productName",
+          "unitCost",
+          "targetMargin",
+          "discountPercent",
+          "taxRate",
+          "channelFeePercent",
+          "shippingCost",
+          "notes"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "pricing-assistant",
+    "scenario": 3,
+    "input": {
+      "productName": "Snack box",
+      "unitCost": "600",
+      "targetMargin": "40",
+      "discountPercent": "10",
+      "taxRate": "18",
+      "channelFeePercent": "5",
+      "shippingCost": "20",
+      "notes": ""
+    },
+    "status": 200,
+    "durationMs": 899,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "pricing-assistant",
+        "title": "Snack box pricing draft",
+        "summary": "A deterministic price scenario with an AI-ready explanation layer.",
+        "suggestions": [
+          "Compare the list price with a no-discount scenario before choosing a launch offer.",
+          "Re-run with seller-dashboard or payment-provider fees when the channel is known."
+        ],
+        "sections": [
+          {
+            "heading": "How to read this scenario",
+            "body": "The list price targets a 40% contribution margin after the expected discount, entered channel fee and shipping cost. Tax is shown separately as arithmetic only."
+          },
+          {
+            "heading": "Decision prompts",
+            "body": "Test willingness to pay, repeat purchase behaviour and contribution after every channel-specific cost."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "Suggested list price",
+            "value": "1200",
+            "format": "currency"
+          },
+          {
+            "label": "Expected price after discount",
+            "value": "1080",
+            "format": "currency"
+          },
+          {
+            "label": "Arithmetic tax amount",
+            "value": "194.4",
+            "format": "currency"
+          },
+          {
+            "label": "Channel fee amount",
+            "value": "60",
+            "format": "currency"
+          },
+          {
+            "label": "Net before tax and cost of goods",
+            "value": "1000",
+            "format": "currency"
+          },
+          {
+            "label": "Contribution after unit cost",
+            "value": "400",
+            "format": "currency"
+          },
+          {
+            "label": "Realized contribution margin",
+            "value": "40",
+            "format": "percentage"
+          }
+        ],
+        "warnings": [
+          "Tax is arithmetic only; confirm the applicable GST or tax treatment separately.",
+          "Marketplace, payment and shipping charges vary by account, category and service level; enter current values yourself.",
+          "The provider response did not match the safety schema, so the deterministic draft is shown."
+        ],
+        "promptVersion": "pricing-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "productName",
+          "unitCost",
+          "targetMargin",
+          "discountPercent",
+          "taxRate",
+          "channelFeePercent",
+          "shippingCost",
+          "notes"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "invalid-provider-output"
+    }
+  },
+  {
+    "tool": "startup-cost-estimator",
+    "scenario": 1,
+    "input": {
+      "businessType": "Home-based food brand",
+      "location": "Bengaluru",
+      "oneTimeCosts": "Equipment: 50000\nBranding: 15000",
+      "monthlyCosts": "Rent: 25000\nPeople: 40000\nSoftware: 5000",
+      "runwayMonths": "6",
+      "contingencyPercent": "10"
+    },
+    "status": 200,
+    "durationMs": 1122,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "startup-cost-estimator",
+        "title": "Startup Cost Estimation for Home-Based Food Brand in Bengaluru",
+        "summary": "This draft outlines the estimated startup and monthly costs for a home-based food brand in Bengaluru, incorporating a 10% contingency and a 6-month runway.",
+        "suggestions": [
+          "Consider detailing specific equipment and branding items to refine the one-time cost estimate."
+        ],
+        "sections": [
+          {
+            "heading": "Business Overview",
+            "body": "The venture is a home-based food brand located in Bengaluru. It focuses on local culinary offerings."
+          },
+          {
+            "heading": "Initial Investment",
+            "body": "One-time costs are estimated at 15,000 currency units. This covers essential equipment and branding."
+          },
+          {
+            "heading": "Operating Expenses",
+            "body": "Monthly costs are projected at 5,000 currency units. These cover recurring operational needs."
+          },
+          {
+            "heading": "Financial Cushion",
+            "body": "A 10% contingency is included to address unforeseen expenses. This buffer ensures financial resilience."
+          },
+          {
+            "heading": "Funding Requirement",
+            "body": "The estimated funding needed for the scenario is 49,500 currency units. This amount supports the six-month runway."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "One-time costs",
+            "value": "15000",
+            "format": "currency"
+          },
+          {
+            "label": "Monthly costs",
+            "value": "5000",
+            "format": "currency"
+          },
+          {
+            "label": "Runway selected",
+            "value": "6",
+            "format": "number"
+          },
+          {
+            "label": "Contingency",
+            "value": "10",
+            "format": "percentage"
+          },
+          {
+            "label": "Estimated funding for scenario",
+            "value": "49500",
+            "format": "currency"
+          }
+        ],
+        "warnings": [
+          "This is a user-entered scenario, not a market benchmark, funding recommendation or permit-cost quote.",
+          "Review one-time versus recurring classification and include taxes or deposits only when you have a source for them.",
+          "The figures are based on locked deterministic metrics and may not reflect actual market variations. Verify local cost data before finalizing the budget.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "startup-cost-estimator-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "oneTimeCosts",
+          "monthlyCosts",
+          "runwayMonths",
+          "contingencyPercent"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "startup-cost-estimator",
+    "scenario": 2,
+    "input": {
+      "businessType": "Home-based food brand",
+      "location": "Bengaluru",
+      "oneTimeCosts": "Equipment: 50000\nBranding: 15000",
+      "monthlyCosts": "Rent: 25000\nPeople: 40000\nSoftware: 5000",
+      "runwayMonths": "1",
+      "contingencyPercent": "10"
+    },
+    "status": 200,
+    "durationMs": 1025,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "startup-cost-estimator",
+        "title": "Home-Based Food Brand Startup Cost Draft",
+        "summary": "The draft outlines the initial capital needed for a home-based food brand in Bengaluru, based on one-time equipment and branding costs, monthly operating expenses, a one-month runway, and a 10% contingency, with an estimated funding requirement of 22,000.",
+        "suggestions": [
+          "Consider reviewing local permits and health regulations for food production."
+        ],
+        "sections": [
+          {
+            "heading": "Initial Capital",
+            "body": "The startup requires 15,000 in one-time costs for equipment and branding."
+          },
+          {
+            "heading": "Monthly Operating Costs",
+            "body": "Monthly expenses are projected at 5,000."
+          },
+          {
+            "heading": "Runway and Contingency",
+            "body": "A one-month runway with a 10% contingency is planned."
+          },
+          {
+            "heading": "Funding Estimate",
+            "body": "The estimated funding needed for this scenario is 22,000."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "One-time costs",
+            "value": "15000",
+            "format": "currency"
+          },
+          {
+            "label": "Monthly costs",
+            "value": "5000",
+            "format": "currency"
+          },
+          {
+            "label": "Runway selected",
+            "value": "1",
+            "format": "number"
+          },
+          {
+            "label": "Contingency",
+            "value": "10",
+            "format": "percentage"
+          },
+          {
+            "label": "Estimated funding for scenario",
+            "value": "22000",
+            "format": "currency"
+          }
+        ],
+        "warnings": [
+          "This is a user-entered scenario, not a market benchmark, funding recommendation or permit-cost quote.",
+          "Review one-time versus recurring classification and include taxes or deposits only when you have a source for them.",
+          "Verify that the one-time and monthly cost figures reflect all necessary expenses, including taxes and utilities.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "startup-cost-estimator-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "oneTimeCosts",
+          "monthlyCosts",
+          "runwayMonths",
+          "contingencyPercent"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "startup-cost-estimator",
+    "scenario": 3,
+    "input": {
+      "businessType": "Home-based food brand",
+      "location": "Bengaluru",
+      "oneTimeCosts": "Equipment: 50000\nBranding: 15000",
+      "monthlyCosts": "Rent: 25000\nPeople: 40000\nSoftware: 5000",
+      "runwayMonths": "12",
+      "contingencyPercent": "10"
+    },
+    "status": 200,
+    "durationMs": 1133,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "startup-cost-estimator",
+        "title": "Home-Based Food Brand Startup Cost Estimate",
+        "summary": "Estimated startup costs for a home-based food brand in Bengaluru include one-time costs of $15,000 and monthly operating costs of $5,000, with a 12‑month runway and a 10% contingency. The total estimated funding required is $82,500.",
+        "suggestions": [
+          "Consider reviewing the breakdown of one-time costs to ensure all necessary items are included.",
+          "Verify that the monthly cost estimate covers all recurring expenses such as utilities and marketing."
+        ],
+        "sections": [
+          {
+            "heading": "One-Time Costs",
+            "body": "The initial investment for equipment, branding, and other startup items is $15,000."
+          },
+          {
+            "heading": "Monthly Operating Costs",
+            "body": "Ongoing expenses such as rent, personnel, and software total $5,000 per month."
+          },
+          {
+            "heading": "Runway",
+            "body": "A 12‑month operating runway is planned to sustain the business."
+          },
+          {
+            "heading": "Contingency",
+            "body": "A 10% contingency buffer is included to cover unexpected expenses."
+          },
+          {
+            "heading": "Funding Requirement",
+            "body": "The total estimated funding needed for the scenario is $82,500."
+          }
+        ],
+        "metrics": [
+          {
+            "label": "One-time costs",
+            "value": "15000",
+            "format": "currency"
+          },
+          {
+            "label": "Monthly costs",
+            "value": "5000",
+            "format": "currency"
+          },
+          {
+            "label": "Runway selected",
+            "value": "12",
+            "format": "number"
+          },
+          {
+            "label": "Contingency",
+            "value": "10",
+            "format": "percentage"
+          },
+          {
+            "label": "Estimated funding for scenario",
+            "value": "82500",
+            "format": "currency"
+          }
+        ],
+        "warnings": [
+          "This is a user-entered scenario, not a market benchmark, funding recommendation or permit-cost quote.",
+          "Review one-time versus recurring classification and include taxes or deposits only when you have a source for them.",
+          "The figures are based on the provided locked metrics and may not reflect actual costs in Bengaluru.",
+          "Actual costs could differ due to local market conditions or changes in business scope.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "startup-cost-estimator-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessType",
+          "location",
+          "oneTimeCosts",
+          "monthlyCosts",
+          "runwayMonths",
+          "contingencyPercent"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "business-plan-assistant",
+    "scenario": 1,
+    "input": {
+      "businessName": "FreshBox Foods",
+      "industry": "Food and beverage",
+      "targetCustomer": "Busy urban professionals",
+      "problem": "Healthy snacks are hard to order consistently during workdays.",
+      "solution": "Weekly pre-portioned snack boxes delivered to offices.",
+      "region": "Bengaluru",
+      "revenueModel": "Monthly subscription",
+      "firstYearGoal": "Reach 100 recurring customers",
+      "milestones": "Pilot, repeat-order test, local launch",
+      "constraints": "Synthetic audit brief; use INR for monetary amounts. Do not invent market facts."
+    },
+    "status": 200,
+    "durationMs": 1319,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-plan-assistant",
+        "title": "FreshBox Foods Business Plan Draft",
+        "summary": "FreshBox Foods delivers weekly pre‑portioned snack boxes to busy urban professionals in Bengaluru, aiming to become the go‑to solution for consistent healthy snacking during workdays.",
+        "suggestions": [
+          "Ask for details on the subscription pricing structure to refine revenue projections.",
+          "Clarify the logistics network and delivery frequency to assess operational feasibility."
+        ],
+        "sections": [
+          {
+            "heading": "Executive Summary",
+            "body": "FreshBox Foods offers a subscription service that delivers curated snack boxes to offices, addressing the difficulty of ordering healthy snacks consistently during workdays. The service targets busy urban professionals in Bengaluru and plans to reach 100 recurring customers in the first year."
+          },
+          {
+            "heading": "Market Opportunity",
+            "body": "The target market consists of busy urban professionals who need convenient, healthy snack options. FreshBox Foods positions itself as a reliable solution for consistent snack delivery."
+          },
+          {
+            "heading": "Product & Service",
+            "body": "The core offering is a weekly pre‑portioned snack box delivered to offices. Boxes are tailored to health preferences and delivered on a subscription basis."
+          },
+          {
+            "heading": "Revenue Model",
+            "body": "Revenue is generated through a monthly subscription fee. The model supports recurring revenue and predictable cash flow."
+          },
+          {
+            "heading": "Milestones",
+            "body": "Key milestones include a pilot phase, repeat‑order testing, and a local launch. These steps will validate demand and refine operations."
+          },
+          {
+            "heading": "Operations & Logistics",
+            "body": "Deliveries will be scheduled to align with office hours in Bengaluru. The business will partner with local logistics providers to ensure timely and efficient service."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "No market size, competitor, financial forecast or regulatory claim is invented by this draft.",
+          "Review every section and replace placeholders with evidence before sharing or exporting it.",
+          "AI wording is a draft. Review it against your own records before use."
+        ],
+        "promptVersion": "business-plan-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "groq",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessName",
+          "industry",
+          "targetCustomer",
+          "problem",
+          "solution",
+          "region",
+          "revenueModel",
+          "firstYearGoal",
+          "milestones",
+          "constraints"
+        ]
+      },
+      "providerAttempted": true
+    }
+  },
+  {
+    "tool": "business-plan-assistant",
+    "scenario": 2,
+    "input": {
+      "businessName": "FreshBox Foods",
+      "industry": "Food and beverage",
+      "targetCustomer": "Busy urban professionals",
+      "problem": "Healthy snacks are hard to order consistently during workdays.",
+      "solution": "Weekly pre-portioned snack boxes delivered to offices.",
+      "region": "Pune",
+      "revenueModel": "Monthly subscription",
+      "firstYearGoal": "Reach 100 recurring customers",
+      "milestones": "Pilot, repeat-order test, local launch",
+      "constraints": "Synthetic audit brief; use INR for monetary amounts. Do not invent market facts."
+    },
+    "status": 200,
+    "durationMs": 409,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-plan-assistant",
+        "title": "FreshBox Foods working business plan",
+        "summary": "A reviewable first draft for a food and beverage business starting in Pune.",
+        "suggestions": [
+          "Attach evidence to each assumption before presenting this plan to a lender, investor or partner.",
+          "Turn the milestones into owners, dates and measurable acceptance criteria."
+        ],
+        "sections": [
+          {
+            "heading": "Executive summary",
+            "body": "FreshBox Foods will serve Busy urban professionals through Weekly pre-portioned snack boxes delivered to offices.. The proposed revenue model is Monthly subscription."
+          },
+          {
+            "heading": "Problem and customer",
+            "body": "Busy urban professionals currently faces: Healthy snacks are hard to order consistently during workdays."
+          },
+          {
+            "heading": "Solution and delivery",
+            "body": "Weekly pre-portioned snack boxes delivered to offices. Define the first version, delivery process and quality checks before launch."
+          },
+          {
+            "heading": "First-year goal",
+            "body": "Reach 100 recurring customers"
+          },
+          {
+            "heading": "Milestones",
+            "body": "Pilot, repeat-order test, local launch"
+          },
+          {
+            "heading": "Constraints and risks",
+            "body": "Synthetic audit brief; use INR for monetary amounts. Do not invent market facts."
+          },
+          {
+            "heading": "Assumptions to validate",
+            "body": "Validate customer demand, pricing, delivery capacity, repeat behaviour and any applicable legal or tax obligations with primary evidence."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "No market size, competitor, financial forecast or regulatory claim is invented by this draft.",
+          "Review every section and replace placeholders with evidence before sharing or exporting it.",
+          "The configured AI provider was unavailable, so the deterministic draft is shown."
+        ],
+        "promptVersion": "business-plan-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessName",
+          "industry",
+          "targetCustomer",
+          "problem",
+          "solution",
+          "region",
+          "revenueModel",
+          "firstYearGoal",
+          "milestones",
+          "constraints"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "provider-error"
+    }
+  },
+  {
+    "tool": "business-plan-assistant",
+    "scenario": 3,
+    "input": {
+      "businessName": "FreshBox Foods",
+      "industry": "Food and beverage",
+      "targetCustomer": "Busy urban professionals",
+      "problem": "Healthy snacks are hard to order consistently during workdays.",
+      "solution": "Weekly pre-portioned snack boxes delivered to offices.",
+      "region": "Jaipur",
+      "revenueModel": "Monthly subscription",
+      "firstYearGoal": "Reach 100 recurring customers",
+      "milestones": "Pilot, repeat-order test, local launch",
+      "constraints": "Synthetic audit brief; use INR for monetary amounts. Do not invent market facts."
+    },
+    "status": 200,
+    "durationMs": 329,
+    "body": {
+      "ok": true,
+      "result": {
+        "kind": "business-plan-assistant",
+        "title": "FreshBox Foods working business plan",
+        "summary": "A reviewable first draft for a food and beverage business starting in Jaipur.",
+        "suggestions": [
+          "Attach evidence to each assumption before presenting this plan to a lender, investor or partner.",
+          "Turn the milestones into owners, dates and measurable acceptance criteria."
+        ],
+        "sections": [
+          {
+            "heading": "Executive summary",
+            "body": "FreshBox Foods will serve Busy urban professionals through Weekly pre-portioned snack boxes delivered to offices.. The proposed revenue model is Monthly subscription."
+          },
+          {
+            "heading": "Problem and customer",
+            "body": "Busy urban professionals currently faces: Healthy snacks are hard to order consistently during workdays."
+          },
+          {
+            "heading": "Solution and delivery",
+            "body": "Weekly pre-portioned snack boxes delivered to offices. Define the first version, delivery process and quality checks before launch."
+          },
+          {
+            "heading": "First-year goal",
+            "body": "Reach 100 recurring customers"
+          },
+          {
+            "heading": "Milestones",
+            "body": "Pilot, repeat-order test, local launch"
+          },
+          {
+            "heading": "Constraints and risks",
+            "body": "Synthetic audit brief; use INR for monetary amounts. Do not invent market facts."
+          },
+          {
+            "heading": "Assumptions to validate",
+            "body": "Validate customer demand, pricing, delivery capacity, repeat behaviour and any applicable legal or tax obligations with primary evidence."
+          }
+        ],
+        "metrics": [],
+        "warnings": [
+          "No market size, competitor, financial forecast or regulatory claim is invented by this draft.",
+          "Review every section and replace placeholders with evidence before sharing or exporting it.",
+          "The configured AI provider was unavailable, so the deterministic draft is shown."
+        ],
+        "promptVersion": "business-plan-assistant-v1.0",
+        "reviewRequired": true,
+        "provider": "deterministic-fallback",
+        "redactedFields": [],
+        "transmittedFields": [
+          "businessName",
+          "industry",
+          "targetCustomer",
+          "problem",
+          "solution",
+          "region",
+          "revenueModel",
+          "firstYearGoal",
+          "milestones",
+          "constraints"
+        ]
+      },
+      "providerAttempted": true,
+      "fallbackReason": "provider-error"
+    }
+  }
+]

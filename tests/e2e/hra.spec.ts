@@ -2,11 +2,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Phase 4 HRA controlled beta', () => {
   test('calculates a policy-scoped illustration and shows the review boundary', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-10-30T12:00:00Z'));
     await page.goto('/tools/hra-calculator');
-    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Temporarily unavailable/)).toBeVisible();
+    await expect(page.locator('form')).toHaveCount(0);
 
     await page.clock.setFixedTime(new Date('2026-08-10T12:00:00Z'));
     await page.reload();
+    await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await page.getByRole('button', { name: 'Try an example' }).click();
     await page.getByRole('button', { name: 'Calculate HRA exemption' }).click();
 

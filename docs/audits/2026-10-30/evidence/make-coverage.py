@@ -1,0 +1,13 @@
+import csv,json
+from pathlib import Path
+p=Path(__file__).parent; d=json.loads((p/'registry-results.json').read_text()); independent=json.loads((p/'independent-checks.json').read_text());live=json.loads((p/'live-ai-results.json').read_text());probes=json.loads((p/'boundary-probes.json').read_text())['probes']
+issues={'startup-cost-estimator':'F01;F02;F03;F06','pricing-assistant':'F02;F03;F06;F07;F09','business-name-generator':'F04;F07','business-plan-assistant':'F07;F09','currency-converter':'F08','gst-calculator':'F05','hra-calculator':'F05','income-tax-calculator':'F05','tds-calculator':'F05','corporate-tax-calculator':'F05','presumptive-tax-calculator':'F05','in-hand-salary-calculator':'F05','amazon-fees-calculator':'F05','flipkart-fees-calculator':'F05','gst-filing-due-date-calendar':'F05'}
+with (p.parent/'coverage.csv').open('w') as f:
+ w=csv.DictWriter(f,fieldnames=['tool','name','verdict','local_example','independent_numeric_comparisons','boundary_probe_count','public_browser','live_ai','finding_ids','remaining_acceptance']);w.writeheader()
+ for t in d['tools']:
+  slug=t['slug'];fail=t.get('error');validation=t.get('validation',{});examples='Validated and calculated' if validation.get('success') and not fail else fail or str(validation.get('errors'))
+  blocked=slug in ['hra-calculator','income-tax-calculator','tds-calculator','corporate-tax-calculator','presumptive-tax-calculator','in-hand-salary-calculator','gst-filing-due-date-calendar']
+  verdict='BLOCKED' if blocked else 'FAILED' if slug in ['startup-cost-estimator','pricing-assistant','business-name-generator','currency-converter'] else 'LIMITED'
+  li=[x for x in live if x['tool']==slug];live_note='; '.join(f"scenario {x['scenario']}: HTTP {x.get('status')} {x.get('body',{}).get('result',{}).get('provider')} {x.get('body',{}).get('fallbackReason','')}" for x in li) or 'Not applicable'
+  w.writerow(dict(tool=slug,name=t['name'],verdict=verdict,local_example=examples,independent_numeric_comparisons=sum(x['tool']==slug for x in independent),boundary_probe_count=sum(x['tool']==slug for x in probes),public_browser='Example completed; output verified' if slug in ['cagr-calculator','roi-calculator'] else 'Form inspected; interactive input test blocked' if slug=='pricing-assistant' else 'Directory link confirmed; individual public workflow unverified',live_ai=live_note,finding_ids=issues.get(slug,''),remaining_acceptance='Full public validation and exports; additional edge cases; relevant policy/source checks. Local registry execution alone is not a file-processing or document-export test.'))
+print('83 coverage rows written')

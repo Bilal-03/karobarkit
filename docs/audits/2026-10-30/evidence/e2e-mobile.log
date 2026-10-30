@@ -1,0 +1,77 @@
+
+Running 67 tests using 2 workers
+
+(node:21926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [mobile-390] › tests/e2e/business-economics.spec.ts:9:7 › Phase 2 business economics › calculates a margin scenario and exposes a local CSV export (7.5s)
+  ✓   2 [mobile-390] › tests/e2e/business-economics.spec.ts:26:7 › Phase 2 business economics › supports an explicit tab-only handoff of matching assumptions (9.7s)
+  ✓   4 [mobile-390] › tests/e2e/document-generators.spec.ts:64:7 › document generators › letterhead keeps long plain text on multiple A4 pages (9.0s)
+  ✓   3 [mobile-390] › tests/e2e/document-generators.spec.ts:15:7 › document generators › letterhead supports local logo processing, preview, PDF download and print (15.1s)
+  ✓   6 [mobile-390] › tests/e2e/document-generators.spec.ts:116:7 › document generators › payment receipt rejects invalid amount and resets from the keyboard journey (7.3s)
+  ✓   5 [mobile-390] › tests/e2e/document-generators.spec.ts:80:7 › document generators › payment receipt formats amount in words and exports a declared-payment acknowledgement (11.5s)
+  ✓   8 [mobile-390] › tests/e2e/document-workflow-wave.spec.ts:46:7 › Phase 3 document workflow wave › creates a business-card proof and invoice-number preview (14.0s)
+  ✓   7 [mobile-390] › tests/e2e/document-workflow-wave.spec.ts:10:7 › Phase 3 document workflow wave › creates, exports and prints a quotation, then exposes the invoice handoff (15.5s)
+  ✓   9 [mobile-390] › tests/e2e/document-workflow-wave.spec.ts:69:7 › Phase 3 document workflow wave › creates a commercial invoice and continues to a receipt draft (14.4s)
+  ✓  10 [mobile-390] › tests/e2e/document-workflow-wave.spec.ts:105:7 › Phase 3 document workflow wave › continues a GST invoice into receipt and UPI drafts with explicit import (17.7s)
+  -  12 [mobile-390] › tests/e2e/everyday-utilities.spec.ts:24:7 › everyday utilities wave › completes a percentage journey on the desktop reference viewport
+  ✓  11 [mobile-390] › tests/e2e/everyday-utilities.spec.ts:13:7 › everyday utilities wave › publishes the new directory categories and keeps the feature flag explicit (5.2s)
+  -  14 [mobile-390] › tests/e2e/everyday-utilities.spec.ts:60:7 › everyday utilities wave › hands a discounted amount to GST only after explicit import
+  ✓  13 [mobile-390] › tests/e2e/everyday-utilities.spec.ts:38:7 › everyday utilities wave › keeps text and checklist inputs local on a mobile viewport (7.7s)
+  ✓  15 [mobile-390] › tests/e2e/finance.spec.ts:4:7 › Phase 3 finance foundation › calculates EMI, exposes the amortization output and links its sources (7.5s)
+  -  17 [mobile-390] › tests/e2e/foundation.spec.ts:171:7 › foundation routes › credits the creator and links to his professional profiles
+  ✓  18 [mobile-390] › tests/e2e/foundation.spec.ts:193:7 › foundation routes › shows useful zero results and a noindex search policy (4.5s)
+  ✓  16 [mobile-390] › tests/e2e/foundation.spec.ts:156:7 › foundation routes › supports homepage, search, category and related-tool discovery (7.9s)
+  -  20 [mobile-390] › tests/e2e/foundation.spec.ts:209:7 › foundation routes › caps directory cards, resets the window and preserves filter history
+  ✓  19 [mobile-390] › tests/e2e/foundation.spec.ts:199:7 › foundation routes › hydrates scalable directory filters from a canonical query URL (3.7s)
+  ✓  21 [mobile-390] › tests/e2e/foundation.spec.ts:232:7 › foundation routes › publishes the Phase 6 AI category without Beta badges (4.1s)
+  ✓  22 [mobile-390] › tests/e2e/foundation.spec.ts:241:7 › foundation routes › calculator metadata and canonical identify the same tool (5.5s)
+  ✓  23 [mobile-390] › tests/e2e/foundation.spec.ts:252:7 › foundation routes › CAGR completes the required worked input (6.3s)
+  ✓  24 [mobile-390] › tests/e2e/foundation.spec.ts:265:7 › foundation routes › ROI keyboard journey reports a complete loss safely (5.9s)
+  ✓  26 [mobile-390] › tests/e2e/foundation.spec.ts:291:7 › foundation routes › keyboard users can reach the mobile navigation and focus remains visible (5.6s)
+  ✓  27 [mobile-390] › tests/e2e/foundation.spec.ts:301:7 › foundation routes › mobile navigation opens, focuses its close control and closes on selection (7.8s)
+  ✓  25 [mobile-390] › tests/e2e/foundation.spec.ts:277:7 › foundation routes › mobile pages do not create horizontal overflow (22.1s)
+  ✓  28 [mobile-390] › tests/e2e/foundation.spec.ts:322:7 › foundation routes › invalid input is announced and linked to its field (8.5s)
+  -  30 [mobile-390] › tests/e2e/foundation.spec.ts:360:7 › route metadata › every foundation route has a title, description, canonical URL and H1
+  ✓  29 [mobile-390] › tests/e2e/foundation.spec.ts:338:7 › foundation routes › calculator controls meet the minimum touch target height (5.2s)
+  ✓  31 [mobile-390] › tests/e2e/foundation.spec.ts:383:7 › accessibility › home page has no serious or critical axe violations (18.0s)
+  ✓  33 [mobile-390] › tests/e2e/gst-calculator.spec.ts:6:7 › GST Calculator › supports a preset, exclusive calculation and separate source context (8.3s)
+  ✓  34 [mobile-390] › tests/e2e/gst-calculator.spec.ts:21:7 › GST Calculator › completes an inclusive inter-state calculation from the keyboard (8.5s)
+  ✓  35 [mobile-390] › tests/e2e/gst-calculator.spec.ts:37:7 › GST Calculator › keeps custom rates explicit and calculator values out of analytics (7.7s)
+  ✓  36 [mobile-390] › tests/e2e/gst-calculator.spec.ts:70:7 › GST Calculator › has no serious or critical axe violations (16.1s)
+  ✓  32 [mobile-390] › tests/e2e/foundation.spec.ts:392:7 › accessibility › calculator page has no serious or critical axe violations (1.1m)
+  ✓  37 [mobile-390] › tests/e2e/gst-invoice-generator.spec.ts:5:7 › GST invoice generator › creates a local A4 draft, downloads a safe PDF and prepares print (12.2s)
+  ✓  39 [mobile-390] › tests/e2e/hra.spec.ts:4:7 › Phase 4 HRA controlled beta › calculates a policy-scoped illustration and shows the review boundary (4.8s)
+  -  40 [mobile-390] › tests/e2e/phase5.spec.ts:11:7 › Phase 5 startup and marketplace beta › publishes CAC with a local scenario result and CSV export
+  -  41 [mobile-390] › tests/e2e/phase5.spec.ts:30:7 › Phase 5 startup and marketplace beta › shows the official marketplace snapshot and estimate boundary
+  -  42 [mobile-390] › tests/e2e/production-smoke.spec.ts:4:5 › production-safe route smoke checks
+  -  43 [mobile-390] › tests/e2e/production-smoke.spec.ts:38:5 › contact sends through its backend contract and error reports stay local-only
+  ✓  38 [mobile-390] › tests/e2e/gst-invoice-generator.spec.ts:33:7 › GST invoice generator › keeps long invoices on separate A4 preview pages and rejects unsafe input (10.5s)
+  ✓  45 [mobile-390] › tests/e2e/qr-generators.spec.ts:33:7 › QR generators › URL QR rejects unsafe protocols accessibly (3.6s)
+  ✓  44 [mobile-390] › tests/e2e/qr-generators.spec.ts:5:7 › QR generators › URL QR normalizes, renders, downloads and prints locally (3.7s)
+  ✓  47 [mobile-390] › tests/e2e/qr-generators.spec.ts:74:7 › QR generators › UPI form can be completed with keyboard and reset safely (4.2s)
+  ✓  46 [mobile-390] › tests/e2e/qr-generators.spec.ts:47:7 › QR generators › UPI standee encodes details and keeps the ownership limitation visible (5.1s)
+  -  49 [mobile-390] › tests/e2e/regulated-utilities.spec.ts:28:7 › data-backed and regulated utilities wave › searches a bundled HSN fixture on desktop
+  ✓  48 [mobile-390] › tests/e2e/regulated-utilities.spec.ts:12:7 › data-backed and regulated utilities wave › publishes the six tools under their intended categories (4.6s)
+  ✓  50 [mobile-390] › tests/e2e/regulated-utilities.spec.ts:38:7 › data-backed and regulated utilities wave › keeps currency conversion manual on mobile until a quote is explicitly requested (4.6s)
+  -  52 [mobile-390] › tests/e2e/retail-workplace.spec.ts:44:7 › retail, documents and workplace operations wave › generates a declared price tag on desktop
+  ✓  51 [mobile-390] › tests/e2e/retail-workplace.spec.ts:30:7 › retail, documents and workplace operations wave › publishes the new tools in their intended categories (3.8s)
+  -  54 [mobile-390] › tests/e2e/retail-workplace.spec.ts:66:7 › retail, documents and workplace operations wave › downloads non-empty PDFs at every declared print profile
+  -  55 [mobile-390] › tests/e2e/retail-workplace.spec.ts:99:7 › retail, documents and workplace operations wave › exports a Devanagari menu with a scannable QR image
+  ✓  53 [mobile-390] › tests/e2e/retail-workplace.spec.ts:56:7 › retail, documents and workplace operations wave › calculates a notice-period estimate on mobile (3.7s)
+  -  57 [mobile-390] › tests/e2e/sharing-file-utilities.spec.ts:31:7 › sharing and file utilities wave › generates a safe WhatsApp payload on desktop
+  ✓  56 [mobile-390] › tests/e2e/sharing-file-utilities.spec.ts:21:7 › sharing and file utilities wave › publishes QR, marketing and file categories behind the wave flag (2.6s)
+  -  59 [mobile-390] › tests/e2e/sharing-file-utilities.spec.ts:60:7 › sharing and file utilities wave › merges PDFs in a worker and exposes per-file controls
+  ✓  58 [mobile-390] › tests/e2e/sharing-file-utilities.spec.ts:41:7 › sharing and file utilities wave › reviews decoded content and renders a barcode on mobile (3.8s)
+  ✓  61 [mobile-390] › tests/e2e/studio-experience.spec.ts:40:5 › EMI has three primary inputs, retained extras and a result (3.6s)
+  ✓  62 [mobile-390] › tests/e2e/studio-experience.spec.ts:54:5 › invoice parties, items, edit, reset and PDF export (5.5s)
+  ✓  60 [mobile-390] › tests/e2e/studio-experience.spec.ts:4:5 › studio discovery, themes, keyboard search and separate help (13.3s)
+  ✓  63 [mobile-390] › tests/e2e/studio-experience.spec.ts:78:5 › navigation drawers, collapsed sidebar and search restore keyboard focus (4.0s)
+  ✓  65 [mobile-390] › tests/e2e/studio-experience.spec.ts:141:5 › contact hints stay below their controls and cards have no Beta badges (3.7s)
+  ✓  64 [mobile-390] › tests/e2e/studio-experience.spec.ts:104:5 › toolkit links switch groups without retaining previous directory filters (7.3s)
+  ✓  67 [mobile-390] › tests/e2e/studio-visual.spec.ts:45:5 › discovery stays visible before JavaScript loads (1.3s)
+  ✓  66 [mobile-390] › tests/e2e/studio-visual.spec.ts:5:5 › light and dark design references and zoom reflow (7.5s)
+
+  15 skipped
+  52 passed (4.3m)

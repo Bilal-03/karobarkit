@@ -21,4 +21,35 @@ export const safeLogger = {
       console.info(`[KarobarKit] ${message}`, safeContext(context));
     }
   },
+  aiOutcome({
+    assistant,
+    provider,
+    outcome,
+    attempted,
+    elapsedMs,
+  }: {
+    assistant: string;
+    provider: 'groq' | 'gemini' | 'multiple' | 'none';
+    outcome: string;
+    attempted: boolean;
+    elapsedMs: number;
+  }) {
+    if (process.env.NODE_ENV !== 'production') return;
+    const latencyBucket =
+      elapsedMs < 500
+        ? 'under-500ms'
+        : elapsedMs < 2_000
+          ? '500-2000ms'
+          : elapsedMs < 6_000
+            ? '2000-6000ms'
+            : 'over-6000ms';
+    // Fixed categories only: never log prompts, metrics, IPs, provider keys or response text.
+    console.info('[KarobarKit] ai_gateway_outcome', {
+      assistant,
+      provider,
+      outcome,
+      attempted,
+      latencyBucket,
+    });
+  },
 };

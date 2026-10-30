@@ -1,0 +1,49 @@
+{
+  "auditDateIndia": "2026-10-30",
+  "commit": "a7cfa493ba1ca598da65f290edc0de19fb12df78",
+  "applicationSourceChanges": false,
+  "tools": 83,
+  "unitIntegration": {
+    "filesPassed": 44,
+    "filesSkipped": 1,
+    "testsPassed": 370,
+    "testsSkipped": 1,
+    "durationSeconds": 182.77
+  },
+  "typescript": {
+    "exitCode": 0
+  },
+  "lint": {
+    "exitCode": 0,
+    "warnings": 7
+  },
+  "build": {
+    "exitCode": 0,
+    "nextVersion": "16.4.3",
+    "generatedPages": 200
+  },
+  "independentNumericChecks": 31,
+  "boundaryProbes": 1400,
+  "liveAIRequests": 12,
+  "liveProviderOutputs": 9,
+  "fallbackOutputs": 3,
+  "publicBrowserCompletedExampleJourneys": [
+    "cagr-calculator",
+    "roi-calculator"
+  ],
+  "coverageVerdicts": {
+    "LIMITED": 72,
+    "BLOCKED": 7,
+    "FAILED": 4
+  },
+  "desktopE2E": {
+    "passed": 60,
+    "skipped": 7,
+    "durationMinutes": 5.3
+  },
+  "mobile390E2E": {
+    "passed": 52,
+    "skipped": 15,
+    "durationMinutes": 4.3
+  }
+}

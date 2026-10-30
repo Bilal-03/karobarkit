@@ -60,5 +60,10 @@ describe('Phase 6 assistant form', () => {
 
     await user.click(screen.getByLabelText(/I reviewed this draft/));
     expect(screen.getByRole('button', { name: 'Copy reviewed draft' })).toBeEnabled();
+
+    await user.clear(screen.getByRole('textbox', { name: /What will the business do/ }));
+    await user.type(screen.getByRole('textbox', { name: /What will the business do/ }), 'Repair shop');
+    expect(screen.queryByText('A first shortlist')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy reviewed draft' })).not.toBeInTheDocument();
   });
 });

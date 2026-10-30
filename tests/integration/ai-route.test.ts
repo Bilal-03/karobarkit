@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { POST } from '@/app/api/ai/assist/route';
 import { GET as GET_STATUS } from '@/app/api/ai/status/route';
-import { resetAIAccessBucketsForTests } from '@/domain/ai/limits';
+import { recordAIProviderFailure, resetAIAccessBucketsForTests } from '@/domain/ai/limits';
 
 describe('Phase 6 AI gateway route', () => {
   afterEach(() => {
@@ -82,7 +82,7 @@ describe('Phase 6 AI gateway route', () => {
                   content: JSON.stringify({
                     title: 'A reviewed wording draft',
                     summary: 'Based on supplied facts.',
-                    suggestions: ['Ask customers to compare options.'],
+                    suggestions: ['Fresh Pune', 'Snack Mitra', 'Local Bites'],
                     sections: [{ heading: 'Next step', body: 'Run a small customer test.' }],
                     warnings: [],
                   }),
@@ -116,7 +116,7 @@ describe('Phase 6 AI gateway route', () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { result: { provider: string; title: string } };
     expect(body.result.provider).toBe('groq');
-    expect(body.result.title).toBe('A reviewed wording draft');
+    expect(body.result.title).toBe('A first naming shortlist');
   });
 
   it('gives the business-plan provider enough output room for its structured sections', async () => {
@@ -200,7 +200,7 @@ describe('Phase 6 AI gateway route', () => {
                       text: JSON.stringify({
                         title: 'Gemini wording draft',
                         summary: 'Based on supplied facts.',
-                        suggestions: ['Check the name independently.'],
+                        suggestions: ['Fresh Pune', 'Snack Mitra', 'Local Bites'],
                         sections: [{ heading: 'Next check', body: 'Review pronunciation.' }],
                         warnings: [],
                       }),
@@ -236,7 +236,7 @@ describe('Phase 6 AI gateway route', () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { result: { provider: string; title: string } };
     expect(body.result.provider).toBe('gemini');
-    expect(body.result.title).toBe('Gemini wording draft');
+    expect(body.result.title).toBe('A first naming shortlist');
   });
 
   it('rejects confidential financial identifiers before any provider call', async () => {
@@ -278,6 +278,90 @@ describe('Phase 6 AI gateway route', () => {
     expect(body.mode).toBe('groq');
     expect(body.providers[0]?.model).toBe('openai/gpt-oss-20b');
     expect(JSON.stringify(body)).not.toContain('server-only-test-key');
+  });
+
+  it('labels an open provider circuit without claiming a provider attempt', async () => {
+    process.env.AI_PROVIDER = 'groq';
+    process.env.GROQ_API_KEY = 'server-only-test-key';
+    recordAIProviderFailure('groq');
+    recordAIProviderFailure('groq');
+    recordAIProviderFailure('groq');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-name',
+          input: {
+            businessType: 'Snack delivery',
+            location: 'Pune',
+            language: 'english',
+            tone: 'modern',
+            keywords: 'fresh',
+            avoid: '',
+          },
+          consent: true,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    const body = (await response.json()) as {
+      providerAttempted: boolean;
+      fallbackReason: string;
+      result: { provider: string };
+    };
+    expect(response.status).toBe(200);
+    expect(body.providerAttempted).toBe(false);
+    expect(body.fallbackReason).toBe('provider-circuit-open');
+    expect(body.result.provider).toBe('deterministic-fallback');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['timeout', 'provider-timeout'],
+    ['rate-limit', 'provider-rate-limited'],
+    ['malformed', 'invalid-provider-output'],
+  ] as const)('classifies a mocked %s provider response', async (scenario, expectedReason) => {
+    process.env.AI_PROVIDER = 'groq';
+    process.env.GROQ_API_KEY = 'server-only-test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        if (scenario === 'timeout') throw new DOMException('Timed out', 'AbortError');
+        if (scenario === 'rate-limit') return new Response('', { status: 429 });
+        return new Response(JSON.stringify({ choices: [{ message: { content: 'not-json' } }] }), {
+          status: 200,
+        });
+      }),
+    );
+    const response = await POST(
+      new Request('http://localhost/api/ai/assist', {
+        method: 'POST',
+        body: JSON.stringify({
+          assistant: 'business-name',
+          input: {
+            businessType: 'Snack delivery',
+            location: 'Pune',
+            language: 'english',
+            tone: 'modern',
+            keywords: 'fresh',
+            avoid: '',
+          },
+          consent: true,
+        }),
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    const body = (await response.json()) as {
+      providerAttempted: boolean;
+      fallbackReason: string;
+      result: { provider: string };
+    };
+    expect(response.status).toBe(200);
+    expect(body.providerAttempted).toBe(true);
+    expect(body.fallbackReason).toBe(expectedReason);
+    expect(body.result.provider).toBe('deterministic-fallback');
   });
 
   it('rejects oversized streamed bodies before JSON parsing', async () => {

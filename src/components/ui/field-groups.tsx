@@ -81,22 +81,23 @@ export function PresentedControls({ toolId, children }: { toolId: string; childr
   if (!definition) throw new Error(`Missing presentation for ${toolId}`);
   const additional = new Set(definition.additionalSections.flatMap((section) => section.fields));
   const extras = new Map<string, ReactNode[]>();
-  function partition(nodes: ReactNode): ReactNode[] {
-    return Children.toArray(nodes).flatMap((node) => {
+  function partition(nodes: ReactNode, parentPath = 'root'): ReactNode[] {
+    return Children.toArray(nodes).flatMap((node, index) => {
       if (!isValidElement<{ id?: string; name?: string; className?: string; children?: ReactNode }>(node))
         return [node];
       const id = (node.props.id ?? node.props.name ?? '').replace(/^workplace-/, '');
+      const path = `${parentPath}/${id || 'control'}-${index}`;
       if (additional.has(id)) {
         const group = extras.get(id) ?? [];
-        group.push(node);
+        group.push(cloneElement(node, { key: path }));
         extras.set(id, group);
         return [];
       }
       if (node.type === Fragment || (node.type === 'div' && node.props.className?.includes('form-grid'))) {
-        const content = partition(node.props.children);
-        return content.length ? [cloneElement(node, {}, content)] : [];
+        const content = partition(node.props.children, path);
+        return content.length ? [cloneElement(node, { key: path }, content)] : [];
       }
-      return [node];
+      return [cloneElement(node, { key: path })];
     });
   }
   const primary = partition(children);

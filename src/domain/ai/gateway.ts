@@ -44,7 +44,15 @@ interface GatewayInput {
 export interface GatewayResult {
   result: AIAssistantResult;
   providerAttempted: boolean;
-  fallbackReason?: 'not-configured' | 'provider-error' | 'invalid-provider-output' | 'provider-budget';
+  fallbackReason?:
+    | 'not-configured'
+    | 'provider-error'
+    | 'invalid-provider-output'
+    | 'provider-budget'
+    | 'provider-circuit-open'
+    | 'provider-deadline'
+    | 'provider-timeout'
+    | 'provider-rate-limited';
 }
 
 export interface AIProviderStatus {
@@ -246,40 +254,75 @@ function fallbackWithNotice(
         ? 'The provider response did not match the safety schema, so the deterministic draft is shown.'
         : reason === 'provider-budget'
           ? 'The provider daily budget is exhausted, so this deterministic draft is shown.'
-          : 'The configured AI provider was unavailable, so the deterministic draft is shown.';
+          : reason === 'provider-circuit-open'
+            ? 'The provider is temporarily paused after repeated failures, so this deterministic draft is shown.'
+            : reason === 'provider-deadline'
+              ? 'The provider did not have enough time to complete this request, so this deterministic draft is shown.'
+              : reason === 'provider-timeout'
+                ? 'The provider request timed out, so this deterministic draft is shown.'
+                : reason === 'provider-rate-limited'
+                  ? 'The provider rate limit was reached, so this deterministic draft is shown.'
+                  : 'The configured AI provider was unavailable, so the deterministic draft is shown.';
   return { ...result, warnings: [...result.warnings, warning] };
 }
 
 export async function generateAssistantDraft(input: GatewayInput): Promise<GatewayResult> {
+  const startedAt = Date.now();
   const configs = providerConfigs();
   const deterministic = fallbackAssistant(input.kind, input.input, {
     redactedFields: input.redactedFields,
     transmittedFields: input.transmittedFields,
   });
-  const fallback = fallbackWithNotice(input, configs.length === 0 ? 'not-configured' : 'provider-error');
-  if (configs.length === 0)
-    return { result: fallback, providerAttempted: false, fallbackReason: 'not-configured' };
+  if (configs.length === 0) {
+    safeLogger.aiOutcome({
+      assistant: input.kind,
+      provider: 'none',
+      outcome: 'not-configured',
+      attempted: false,
+      elapsedMs: Date.now() - startedAt,
+    });
+    return {
+      result: fallbackWithNotice(input, 'not-configured'),
+      providerAttempted: false,
+      fallbackReason: 'not-configured',
+    };
+  }
   let invalidProviderOutput = false;
   let providerBudgetExhausted = false;
+  let providerCircuitOpen = false;
+  let providerAttempted = false;
+  let providerDeadlineReached = false;
+  let providerTimedOut = false;
+  let providerRateLimited = false;
   const deadline = Date.now() + AI_GATEWAY_DEADLINE_MS;
   const approvedNumbers = getAssistantNumericAuthority(input.input, deterministic.metrics);
 
   for (const config of configs) {
     const remainingMilliseconds = deadline - Date.now();
-    if (remainingMilliseconds <= 250) break;
-    if (isAIProviderCircuitOpen(config.provider)) continue;
+    if (remainingMilliseconds <= 250) {
+      providerDeadlineReached = true;
+      break;
+    }
+    if (isAIProviderCircuitOpen(config.provider)) {
+      providerCircuitOpen = true;
+      continue;
+    }
     const budget = consumeAIProviderBudget(config.provider);
     if (!budget.allowed) {
       providerBudgetExhausted = true;
       continue;
     }
     try {
+      providerAttempted = true;
       const draft =
         config.provider === 'gemini'
           ? await callGemini(config, input.kind, input.input, deterministic, remainingMilliseconds - 100)
           : await callGroq(config, input.kind, input.input, deterministic, remainingMilliseconds - 100);
       if (draft) {
-        const merged = mergeProviderDraft(deterministic, draft, config.provider, { approvedNumbers });
+        const merged = mergeProviderDraft(deterministic, draft, config.provider, {
+          approvedNumbers,
+          language: input.input.language,
+        });
         const mergedWasRejected = merged.provider === 'deterministic-fallback';
         if (mergedWasRejected) {
           invalidProviderOutput = true;
@@ -290,6 +333,13 @@ export async function generateAssistantDraft(input: GatewayInput): Promise<Gatew
           continue;
         }
         recordAIProviderSuccess(config.provider);
+        safeLogger.aiOutcome({
+          assistant: input.kind,
+          provider: config.provider,
+          outcome: 'success',
+          attempted: true,
+          elapsedMs: Date.now() - startedAt,
+        });
         return {
           result: merged,
           providerAttempted: true,
@@ -302,6 +352,9 @@ export async function generateAssistantDraft(input: GatewayInput): Promise<Gatew
       });
     } catch (error) {
       recordAIProviderFailure(config.provider);
+      if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')
+        providerTimedOut = true;
+      if (error instanceof Error && error.message === 'provider_http_429') providerRateLimited = true;
       const digest = createHash('sha256')
         .update(error instanceof Error ? error.message : 'provider-error')
         .digest('hex')
@@ -310,19 +363,31 @@ export async function generateAssistantDraft(input: GatewayInput): Promise<Gatew
     }
   }
 
-  const safeFallback = providerBudgetExhausted
-    ? fallbackWithNotice(input, 'provider-budget')
+  const fallbackReason: GatewayResult['fallbackReason'] = providerBudgetExhausted
+    ? 'provider-budget'
     : invalidProviderOutput
-      ? fallbackWithNotice(input, 'invalid-provider-output')
-      : fallback;
+      ? 'invalid-provider-output'
+      : providerCircuitOpen && !providerAttempted
+        ? 'provider-circuit-open'
+        : providerDeadlineReached && !providerAttempted
+          ? 'provider-deadline'
+          : providerRateLimited
+            ? 'provider-rate-limited'
+            : providerTimedOut
+              ? 'provider-timeout'
+              : 'provider-error';
+  const safeFallback = fallbackWithNotice(input, fallbackReason);
+  safeLogger.aiOutcome({
+    assistant: input.kind,
+    provider: configs.length === 1 ? configs[0].provider : 'multiple',
+    outcome: fallbackReason,
+    attempted: providerAttempted,
+    elapsedMs: Date.now() - startedAt,
+  });
   return {
     result: safeFallback,
-    providerAttempted: true,
-    fallbackReason: providerBudgetExhausted
-      ? 'provider-budget'
-      : invalidProviderOutput
-        ? 'invalid-provider-output'
-        : 'provider-error',
+    providerAttempted,
+    fallbackReason,
   };
 }
 
