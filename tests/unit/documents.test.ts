@@ -201,6 +201,35 @@ describe('quotation, card and sequence workflows', () => {
     expect(quotationToInvoiceTransferValues(document).itemsJson).toContain('Consulting retainer');
   });
 
+  it.each(['none', 'fixed', 'percentage'] as const)(
+    'carries %s discounts through quotation, invoice and receipt',
+    (discountType) => {
+      const quotation = calculateQuotation({
+        ...minimumQuotation,
+        items: [
+          { ...minimumQuotation.items[0], discountType, discountValue: discountType === 'none' ? '' : '10' },
+        ],
+      });
+      const transfer = quotationToInvoiceTransferValues(quotation);
+      const invoice = calculateInvoice({
+        ...invoiceDefaultValues,
+        dueDate: '',
+        invoiceDate: transfer.invoiceDate,
+        invoiceNumber: transfer.invoiceNumber,
+        items: JSON.parse(transfer.itemsJson).map((item: Record<string, string>, index: number) => ({
+          ...item,
+          id: `test-${index}`,
+        })),
+      });
+      expect(invoice.totals.subtotal).toBe(quotation.totals.subtotal);
+      const receipt = calculatePaymentReceipt({
+        ...paymentReceiptDefaultValues,
+        ...invoiceToReceiptTransferValues(invoice),
+      });
+      expect(Number(receipt.amount)).toBe(Number(invoice.totals.subtotal));
+    },
+  );
+
   it('rejects quotation dates and discounts that are not safe', () => {
     const invalid = validateQuotationInput({
       ...minimumQuotation,

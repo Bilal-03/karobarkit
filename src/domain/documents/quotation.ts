@@ -407,7 +407,7 @@ export function quotationToInvoiceTransferValues(document: QuotationDocument) {
         unit: item.unit,
         unitPrice: item.unitPrice,
         discountType: item.discountType,
-        discountValue: item.discountValue,
+        discountValue: item.discountType === 'none' ? '' : item.discountValue,
       })),
     ),
   };
