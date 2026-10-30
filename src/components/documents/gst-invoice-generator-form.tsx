@@ -186,6 +186,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
     }));
     clearErrors();
     clearResult();
+    trackEvent('workflow_imported', { toolId: tool.id });
     clearLocalScenarioTransfer();
     setQuotationTransfer(null);
     setHandoffError(null);
@@ -366,6 +367,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The receipt handoff could not be stored. Enter the receipt details manually.');
       return;
     }
+    trackEvent('workflow_continued', { toolId: tool.id });
     router.push('/tools/payment-receipt-generator');
   }
 
@@ -381,6 +383,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       setHandoffError('The UPI handoff could not be stored. Enter the amount and note manually.');
       return;
     }
+    trackEvent('workflow_continued', { toolId: tool.id });
     router.push('/tools/upi-standee');
   }
 

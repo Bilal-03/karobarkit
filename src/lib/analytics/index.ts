@@ -1,3 +1,4 @@
+import { sendProductEvent } from './product-events';
 import { z } from 'zod';
 
 export const allowedEventNames = [
@@ -11,6 +12,8 @@ export const allowedEventNames = [
   'result_copied',
   'result_shared',
   'related_tool_opened',
+  'workflow_continued',
+  'workflow_imported',
   'search_performed',
   'search_zero_results',
   'category_viewed',
@@ -429,8 +432,8 @@ export function trackEvent(event: AnalyticsEventName, properties: SafeAnalyticsP
 
   const safeProperties = sanitizeAnalyticsProperties(properties);
 
-  // Custom product events remain browser-only. Vercel page views are wired separately and never receive
-  // these properties or calculator inputs.
+  // The same sanitized payload feeds local diagnostics and production measurement.
+  sendProductEvent(event, safeProperties);
   window.dispatchEvent(
     new CustomEvent('karobarkit:analytics', { detail: { event, properties: safeProperties } }),
   );

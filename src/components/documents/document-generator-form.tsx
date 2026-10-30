@@ -205,6 +205,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
     );
     clearErrors();
     setHandoffTransfer(null);
+    trackEvent('workflow_imported', { toolId: tool.id });
     clearLocalScenarioTransfer();
   }
 

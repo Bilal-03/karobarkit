@@ -6,6 +6,7 @@ import { absoluteUrl } from '@/lib/site';
 const staticPaths = [
   '/',
   '/tools',
+  '/freelancers',
   '/categories',
   '/methodology',
   '/gst-methodology',

@@ -10,14 +10,15 @@ import { StudioReveal } from '@/components/ui/studio-motion';
 import { pageMetadata } from '@/lib/seo';
 import { websiteStructuredData } from '@/lib/structured-data';
 export const metadata = pageMetadata({
-  title: 'The Business Toolkit for India',
-  description: 'Everyday calculators, documents and useful tools for your business.',
+  title: 'Quotations, invoices and receipts for Indian freelancers',
+  description:
+    'Prepare quotations, invoices and payment receipts without creating an account. A free toolkit for Indian freelancers.',
   path: '/',
 });
 const quickSlugs = [
-  'gst-calculator',
+  'quotation-generator',
   'invoice-generator',
-  'margin-calculator',
+  'payment-receipt-generator',
   'emi-calculator',
   'upi-standee',
   'photo-resizer-compressor',
@@ -28,14 +29,28 @@ export default function HomePage() {
       <JsonLd data={websiteStructuredData()} />
       <section className="home-intro">
         <Container>
-          <p className="eyebrow">A little less work. A little more done.</p>
-          <h1>Your work, made simpler.</h1>
-          <p>Calculate, create and get things done. All in one place.</p>
+          <p className="eyebrow">For independent work in India.</p>
+          <h1>From quotation to payment receipt.</h1>
+          <p>Prepare quotations, invoices and payment receipts without creating an account.</p>
           <LiveToolSearch id="home-search" tools={toolDiscoveryIndex} variant="home" />
           <p className="home-reassurance">Free to use · No account needed</p>
         </Container>
       </section>
       <Container>
+        <Section title="Your freelance paperwork, in order">
+          <p>
+            Start with a quotation, carry its details into an invoice, then create a receipt after payment.
+            You review each step before exporting.
+          </p>
+          <div className="inline-actions">
+            <Link className="button button--primary" href="/tools/quotation-generator">
+              Prepare a quotation
+            </Link>
+            <Link className="button button--secondary" href="/freelancers">
+              See the workflow
+            </Link>
+          </div>
+        </Section>
         <Section title="Quick tools">
           <StudioReveal>
             <div className="tool-grid">

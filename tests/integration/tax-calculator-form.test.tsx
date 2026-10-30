@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TaxCalculatorForm } from '@/components/tooling/tax-calculator-form';
-import { hraTool, tdsTool } from '@/domain/registry';
+import { hraTool, tdsTool, incomeTaxTool } from '@/domain/registry';
 
 describe('tax calculator form integration', () => {
   beforeEach(() => {
@@ -11,6 +11,18 @@ describe('tax calculator form integration', () => {
     vi.setSystemTime(new Date('2027-10-31T12:00:00Z'));
   });
   afterEach(() => vi.useRealTimers());
+
+  it('explains the full tax total including cess and tax credits', async () => {
+    const user = userEvent.setup();
+    render(<TaxCalculatorForm kind="income-tax" tool={incomeTaxTool} />);
+    await user.click(screen.getByRole('button', { name: 'Try an example' }));
+    fireEvent.change(document.getElementById('salaryIncome')!, { target: { value: '1800000' } });
+    await user.click(screen.getByRole('button', { name: 'Calculate estimate' }));
+    expect(await screen.findByText('Health and education cess')).toBeInTheDocument();
+    expect(screen.getByText('₹6,400.00')).toBeInTheDocument();
+    expect(screen.getByText('₹1,66,400.00', { selector: '.result-panel__value' })).toBeInTheDocument();
+    expect(screen.getByText('Estimated balance after credit')).toBeInTheDocument();
+  });
 
   it('calculates HRA using bundled rules after the review date', async () => {
     const user = userEvent.setup();

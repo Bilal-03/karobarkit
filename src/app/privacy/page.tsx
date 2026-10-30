@@ -36,10 +36,14 @@ export default function PrivacyPage() {
             excluded. Analytics data is not sent in local development.
           </p>
           <p>
-            KarobarKit&apos;s separate product-event boundary remains browser-only and accepts only
-            allowlisted, low-cardinality metadata such as a tool ID, category, export format or validation
-            code. Financial values, names, UPI IDs, amounts, payment notes, logos, QR payloads, document
-            contents and file data are forbidden properties and are not forwarded to Vercel Analytics.
+            When product analytics is enabled, KarobarKit sends sanitized product events to Vercel Analytics.
+            The boundary accepts only allowlisted, low-cardinality metadata such as a tool ID, category,
+            export format or validation code. Financial values, names, UPI IDs, amounts, payment notes, logos,
+            QR payloads, document contents and file data are forbidden properties. Product events include a
+            random tab-session identifier, an allowlisted acquisition channel, and elapsed time to understand
+            completion. The session identifier expires after 30 minutes of inactivity; it does not identify
+            you across visits. We do not fingerprint devices. Do Not Track and Global Privacy Control disable
+            custom product events.
           </p>
         </section>
         <section>

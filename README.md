@@ -115,7 +115,7 @@ KarobarKit separates local features from the few features that require network a
 | AI assistants                                   | After explicit consent, declared fields pass through a server gateway to Gemini or Groq. Known sensitive patterns are redacted or rejected.                                    |
 | Currency reference rates                        | The server fetches public reference data from the European Central Bank. User-entered financial context is not sent to the ECB.                                                |
 | Contact form                                    | Submitted contact details and messages are sent through the server to Resend when delivery is configured.                                                                      |
-| Analytics                                       | Vercel receives production page views with query strings and fragments removed. Custom product events remain browser-only and allowlisted; form values and files are rejected. |
+| Analytics                                       | Vercel receives production page views with query strings and fragments removed. Production custom events use Vercel Analytics with allowlisted metadata, anonymous tab sessions and acquisition channels; form values and files are rejected. |
 
 Provider keys are server-only. KarobarKit does not intentionally persist AI prompts or drafts, and
 an installation without an AI provider key uses deterministic templates instead. Third-party
@@ -337,3 +337,7 @@ repository owner before reusing the code.
   <strong>KarobarKit</strong><br />
   Smart tools for smarter business.
 </div>
+
+## Freelancer pilot
+
+The current hypothesis focuses on quotation → invoice → payment receipt for Indian freelancers. See [the pilot operating kit](docs/pilot/README.md) and [measurement setup](docs/pilot/measurement.md). External adoption and commercial demand are not yet validated.

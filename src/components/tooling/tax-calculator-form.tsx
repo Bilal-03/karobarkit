@@ -218,7 +218,7 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
               tone={result.tone}
             >
               <dl className="result-breakdown">
-                {result.details.slice(0, 3).map((detail) => (
+                {result.details.map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>
@@ -427,7 +427,7 @@ function GenericTaxForm({
               tone={result.tone}
             >
               <dl className="result-breakdown">
-                {result.details.slice(0, 3).map((detail) => (
+                {result.details.map((detail) => (
                   <div key={`${detail.label}-${detail.value}`}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>

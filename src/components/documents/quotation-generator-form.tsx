@@ -193,6 +193,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
       );
       return;
     }
+    trackEvent('workflow_continued', { toolId: tool.id });
     router.push('/tools/gst-invoice-generator');
   }
 
@@ -210,6 +211,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
       );
       return;
     }
+    trackEvent('workflow_continued', { toolId: tool.id });
     router.push('/tools/invoice-generator');
   }
 
