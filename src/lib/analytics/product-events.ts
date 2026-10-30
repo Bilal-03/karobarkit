@@ -53,6 +53,7 @@ export function isVerificationTraffic() {
 }
 
 export function initializeProductMeasurement() {
+  isVerificationTraffic();
   if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_PRODUCT_ANALYTICS_ENABLED === 'false')
     return;
   if (

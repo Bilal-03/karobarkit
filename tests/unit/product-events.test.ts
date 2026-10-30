@@ -58,6 +58,15 @@ describe('persistent product measurement', () => {
     history.replaceState({}, '', '/tools/invoice-generator');
     expect(removeAnalyticsUrlDetails({ type: 'pageview', url: location.href })).toBeNull();
   });
+  it('persists the explicit verification marker even when custom analytics is disabled', () => {
+    vi.stubEnv('NEXT_PUBLIC_PRODUCT_ANALYTICS_ENABLED', 'false');
+    history.replaceState({}, '', '/freelancers?kk_traffic=verification');
+    initializeProductMeasurement();
+    history.replaceState({}, '', '/tools/invoice-generator');
+    expect(isVerificationTraffic()).toBe(true);
+    expect(removeAnalyticsUrlDetails({ type: 'pageview', url: location.href })).toBeNull();
+    expect(track).not.toHaveBeenCalled();
+  });
   it('expires identifiers after inactivity and ignores unrecognized channels', () => {
     vi.useFakeTimers();
     history.replaceState({}, '', '/?kk_channel=private-name');

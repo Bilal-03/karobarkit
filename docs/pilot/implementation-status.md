@@ -1,6 +1,6 @@
 # Pilot implementation status
 
-Implemented locally:
+Implemented and published to GitHub/Vercel:
 
 - Homepage positioning and /freelancers workflow entry; broader toolkit remains available.
 - Quotation/invoice/receipt handoff continuation and import measurement; transfers remain explicit and local.
@@ -12,7 +12,7 @@ Verification: privacy and analytics unit tests; existing document workflow integ
 
 Outstanding external work:
 
-- Deployment and workflow verification are part of the Phase 1 release. Custom-event ingestion is blocked by the Hobby plan (Vercel HTTP 402); the owner explicitly chose to deploy with sending disabled. See measurement.md.
+- The freelancer workflow is deployed; live desktop and mobile tests confirmed quotation, invoice and receipt PDF exports with explicit imports. Custom-event ingestion is blocked by the Hobby plan (Vercel HTTP 402); the owner explicitly chose to deploy with sending disabled. See measurement.md.
 - Recruit and interview participants, collect baseline observations, run two acquisition channels, and follow up at their natural task frequency.
 - Choose the next workflow change from research and collect before/after evidence.
 - Fill the case study/resume metrics and record the actual demo after evidence exists.
