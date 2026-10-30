@@ -248,16 +248,15 @@ describe('Phase 5 startup and marketplace calculations', () => {
     }
   });
 
-  it('rejects future marketplace dates and unsupported Self-Ship policy defaults', () => {
+  it('allows dates after review while rejecting unsupported Self-Ship defaults', () => {
     const future = validatePhase5CalculatorInput('amazon-fees', {
       ...Object.fromEntries(
         phase5CalculatorFields['amazon-fees'].map((field) => [field.name, field.defaultValue]),
       ),
       shippingFee: '0',
-      policyDate: '2026-08-11',
+      policyDate: '2026-10-31',
     });
-    expect(future.success).toBe(false);
-    expect(future.success ? [] : future.errors.map((error) => error.code)).toContain('future_policy_date');
+    expect(future.success).toBe(true);
 
     const selfShip = validatePhase5CalculatorInput('amazon-fees', {
       ...Object.fromEntries(
@@ -317,7 +316,7 @@ describe('Phase 5 startup and marketplace calculations', () => {
     expect(validateMarketplacePolicyBundle([v1, v2])).toEqual([]);
   });
 
-  it('blocks stale bundled marketplace calculations unless a seller override is supplied', () => {
+  it('allows stale bundled marketplace calculations and optional seller overrides', () => {
     const input = {
       salePrice: '299',
       productCost: '100',
@@ -330,9 +329,9 @@ describe('Phase 5 startup and marketplace calculations', () => {
       feeGstRatePercent: '18',
       policyDate: '2026-08-10',
     };
-    expect(() => calculatePhase5('amazon-fees', input, { asOf: '2026-09-10' })).toThrow(
-      /stale bundled policy/,
-    );
+    const bundled = calculatePhase5('amazon-fees', input, { asOf: '2026-09-10' });
+    expect(bundled.policyFreshness?.isStale).toBe(true);
+    expect(bundled.warnings.join(' ')).toContain('bundled reference fees');
     const overridden = calculatePhase5(
       'amazon-fees',
       { ...input, closingFeeOverride: '2' },
@@ -395,11 +394,14 @@ describe('Phase 5 startup and marketplace calculations', () => {
   it('keeps every Phase 5 golden fixture ID backed by a manifest', () => {
     expect(validatePhase5FixtureManifest()).toEqual([]);
   });
-  it('blocks expired marketplace fees using the runtime date', () => {
-    vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
-    const input = Object.fromEntries(
-      phase5CalculatorFields['amazon-fees'].map((field) => [field.name, field.defaultValue]),
-    );
-    expect(() => calculatePhase5('amazon-fees', input)).toThrow(/stale bundled policy/);
+  it('calculates bundled marketplace fees after the review date', () => {
+    vi.setSystemTime(new Date('2026-10-31T12:00:00Z'));
+    for (const kind of ['amazon-fees', 'flipkart-fees'] as const) {
+      const input = Object.fromEntries(
+        phase5CalculatorFields[kind].map((field) => [field.name, field.defaultValue]),
+      );
+      input.policyDate = '2026-10-31';
+      expect(calculatePhase5(kind, input).policyFreshness?.isStale).toBe(true);
+    }
   });
 });

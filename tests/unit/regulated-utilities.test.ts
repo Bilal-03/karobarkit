@@ -15,6 +15,13 @@ import {
   regulatedPolicyState,
   validateOfficialPolicyUrls,
 } from '@/domain/policies/regulated-utilities';
+import {
+  hsnSacFinderTool,
+  gstDueDateTool,
+  depreciationTool,
+  professionalTaxTool,
+  msmeInterestTool,
+} from '@/domain/registry/tools/regulated-utilities';
 import { fetchEcbReferenceQuote } from '@/lib/regulated/currency-rates';
 
 const TODAY = '2026-08-11';
@@ -40,11 +47,34 @@ describe('regulated utility policy controls', () => {
 });
 
 describe('regulated utility calculation contracts', () => {
-  it('searches HSN/SAC fixture rows and blocks stale policy', () => {
+  it('keeps all bundled regulated calculators available after review expiry', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2027-10-31T12:00:00Z'));
+    try {
+      const results = [
+        calculateHsn(hsnSacFinderTool.defaultValues),
+        calculateGstDueDate(gstDueDateTool.defaultValues),
+        calculateDepreciation(depreciationTool.defaultValues),
+        calculateProfessionalTax(professionalTaxTool.defaultValues),
+        calculateMsmeInterest(msmeInterestTool.defaultValues),
+      ];
+      for (const result of results) {
+        expect(result.policyState).toBe('stale');
+        expect(result.policyMessage).toContain('bundled reference rules');
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('searches HSN/SAC fixture rows with an overdue review notice', () => {
     const result = calculateHsn({ query: 'bread', kind: 'all' }, TODAY);
     expect(result.matches[0]?.code).toBe('1905');
     expect(result.datasetVersion).toContain('2026-04');
-    expect(() => calculateHsn({ query: 'bread', kind: 'all' }, '2026-12-01')).toThrow(/stale/i);
+    const overdue = calculateHsn({ query: 'bread', kind: 'all' }, '2026-12-01');
+    expect(overdue.matches[0]?.code).toBe('1905');
+    expect(overdue.policyState).toBe('stale');
+    expect(overdue.policyMessage).toContain('bundled reference rules');
     expect(validateHsnInput({ query: '', kind: 'all' }).success).toBe(false);
   });
 

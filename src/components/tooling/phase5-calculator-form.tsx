@@ -13,12 +13,7 @@ import {
   type Phase5Metric,
   validatePhase5CalculatorInput,
 } from '@/domain/calculations/phase5';
-import {
-  formatIndianCurrency,
-  formatIndianNumber,
-  formatPercentage,
-  formatIndianDate,
-} from '@/domain/formatting/indian';
+import { formatIndianCurrency, formatIndianNumber, formatPercentage } from '@/domain/formatting/indian';
 import type { FieldError } from '@/domain/calculations/types';
 import { trackEvent } from '@/lib/analytics';
 
@@ -270,7 +265,7 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
               <>
                 {result.policyFreshness?.isStale && (
                   <p className="notice" role="status">
-                    This estimate needs a current policy review before use.
+                    This project estimate uses bundled rules. Later policy changes may not be included.
                   </p>
                 )}
               </>

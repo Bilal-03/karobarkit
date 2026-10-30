@@ -228,7 +228,7 @@ function HraForm({ tool }: Omit<TaxCalculatorFormProps, 'kind'>) {
             </ResultPanel>
             {result.policyFreshness.isStale && (
               <p className="notice" role="status">
-                This estimate needs a current policy review before use.
+                This project estimate uses bundled rules. Later policy changes may not be included.
               </p>
             )}
             <div className="inline-actions scenario-actions">
@@ -447,7 +447,7 @@ function GenericTaxForm({
             ) : null}
             {result.policyFreshness.isStale && (
               <p className="notice" role="status">
-                This estimate needs a current policy review before use.
+                This project estimate uses bundled rules. Later policy changes may not be included.
               </p>
             )}
             <div className="inline-actions scenario-actions">

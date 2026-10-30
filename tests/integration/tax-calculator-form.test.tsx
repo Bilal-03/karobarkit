@@ -1,12 +1,18 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TaxCalculatorForm } from '@/components/tooling/tax-calculator-form';
 import { hraTool, tdsTool } from '@/domain/registry';
 
 describe('tax calculator form integration', () => {
-  it('keeps an unreviewed HRA policy disabled without showing a policy record', async () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2027-10-31T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('calculates HRA using bundled rules after the review date', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -22,11 +28,11 @@ describe('tax calculator form integration', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate HRA exemption' }));
-    expect((await screen.findAllByText(/No reviewed HRA policy/)).length).toBeGreaterThan(0);
-    expect(screen.queryByText('Policy snapshot')).not.toBeInTheDocument();
+    expect((await screen.findAllByText('₹1,20,000.00')).length).toBeGreaterThan(0);
+    expect(screen.getByText(/This project estimate uses bundled rules/)).toBeInTheDocument();
   });
 
-  it('does not bypass the review gate when switching regimes', async () => {
+  it('calculates the zero exemption when switching to the new regime', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -43,11 +49,10 @@ describe('tax calculator form integration', () => {
     await user.click(screen.getByRole('button', { name: 'Try an example' }));
     fireEvent.change(screen.getByRole('combobox', { name: /Tax regime/i }), { target: { value: 'new' } });
     await user.click(screen.getByRole('button', { name: 'Calculate HRA exemption' }));
-    expect((await screen.findAllByText(/No reviewed HRA policy/)).length).toBeGreaterThan(0);
-    expect(screen.queryByText('₹0.00')).not.toBeInTheDocument();
+    expect((await screen.findAllByText('₹0.00')).length).toBeGreaterThan(0);
   });
 
-  it('keeps a stale TDS policy disabled and validates residency', async () => {
+  it('calculates with an overdue TDS review and still validates residency', async () => {
     const user = userEvent.setup();
     render(
       <TaxCalculatorForm
@@ -63,7 +68,7 @@ describe('tax calculator form integration', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Try an example' }));
     await user.click(screen.getByRole('button', { name: 'Calculate estimate' }));
-    expect((await screen.findAllByText(/review is due/iu)).length).toBeGreaterThan(0);
+    expect(await screen.findByText(/This project estimate uses bundled rules/)).toBeInTheDocument();
     fireEvent.change(screen.getByRole('combobox', { name: /Payee residency/i }), {
       target: { value: 'non-resident' },
     });

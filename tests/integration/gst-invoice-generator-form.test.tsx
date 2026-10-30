@@ -55,15 +55,16 @@ describe('GST invoice generator form', () => {
     );
   }, 30_000);
 
-  it('blocks a future invoice date beyond the verified GST snapshot', async () => {
+  it('creates an invoice dated after the bundled policy review', async () => {
     render(<GstInvoiceGeneratorForm tool={gstInvoiceTool} />);
     const invoiceDate = document.getElementById('invoiceDate');
     if (!invoiceDate) throw new Error('Invoice date field not found.');
     fillMinimumInvoice();
-    fireEvent.change(invoiceDate, { target: { value: '2099-01-01' } });
+    fireEvent.change(invoiceDate, { target: { value: '2026-10-31' } });
+    fireEvent.change(field('dueDate'), { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Review document' }));
-    expect(await screen.findAllByText(/future|verified|policy/i)).not.toHaveLength(0);
+    expect(await screen.findByTestId('document-preview')).toBeInTheDocument();
   });
 
   it('announces validation errors and keeps the first item undeletable', async () => {

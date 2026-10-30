@@ -614,7 +614,6 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                   label="Invoice date"
                   type="date"
                   value={values.invoiceDate}
-                  max={GST_POLICY_AS_OF}
                   onChange={(event) => updateValue('invoiceDate', event.target.value)}
                   error={fieldError(errors, 'invoiceDate')}
                   required

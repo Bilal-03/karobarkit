@@ -2,14 +2,22 @@
 
 import { useSyncExternalStore, type ReactNode } from 'react';
 
-const blockedTools = new Set([
+const policyTools = new Set([
   'hra-calculator',
+  'gst-invoice-generator',
   'income-tax-calculator',
   'tds-calculator',
   'corporate-tax-calculator',
   'presumptive-tax-calculator',
   'in-hand-salary-calculator',
   'gst-filing-due-date-calendar',
+  'ctc-calculator',
+  'pf-calculator',
+  'gratuity-calculator',
+  'hsn-sac-finder',
+  'depreciation-calculator',
+  'professional-tax-calculator',
+  'msme-late-payment-interest-calculator',
 ]);
 const manualOverrideTools = new Set(['amazon-fees-calculator', 'flipkart-fees-calculator']);
 
@@ -48,23 +56,17 @@ export function PolicyReviewNotice({
     },
     () => false,
   );
-  if (!overdue) return children ?? null;
-  if (blockedTools.has(toolId))
-    return (
-      <div className="notice" role="status">
-        <strong>Temporarily unavailable.</strong> This calculator needs a current official policy review
-        before it can provide an estimate. Please use the relevant official portal for current obligations.
-      </div>
-    );
-  if (manualOverrideTools.has(toolId))
-    return (
-      <>
+  const showNotice = overdue && (policyTools.has(toolId) || manualOverrideTools.has(toolId));
+  return (
+    <>
+      {showNotice ? (
         <div className="notice" role="status">
-          <strong>Bundled fee review overdue.</strong> Enter the current fixed or closing fee from your seller
-          dashboard. The older bundled fee cannot be used for a current estimate.
+          <strong>Using bundled reference rates.</strong> Last reviewed {lastVerified}. Calculations remain
+          available for this project; the bundled rules may not include later changes.
+          {manualOverrideTools.has(toolId) && ' You can enter current seller-dashboard fees as overrides.'}
         </div>
-        {children}
-      </>
-    );
-  return children ?? null;
+      ) : null}
+      {children}
+    </>
+  );
 }

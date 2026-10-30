@@ -7,9 +7,17 @@ test.describe('GST invoice generator', () => {
     await page.addInitScript(() => {
       window.print = () => document.body.setAttribute('data-print-called', 'true');
     });
+    await page.clock.setFixedTime(new Date('2027-10-31T12:00:00Z'));
     await page.goto('/tools/gst-invoice-generator');
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await fillMinimumGstInvoice(page);
+    await page.locator('[id="invoiceDate"]').fill('2026-10-31');
+    await page
+      .locator('details.field-group')
+      .filter({ has: page.locator('[id="dueDate"]') })
+      .locator('summary')
+      .click();
+    await page.locator('[id="dueDate"]').fill('');
 
     await page.getByRole('button', { name: 'Review document' }).click();
     await expect(page.getByTestId('document-preview')).toBeVisible();
@@ -24,7 +32,7 @@ test.describe('GST invoice generator', () => {
     const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
     await page.getByRole('button', { name: 'Download PDF' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('gst-invoice-inv-001-2026-08-08.pdf');
+    expect(download.suggestedFilename()).toBe('gst-invoice-inv-001-2026-10-31.pdf');
 
     await page.getByRole('button', { name: 'Print' }).click();
     await expect(page.locator('body')).toHaveAttribute('data-print-called', 'true');

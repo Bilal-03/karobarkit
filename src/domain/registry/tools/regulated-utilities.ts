@@ -283,7 +283,7 @@ export const hsnSacFinderTool = createRegulatedTool<HsnInput, HsnResult>({
   ],
   formula: 'Match = code or description/keyword contains the normalized query',
   workedExample:
-    'Searching “bread” returns the bundled bakery reference row when the policy snapshot is fresh.',
+    'Searching “bread” returns the bundled bakery reference row, with a notice if its review is overdue.',
   resultInterpretation: 'A match is a research starting point, not a classification conclusion.',
   edgeCases: [
     'No result means only that the bounded fixture has no match.',

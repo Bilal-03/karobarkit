@@ -4,6 +4,7 @@ import {
   calculateTax,
   getTaxPolicyFreshness,
   taxCalculatorFields,
+  taxCalculatorKinds,
   type TaxCalculatorInput,
   validateTaxCalculatorInput,
 } from '@/domain/calculations/tax';
@@ -132,15 +133,19 @@ describe('Phase 4 tax and payroll policy fixtures', () => {
     expect(payroll.success).toBe(false);
   });
 
-  it('exposes a deterministic freshness gate for tax and payroll policies', () => {
+  it('reports deterministic review freshness for tax and payroll policies', () => {
     const result = calculateTax('income-tax', defaults('income-tax'));
     expect(result.policyFreshness.isStale).toBe(false);
     expect(
       getTaxPolicyFreshness({ ...result.policy, lastVerifiedOn: '2025-01-01' }, '2026-08-10').isStale,
     ).toBe(true);
   });
-  it('blocks expired tax policies using the runtime date', () => {
+  it('calculates every tax and payroll tool after its review date', () => {
     vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
-    expect(() => calculateTax('income-tax', defaults('income-tax'))).toThrow(/policy review is due/);
+    for (const kind of taxCalculatorKinds) {
+      const result = calculateTax(kind, defaults(kind));
+      expect(result.headline.value).toBeTruthy();
+      if (kind === 'income-tax') expect(result.policyFreshness.isStale).toBe(true);
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   calculateGstInvoice,
@@ -245,6 +245,17 @@ describe('GST invoice validation', () => {
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.errors.some((error) => error.code === 'policy_unavailable')).toBe(true);
+  });
+
+  it('keeps invoice calculation available after the bundled GST review is overdue', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2027-10-31T12:00:00Z'));
+    try {
+      const result = calculateGstInvoice(validInvoice({ invoiceDate: '2026-10-31', dueDate: '' }));
+      expect(result.policy.isStale).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('allows an explicitly unregistered recipient without a recipient GSTIN', () => {

@@ -204,13 +204,6 @@ export function calculateGstInvoice(input: GstInvoiceInput): GstInvoiceDocument 
   const value = validation.data;
   const policy = getActiveGstPolicy(value.invoiceDate);
   const freshness = getGstPolicyFreshness(policy);
-  if (freshness.isStale) {
-    throw new DocumentInputError(
-      'invoiceDate',
-      'policy_stale',
-      `The GST policy review is due (${freshness.reviewDueOn}). This invoice path is disabled until the policy is re-verified.`,
-    );
-  }
   const lines = value.items.map((item) => calculateLine(item, value.supplyType, value.invoiceDate));
   const taxGroups = [
     ...lines

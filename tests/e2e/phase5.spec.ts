@@ -33,7 +33,7 @@ test.describe('Phase 5 startup and marketplace beta', () => {
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('heading', { name: 'Amazon Fees Calculator' })).toBeVisible();
 
-    await page.clock.setFixedTime(new Date('2026-08-10T12:00:00Z'));
+    await page.clock.setFixedTime(new Date('2026-10-31T12:00:00Z'));
     await page.reload();
     await page.getByRole('button', { name: 'Try an example' }).click();
     await page.locator('form details.field-group > summary').click();

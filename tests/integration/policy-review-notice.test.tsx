@@ -5,7 +5,7 @@ import { PolicyReviewNotice } from '@/components/tooling/policy-review-notice';
 
 afterEach(() => vi.useRealTimers());
 
-it('warns before an overdue regulated calculation and clears after a current review', () => {
+it('keeps overdue calculators mounted and clears the notice after a current review', () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-10-30T08:00:00Z'));
   const { rerender } = render(
@@ -13,14 +13,16 @@ it('warns before an overdue regulated calculation and clears after a current rev
       <button>Calculate tax</button>
     </PolicyReviewNotice>,
   );
-  expect(screen.getByText(/Temporarily unavailable/)).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'Calculate tax' })).not.toBeInTheDocument();
+  expect(screen.getByText(/Using bundled reference rates/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Calculate tax' })).toBeInTheDocument();
+  const calculateButton = screen.getByRole('button', { name: 'Calculate tax' });
   rerender(
     <PolicyReviewNotice toolId="income-tax-calculator" lastVerified="2026-10-29" cadenceDays={30}>
       <button>Calculate tax</button>
     </PolicyReviewNotice>,
   );
-  expect(screen.queryByText(/Temporarily unavailable/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Using bundled reference rates/)).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Calculate tax' })).toBe(calculateButton);
   expect(screen.getByRole('button', { name: 'Calculate tax' })).toBeInTheDocument();
 });
 
@@ -32,6 +34,6 @@ it('keeps a seller-input calculator available with an overdue-fee warning', () =
       <button>Calculate fees</button>
     </PolicyReviewNotice>,
   );
-  expect(screen.getByText(/Bundled fee review overdue/)).toBeInTheDocument();
+  expect(screen.getByText(/Using bundled reference rates/)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Calculate fees' })).toBeInTheDocument();
 });

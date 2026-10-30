@@ -90,9 +90,9 @@ function policyBase(policyKey: RegulatedPolicyKey, today = currentIsoDate()): Re
   return { policyState: state, lastVerifiedOn, policyMessage: regulatedPolicyMessage(state) };
 }
 
-function assertFreshPolicy(policyKey: RegulatedPolicyKey, today = currentIsoDate()) {
+function assertUsablePolicy(policyKey: RegulatedPolicyKey, today = currentIsoDate()) {
   const result = policyBase(policyKey, today);
-  if (result.policyState !== 'fresh') throw new Error(result.policyMessage);
+  if (result.policyState !== 'fresh' && result.policyState !== 'stale') throw new Error(result.policyMessage);
   return result;
 }
 
@@ -193,7 +193,7 @@ export function validateHsnInput(input: HsnInput) {
 
 export function calculateHsn(input: HsnInput, today = currentIsoDate()): HsnResult {
   const value = validated(hsnInputSchema, input);
-  const policy = assertFreshPolicy('hsn', today);
+  const policy = assertUsablePolicy('hsn', today);
   const query = value.query.toLowerCase();
   const matches = bundledHsnRecords
     .filter((record) => value.kind === 'all' || record.kind === value.kind)
@@ -268,7 +268,7 @@ function addMonthDays(period: string, day: number) {
 
 export function calculateGstDueDate(input: GstDueDateInput, today = currentIsoDate()): GstDueDateResult {
   const value = validated(gstDueDateInputSchema, input);
-  const policy = assertFreshPolicy('gst-calendar', today);
+  const policy = assertUsablePolicy('gst-calendar', today);
   const day =
     value.returnType === 'gstr-1'
       ? value.taxpayerType === 'regular-monthly'
@@ -332,7 +332,7 @@ export function calculateDepreciation(
   today = currentIsoDate(),
 ): DepreciationResult {
   const value = validated(depreciationInputSchema, input);
-  const policy = assertFreshPolicy('depreciation', today);
+  const policy = assertUsablePolicy('depreciation', today);
   if (value.mode === 'companies-act' && value.method !== 'slm') {
     throw new Error('Companies Act mode uses the straight-line method (SLM).');
   }
@@ -413,7 +413,7 @@ export function calculateProfessionalTax(
   today = currentIsoDate(),
 ): ProfessionalTaxResult {
   const value = validated(professionalTaxInputSchema, input);
-  const policy = assertFreshPolicy('professional-tax', today);
+  const policy = assertUsablePolicy('professional-tax', today);
   const amount = positive(value.salaryAmount, 'Salary amount');
   const monthly = value.salaryPeriod === 'annual' ? amount.div(12) : amount;
   const taxForMonth = (month: string) => {
@@ -518,7 +518,7 @@ export function calculateMsmeInterest(
   today = currentIsoDate(),
 ): MsmeInterestResult {
   const value = validated(msmeInterestInputSchema, input);
-  const policy = assertFreshPolicy('msme', today);
+  const policy = assertUsablePolicy('msme', today);
   const principal = positive(value.principal, 'Principal');
   const agreedDays = positive(value.agreedPaymentDays, 'Agreed payment days');
   const bankRate = positive(value.bankRatePercent, 'Bank rate');

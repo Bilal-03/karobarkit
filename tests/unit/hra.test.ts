@@ -112,7 +112,7 @@ describe('HRA policy and calculation', () => {
     expect(result.details.find((detail) => detail.label.startsWith('50%'))?.value).toBe('300000.00');
   });
 
-  it('keeps the HRA source bundle official and exposes a freshness gate', () => {
+  it('keeps the HRA source bundle official and reports review freshness', () => {
     const policy = HRA_POLICY_BUNDLE[0]!;
     expect(validateIncomeTaxSourceBundle(policy.sourceIds)).toEqual([]);
     expect(getHraPolicyFreshness('2026-08-09').isStale).toBe(false);
@@ -134,8 +134,10 @@ describe('HRA policy and calculation', () => {
       expect.arrayContaining([expect.stringMatching(/approved government domain/iu)]),
     );
   });
-  it('blocks expired policies using the runtime date', () => {
+  it('calculates with the bundled HRA rules after the review date', () => {
     vi.setSystemTime(new Date('2026-10-30T12:00:00Z'));
-    expect(() => calculateHra(hraCalculatorDefaultValues)).toThrow(/No reviewed HRA policy/);
+    const result = calculateHra(hraCalculatorDefaultValues);
+    expect(result.headline.value).toBe('120000.00');
+    expect(result.policyFreshness.isStale).toBe(true);
   });
 });

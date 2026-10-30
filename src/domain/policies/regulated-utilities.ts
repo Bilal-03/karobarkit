@@ -42,7 +42,8 @@ export function regulatedPolicyMessage(state: RegulatedPolicyState) {
   if (state === 'fresh') return 'Reviewed bundled policy snapshot.';
   if (state === 'future')
     return 'This policy snapshot is dated in the future and is disabled until reviewed.';
-  if (state === 'stale') return 'This policy snapshot is stale and is disabled until reviewed.';
+  if (state === 'stale')
+    return 'Using bundled reference rules for this project. The review is overdue; later changes may not be included.';
   if (state === 'withdrawn') return 'This policy snapshot has been withdrawn and is disabled.';
   return 'This policy snapshot has an invalid review date and is disabled.';
 }

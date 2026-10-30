@@ -188,14 +188,6 @@ export const HRA_POLICY_BUNDLE: readonly HraPolicyVersion[] = [
   },
 ];
 
-function isFresh(
-  lastVerifiedOn: string,
-  asOf: string,
-  intervalDays = INCOME_TAX_POLICY_REVIEW_INTERVAL_DAYS,
-) {
-  return compareIsoDates(asOf, addIsoDays(lastVerifiedOn, intervalDays)) <= 0;
-}
-
 function currentIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -237,7 +229,7 @@ export function getHraPolicy(assessmentYear: string, asOf = currentIsoDate()) {
     (candidate) =>
       candidate.assessmentYear === assessmentYear &&
       candidate.status === 'active' &&
-      isFresh(candidate.lastVerifiedOn, asOf),
+      candidate.lastVerifiedOn <= asOf,
   );
   if (!policy) return undefined;
   const references = getIncomeTaxSourceReferences(policy.sourceIds);

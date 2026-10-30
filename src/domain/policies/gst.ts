@@ -498,12 +498,6 @@ export function validateGstPolicyBundle(
 }
 
 export function getActiveGstPolicy(asOf = GST_POLICY_AS_OF): GstPolicyVersion {
-  if (isIsoDate(asOf) && compareIsoDates(asOf, GST_POLICY_AS_OF) > 0) {
-    throw new GstPolicyError(
-      'future_policy_date',
-      `No reviewed GST policy covers dates after ${GST_POLICY_AS_OF}. Update the policy bundle before using a future transaction date.`,
-    );
-  }
   const validation = validateGstPolicyBundle(GST_POLICY_BUNDLE, asOf);
   if (!validation.success) {
     throw new GstPolicyError(

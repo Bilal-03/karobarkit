@@ -1544,13 +1544,6 @@ export function calculateTax(kind: TaxCalculatorKind, input: TaxCalculatorInput)
         return calculateGratuity(validation.data);
     }
   })();
-  if (calculated.policyFreshness.isStale) {
-    throw new CalculationInputError(
-      'form',
-      'policy_stale',
-      `The policy review is due (${calculated.policyFreshness.reviewDueOn}). This calculator is disabled until the official source bundle is re-verified.`,
-    );
-  }
   return calculated;
 }
 

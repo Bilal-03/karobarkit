@@ -524,7 +524,7 @@ export const phase5CalculatorFields: Record<Phase5CalculatorKind, Phase5FieldCon
     {
       name: 'policyDate',
       label: 'Fee policy snapshot date',
-      help: `The bundled Amazon snapshot is verified through ${MARKETPLACE_POLICY_AS_OF}. Future dates are rejected.`,
+      help: `The bundled Amazon snapshot is verified through ${MARKETPLACE_POLICY_AS_OF}. Calculations use bundled reference fees unless overridden.`,
       defaultValue: MARKETPLACE_POLICY_AS_OF,
       type: 'date',
       format: 'text',
@@ -618,7 +618,7 @@ export const phase5CalculatorFields: Record<Phase5CalculatorKind, Phase5FieldCon
     {
       name: 'policyDate',
       label: 'Fee policy snapshot date',
-      help: `The bundled Flipkart snapshot is verified through ${MARKETPLACE_POLICY_AS_OF}. Future dates are rejected.`,
+      help: `The bundled Flipkart snapshot is verified through ${MARKETPLACE_POLICY_AS_OF}. Calculations use bundled reference fees unless overridden.`,
       defaultValue: MARKETPLACE_POLICY_AS_OF,
       type: 'date',
       format: 'text',
@@ -1208,12 +1208,6 @@ function validateWithErrors(kind: Phase5CalculatorKind, input: Phase5CalculatorI
       'policyDate',
       () => {
         const policyDate = parseDate(input, kind, 'policyDate');
-        if (policyDate > MARKETPLACE_POLICY_AS_OF)
-          throw new CalculationInputError(
-            'policyDate',
-            'future_policy_date',
-            `Policy dates after ${MARKETPLACE_POLICY_AS_OF} are not supported.`,
-          );
         if (!getMarketplacePolicy(kind === 'amazon-fees' ? 'amazon' : 'flipkart', policyDate))
           throw new CalculationInputError(
             'policyDate',
@@ -1586,12 +1580,6 @@ function calculateMarketplaceFees(
   const otherFee = parseOptionalNumber(input, kind, 'otherFee');
   const gstRate = parseRate(input, kind, 'feeGstRatePercent');
   const policyDate = parseDate(input, kind, 'policyDate');
-  if (policyDate > MARKETPLACE_POLICY_AS_OF)
-    throw new CalculationInputError(
-      'policyDate',
-      'future_policy_date',
-      `Policy dates after ${MARKETPLACE_POLICY_AS_OF} are not supported.`,
-    );
   const policy = getMarketplacePolicy(marketplaceKind, policyDate);
   if (!policy)
     throw new CalculationInputError(
@@ -1599,9 +1587,7 @@ function calculateMarketplaceFees(
       'policy_unavailable',
       'No verified marketplace policy is available for that date.',
     );
-  // Freshness is evaluated against the runtime date so a bundled snapshot becomes
-  // visibly stale after its review window, while the selected policy date remains
-  // bounded by the last verified snapshot above.
+  // Keep review freshness visible without expiring the project calculator.
   const freshness = getMarketplacePolicyFreshness(policy, options.asOf);
   const band = getMarketplacePriceBand(salePrice.toString());
   let fixedFee: Decimal;
@@ -1611,14 +1597,6 @@ function calculateMarketplaceFees(
   let collectionFee = new Decimal(0);
   const closingOverride = (input.closingFeeOverride ?? '').trim();
   const fixedOverride = (input.fixedFeeOverride ?? '').trim();
-  if (freshness.isStale && !closingOverride && !fixedOverride) {
-    const overrideField = kind === 'amazon-fees' ? 'closingFeeOverride' : 'fixedFeeOverride';
-    throw new CalculationInputError(
-      overrideField,
-      'stale_policy_override_required',
-      `${freshness.message} Enter a current seller-dashboard ${kind === 'amazon-fees' ? 'closing fee' : 'fixed fee'} override before calculating with a stale bundled policy.`,
-    );
-  }
   if (kind === 'amazon-fees') {
     const fulfillment = input.fulfillment as 'fba' | 'easy-ship' | 'self-ship';
     const category = input.category as keyof NonNullable<
@@ -1679,7 +1657,7 @@ function calculateMarketplaceFees(
     'Marketplace rates vary by category, programme, fulfilment, weight, distance, seller level and account terms. Confirm the current seller dashboard before relying on this estimate.',
     ...(freshness.isStale
       ? [
-          `${freshness.message} This estimate used explicit seller overrides instead of the stale bundled fee where required.`,
+          `${freshness.message} This project estimate uses bundled reference fees unless you supply seller-dashboard overrides.`,
         ]
       : []),
   ];
