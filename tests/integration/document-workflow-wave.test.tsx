@@ -24,7 +24,7 @@ describe('Phase 3 document workflow wave', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Quote number' }), {
       target: { value: 'QT/001' },
     });
-    fireEvent.change(screen.getByLabelText(/Quote date/iu), { target: { value: '2026-08-06' } });
+    fireEvent.change(screen.getByLabelText(/Quote date/iu), { target: { value: '2026-10-31' } });
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
       target: { value: 'Consulting retainer' },
@@ -85,7 +85,7 @@ describe('Phase 3 document workflow wave', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Invoice number' }), {
       target: { value: 'INV/001' },
     });
-    fireEvent.change(screen.getByLabelText(/Invoice date/iu), { target: { value: '2026-08-06' } });
+    fireEvent.change(screen.getByLabelText(/Invoice date/iu), { target: { value: '2026-10-31' } });
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
       target: { value: 'Consulting retainer' },

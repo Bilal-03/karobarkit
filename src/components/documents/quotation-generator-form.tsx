@@ -37,7 +37,7 @@ interface QuotationToolProps {
 
 function cloneQuotationInput(value: unknown): QuotationInput {
   const source = (value as QuotationInput | undefined) ?? quotationDefaultValues;
-  return { ...source, items: source.items.map((item) => ({ ...item })) };
+  return { ...source, validUntil: '', items: source.items.map((item) => ({ ...item })) };
 }
 
 function fieldError(errors: FieldError[], field: string) {

@@ -47,6 +47,7 @@ function cloneInvoiceInput(value: unknown): GstInvoiceInput {
   const source = (value as GstInvoiceInput | undefined) ?? invoiceDefaultValues;
   return {
     ...source,
+    dueDate: '',
     supplier: { ...source.supplier, address: { ...source.supplier.address } },
     recipient: { ...source.recipient, address: { ...source.recipient.address } },
     placeOfSupply: { ...source.placeOfSupply },

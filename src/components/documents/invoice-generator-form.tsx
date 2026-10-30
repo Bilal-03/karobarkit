@@ -40,7 +40,7 @@ interface InvoiceToolProps {
 
 function cloneInvoiceInput(value: unknown): InvoiceInput {
   const source = (value as InvoiceInput | undefined) ?? invoiceDefaultValues;
-  return { ...source, items: source.items.map((item) => ({ ...item })) };
+  return { ...source, dueDate: '', items: source.items.map((item) => ({ ...item })) };
 }
 
 function fieldError(errors: FieldError[], field: string) {
