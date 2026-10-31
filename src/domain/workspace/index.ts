@@ -1,3 +1,4 @@
+import { studioSchema, blankStudio } from '@/domain/product-studio';
 import { z } from 'zod';
 import Decimal from 'decimal.js';
 import { calculateBusinessEconomics } from '@/domain/calculations/business-economics';
@@ -120,6 +121,7 @@ const entry = z
 const workspaceSchema = z
   .object({
     version: z.literal(1),
+    studio: studioSchema.default(blankStudio),
     profile: profileSchema,
     scenarios: z.array(scenarioSchema).max(3),
     drafts: z.array(entry).max(20),
@@ -132,6 +134,7 @@ const workspaceSchema = z
 export type Workspace = z.infer<typeof workspaceSchema>;
 export const blankWorkspace = (): Workspace => ({
   version: 1,
+  studio: blankStudio(),
   profile: { ...emptyProfile },
   scenarios: [],
   drafts: [],

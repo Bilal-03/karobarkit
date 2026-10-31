@@ -1,0 +1,13 @@
+# Product Studio
+
+/product-studio is an owner/portfolio workspace linked from the case study and device workspace. It plans experiments and records decisions; it does not run live experiments, allocate traffic, collect user identities or verify results. Production custom-event analytics remains disabled.
+
+Experiments include a problem, hypothesis, proposed change, audience, primary metric/threshold, guardrails, duration/sample requirement, stopping conditions, evidence status and result interpretation. Planned records may have no results. Simulated, observed and inconclusive labels require an evidence description; these are user-entered classifications, not independent verification or causal proof. Edit a record to update it or remove it from the unsaved board. Save explicitly to persist changes.
+
+The prioritization board uses an explicitly custom RICE-style score: reach in 30 days × impact × confidence/100 ÷ person-day effort × (strategic fit/3)^weight. Impact and fit range from 1–5, effort from 0.25–365, confidence from 0–100%. Scores are estimated comparisons, not recommendations or industry benchmarks. Edit inputs or compare fit weights 0/1/2 to explore ranking sensitivity. Zero confidence yields zero score; ties are sorted by title and ID. Halving confidence halves a candidate’s score but is not a measured downside forecast.
+
+A decision requires an existing candidate, choice (build/defer/reject/investigate), owner, rationale, alternatives, reversal condition and valid revisit date. The log captures the candidate title and UTC recording timestamp at creation. Later candidate removal does not erase the decision. New decisions append; existing history is not silently rewritten. The page is not an immutable or tamper-proof audit system.
+
+Studio records are included in the existing 512 KB workspace backup, restore and full deletion. Old version-1 backups without studio records remain supported and initialize an empty board. Limits: 30 experiments, 30 candidates and 100 decisions. Loading replaces the board only after confirmation; saving merges into the latest business workspace, preserving profiles/drafts/scenarios, and refuses a stale saved-studio snapshot. No data saves automatically, leaves this device, or enters analytics. Anyone with access to the browser profile can read the records. Invalid backup structures are rejected before writing.
+
+Acceptance: evidence statuses remain distinct; invalid assumptions cannot be saved; rankings change with assumptions; decisions require explanatory fields and real dates; saved records reload; old backups remain usable; backup and full deletion include all studio records. All demonstration records in tests are fictional.

@@ -77,6 +77,10 @@ export function WorkspaceManager() {
       )}
       {loaded && (
         <>
+          <p>
+            <Link href="/product-studio">Plan experiments and roadmap decisions in Product Studio</Link>.
+            Studio records are included in workspace backups and full deletion.
+          </p>
           <h2>Reusable business details</h2>
           <form
             onSubmit={(e) => {
@@ -204,7 +208,7 @@ export function WorkspaceManager() {
                 run(() => {
                   if (
                     !window.confirm(
-                      'Delete all saved business details, scenarios and drafts on this device? Downloaded backups are not deleted.',
+                      'Delete all saved business details, scenarios, drafts and Product Studio records on this device? Downloaded backups are not deleted.',
                     )
                   )
                     return;

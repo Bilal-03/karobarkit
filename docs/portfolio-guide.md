@@ -12,6 +12,10 @@ The funnel demo uses 12 invented sessions in two deliberately modeled scenarios.
 
 /get-started provides goal-based, skippable journeys. /decision-workbench compares up to three commercial assumptions with downside cases and reuses the break-even engine. /workspace offers explicit local saving, private JSON backup/restore, duplication and deletion. Quotation, invoice and receipt forms can apply business details and save/restore incomplete drafts. These are implemented capabilities, not validated retention or growth outcomes. See business-workspace.md for boundaries.
 
+## Experimentation and prioritization
+
+/product-studio adds experiment design with distinct evidence statuses, a custom RICE-style prioritization board with editable strategic weighting, and a decision log with rationale, alternatives, owner and revisit date. Records save only when requested and are part of the existing private backup. No live experiments or real outcomes are implied. See product-studio.md.
+
 ## Resume entry — usable now
 
 Product Owner — KarobarKit, Independent Project

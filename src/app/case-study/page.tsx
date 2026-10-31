@@ -72,6 +72,11 @@ export default function CaseStudyPage() {
           </a>
         </p>
       </div>
+      <p>
+        <Link className="button button--secondary" href="/product-studio">
+          Explore the experiment planner and prioritization board
+        </Link>
+      </p>
       <AnalyticsExample />
       <div className="prose">
         <h2>What I can conclude</h2>
