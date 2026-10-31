@@ -1,4 +1,5 @@
 'use client';
+import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -269,6 +270,17 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+        {!isLetterhead && (
+          <DocumentWorkspaceControls
+            kind="receipt"
+            values={values}
+            onLoad={(next) => {
+              setValues(next);
+              clearErrors();
+              setExportError(null);
+            }}
+          />
+        )}
         <GuidedDocumentForm
           key={resetVersion}
           definition={kind === 'letterhead' ? documentFlows.letterhead : documentFlows.receipt}

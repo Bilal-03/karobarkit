@@ -1,4 +1,5 @@
 'use client';
+import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -306,6 +307,15 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+        <DocumentWorkspaceControls
+          kind="invoice"
+          values={values}
+          onLoad={(next) => {
+            setValues(next);
+            clearErrors();
+            clearResult();
+          }}
+        />
         <GuidedDocumentForm
           key={resetVersion}
           definition={documentFlows.invoice}

@@ -29,6 +29,18 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
+          <h2>Optional device workspace</h2>
+          <p>
+            If you explicitly save business details, document drafts or comparison assumptions, they are
+            stored in this browser’s local storage until you delete them. They are not uploaded or included in
+            analytics. Logos are excluded from saved drafts. Anyone with access to the same browser profile
+            can read this data. You can download a private JSON backup, restore a supported backup with
+            confirmation, or delete the entire workspace at /workspace. Clearing browser data also removes
+            saved work; downloaded backups must be managed separately. Existing form export validation still
+            applies after loading a draft.
+          </p>
+        </section>
+        <section>
           <h2>Analytics boundary</h2>
           <p>
             The production site uses Vercel Web Analytics for aggregate page-view measurement. Query strings

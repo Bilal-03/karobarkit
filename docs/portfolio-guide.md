@@ -8,10 +8,15 @@ Current objective: demonstrate product judgment, analytical reasoning and delive
 
 The funnel demo uses 12 invented sessions in two deliberately modeled scenarios. It counts unique session/stage combinations, requires start → result → export sequencing and reports a completion denominator and median duration. Downloaded JSON can be reproduced with public/portfolio/funnel.sql in SQLite using a bound events_json parameter. This is not an A/B test, measured uplift, acquisition experiment or evidence of real users. Vercel custom-event collection remains disabled on Hobby.
 
+## Integrated decision and workspace features
+
+/get-started provides goal-based, skippable journeys. /decision-workbench compares up to three commercial assumptions with downside cases and reuses the break-even engine. /workspace offers explicit local saving, private JSON backup/restore, duplication and deletion. Quotation, invoice and receipt forms can apply business details and save/restore incomplete drafts. These are implemented capabilities, not validated retention or growth outcomes. See business-workspace.md for boundaries.
+
 ## Resume entry — usable now
 
 Product Owner — KarobarKit, Independent Project
 
+- Integrated goal-based guidance, a three-scenario commercial decision workbench, and optional device-local business profiles/drafts with validated backup and restore.
 - Defined and shipped a no-account document workflow connecting quotations, invoices and payment receipts, with explicit local data transfers and browser-generated PDF exports.
 - Prioritized and resolved usability and handoff defects found in owner feedback and automated release tests, including hidden tax breakdowns, stale dates and invalid discount transfers.
 - Built a reproducible product-funnel analysis using simulated event data, session deduplication, channel segmentation and SQL; documented metric limitations and product tradeoffs.
@@ -27,7 +32,7 @@ Adjust the wording to what you can personally explain. Implementation and test a
 
 ## Decision discussion
 
-Why no mandatory login? What does an export prove? Why use deterministic arithmetic? Why pause research rather than invent validation? Why defer saved profiles and more AI? What would justify those investments? How would you measure acquisition efficiency if collection and a budget were available?
+Why no mandatory login? What does an export prove? Why use deterministic arithmetic? Why pause research rather than invent validation? Why use device-local saving instead of cloud accounts? Why defer more AI? What would justify those investments? How would you measure acquisition efficiency if collection and a budget were available?
 
 ## Completion criteria
 

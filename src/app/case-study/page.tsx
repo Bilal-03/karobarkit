@@ -44,8 +44,9 @@ export default function CaseStudyPage() {
             tax arithmetic.
           </li>
           <li>
-            Defer more tools, profiles and paid acquisition. For this portfolio, invest in a coherent
-            workflow, reproducible analysis and clear evidence instead.
+            Defer cloud accounts and paid acquisition; offer explicit device-local saving as a design
+            hypothesis. For this portfolio, invest in a coherent workflow, reproducible analysis and clear
+            evidence instead.
           </li>
         </ul>
         <h2>Issues found through actual verification</h2>
@@ -82,10 +83,10 @@ export default function CaseStudyPage() {
         </p>
         <h2>What would change the roadmap?</h2>
         <p>
-          If future real usage shows repeated re-entry, saved business profiles could be worth testing. If
-          discovery is the bottleneck, onboarding would take priority. Without that evidence, neither a paid
-          tier nor more features is justified. Production custom events remain disabled because the current
-          Vercel plan does not support them.
+          Optional local business details and drafts now address repeated re-entry; their effect on retention
+          remains unvalidated. If discovery is the bottleneck, onboarding would take priority. Without that
+          evidence, neither a paid tier nor more features is justified. Production custom events remain
+          disabled because the current Vercel plan does not support them.
         </p>
         <p>
           <Link className="button button--primary" href="/freelancers">

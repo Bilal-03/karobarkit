@@ -37,6 +37,19 @@ export default function HomePage() {
         </Container>
       </section>
       <Container>
+        <Section title="What would you like to accomplish?">
+          <div className="inline-actions">
+            <Link className="button button--primary" href="/get-started">
+              Find my next step
+            </Link>
+            <Link className="button button--secondary" href="/decision-workbench">
+              Compare business scenarios
+            </Link>
+            <Link className="button button--secondary" href="/workspace">
+              My device workspace
+            </Link>
+          </div>
+        </Section>
         <Section title="Your freelance paperwork, in order">
           <p>
             Start with a quotation, carry its details into an invoice, then create a receipt after payment.

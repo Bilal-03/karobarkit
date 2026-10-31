@@ -1,4 +1,5 @@
 'use client';
+import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -225,6 +226,15 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+        <DocumentWorkspaceControls
+          kind="quotation"
+          values={values}
+          onLoad={(next) => {
+            setValues(next);
+            clearErrors();
+            clearResult();
+          }}
+        />
         <GuidedDocumentForm
           key={resetVersion}
           definition={documentFlows.quotation}
