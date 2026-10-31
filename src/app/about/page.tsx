@@ -18,6 +18,9 @@ export default function AboutPage() {
       intro="KarobarKit is an early product build for people who need a quick calculation or a clean document without signing up for accounting software first."
     >
       <div className="prose">
+        <p>
+          <a href="/case-study">Read the product case study and explore the simulated analytics example</a>
+        </p>
         <section>
           <h2>Who it is for</h2>
           <p>

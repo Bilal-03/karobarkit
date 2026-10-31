@@ -341,3 +341,7 @@ repository owner before reusing the code.
 ## Freelancer pilot
 
 The current hypothesis focuses on quotation → invoice → payment receipt for Indian freelancers. See [the pilot operating kit](docs/pilot/README.md) and [measurement setup](docs/pilot/measurement.md). External adoption and commercial demand are not yet validated.
+
+## Product portfolio
+
+The current goal is a resume portfolio, not a customer-research pilot. Read the public [case study](https://karobarkit.vercel.app/case-study) and [portfolio guide](docs/portfolio-guide.md). Recruitment, interviews and acquisition campaigns are paused. The analytics example uses invented sessions and does not establish traction or business outcomes.

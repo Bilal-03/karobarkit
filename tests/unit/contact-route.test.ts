@@ -60,7 +60,7 @@ describe('contact route', () => {
     expect(emailRequest.text).toContain('Message:');
   });
 
-  it('requires email and separate contact consent for research interest', async () => {
+  it('does not deliver research interest while recruitment is paused', async () => {
     expect((await POST(makeRequest({ ...validPayload, topic: 'research' }))).status).toBe(400);
     expect(
       (await POST(makeRequest({ ...validPayload, topic: 'research', email: '', researchConsent: 'on' })))
@@ -69,10 +69,8 @@ describe('contact route', () => {
     expect(fetch).not.toHaveBeenCalled();
     expect(
       (await POST(makeRequest({ ...validPayload, topic: 'research', researchConsent: 'on' }))).status,
-    ).toBe(200);
-    const payload = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body));
-    expect(payload.subject).toContain('Freelancer interview interest');
-    expect(payload.text).toContain('Recording and public quotation permission not granted');
+    ).toBe(410);
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('escapes message markup before placing it in the HTML email', async () => {

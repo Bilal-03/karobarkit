@@ -1,4 +1,6 @@
-# Portfolio and resume kit
+# Portfolio and resume kit — historical pilot template
+
+Use [the current portfolio guide](../portfolio-guide.md) for resume wording now. Interviews and customer metrics below are not required and must not be claimed as completed.
 
 Role label: Product Owner — KarobarKit, Independent Project. Describe AI-assisted implementation openly; own the research, tradeoffs, specifications, acceptance checks and interpretation yourself. Target product internships/APM, product operations and growth associate roles; use basic SQL and spreadsheet analysis to support decisions.
 

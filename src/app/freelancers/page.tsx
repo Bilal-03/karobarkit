@@ -44,13 +44,12 @@ export default function FreelancersPage() {
           explicit import. Keep your downloaded copies; this is not an account or a permanent document
           archive.
         </p>
-        <h2>Help improve this workflow</h2>
+        <h2>About this project</h2>
         <p>
-          We are testing whether this workflow helps freelancers with real paperwork. Share where you got
-          stuck or what you needed to repeat. Please leave out client details, financial records and document
-          contents.
+          KarobarKit is an independent product portfolio project. Read the decisions, tradeoffs and
+          limitations behind the workflow.
         </p>
-        <Link href="/research">Volunteer for a 20-minute research session</Link>
+        <Link href="/case-study">Read the product case study</Link>
         <p>
           <Link href="/contact">Share product feedback</Link>
         </p>

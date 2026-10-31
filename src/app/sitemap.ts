@@ -7,7 +7,7 @@ const staticPaths = [
   '/',
   '/tools',
   '/freelancers',
-  '/research',
+  '/case-study',
   '/categories',
   '/methodology',
   '/gst-methodology',

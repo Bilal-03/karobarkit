@@ -163,6 +163,12 @@ export async function POST(request: Request) {
     return jsonError(firstIssue?.message ?? 'Check the highlighted fields and try again.', 400);
   }
 
+  if (parsed.data.topic === 'research')
+    return jsonError(
+      'Research recruitment is paused. Please use product feedback for general questions.',
+      410,
+    );
+
   // Quietly accept the honeypot so automated submissions do not learn whether they were blocked.
   if (parsed.data.website) return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
 

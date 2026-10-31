@@ -1,4 +1,6 @@
-# KarobarKit freelancer pilot
+# KarobarKit freelancer pilot — paused
+
+The owner has changed the objective to a resume portfolio. See [the current portfolio guide](../portfolio-guide.md). Recruitment and customer-research phases below are historical templates and are not required for the current project.
 
 Status: setup implemented; customer discovery, adoption and commercial demand are unvalidated. No interviews or pilot outcomes have been fabricated. The public workflow is a hypothesis, not validated positioning.
 
