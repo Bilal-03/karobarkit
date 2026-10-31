@@ -2,6 +2,8 @@
 
 Status: setup implemented; customer discovery, adoption and commercial demand are unvalidated. No interviews or pilot outcomes have been fabricated. The public workflow is a hypothesis, not validated positioning.
 
+Recruitment: [Phase 2 operating guide](phase-2-recruitment.md), [private interview template](interview-record.md), and [synthesis template](discovery-summary.md). These are blank; customer research has not been conducted.
+
 Start here: [research kit](research.md), [measurement](measurement.md), [decision log and PRD](decisions.md), [growth experiments](growth.md), [portfolio](portfolio.md), and [SQL exercises](analysis.sql).
 
 ## Six-week operating plan

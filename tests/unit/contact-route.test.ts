@@ -60,6 +60,21 @@ describe('contact route', () => {
     expect(emailRequest.text).toContain('Message:');
   });
 
+  it('requires email and separate contact consent for research interest', async () => {
+    expect((await POST(makeRequest({ ...validPayload, topic: 'research' }))).status).toBe(400);
+    expect(
+      (await POST(makeRequest({ ...validPayload, topic: 'research', email: '', researchConsent: 'on' })))
+        .status,
+    ).toBe(400);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(
+      (await POST(makeRequest({ ...validPayload, topic: 'research', researchConsent: 'on' }))).status,
+    ).toBe(200);
+    const payload = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body));
+    expect(payload.subject).toContain('Freelancer interview interest');
+    expect(payload.text).toContain('Recording and public quotation permission not granted');
+  });
+
   it('escapes message markup before placing it in the HTML email', async () => {
     await POST(makeRequest({ ...validPayload, message: '<script>alert("x")</script>' }));
     const fetchMock = vi.mocked(fetch);

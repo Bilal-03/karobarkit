@@ -10,21 +10,38 @@ const BRAND_GRAY = '#f2f4f7';
 const BRAND_LINE = '#dbe4eb';
 const BRAND_TEAL_SOFT = '#effaf8';
 
-const contactPayloadSchema = z.object({
-  name: z.string().trim().max(120, 'Keep your name to 120 characters or fewer.').default(''),
-  email: z
-    .union([z.string().trim().email('Enter a valid email address.').max(254), z.literal('')])
-    .default(''),
-  topic: z.enum(['feedback', 'accessibility', 'source', 'other']),
-  message: z
-    .string()
-    .trim()
-    .min(1, 'Write a message before sending.')
-    .max(5000, 'Keep your message to 5,000 characters or fewer.'),
-  website: z.string().max(500).default(''),
-});
+const contactPayloadSchema = z
+  .object({
+    name: z.string().trim().max(120, 'Keep your name to 120 characters or fewer.').default(''),
+    email: z
+      .union([z.string().trim().email('Enter a valid email address.').max(254), z.literal('')])
+      .default(''),
+    topic: z.enum(['feedback', 'accessibility', 'source', 'other', 'research']),
+    message: z
+      .string()
+      .trim()
+      .min(1, 'Write a message before sending.')
+      .max(5000, 'Keep your message to 5,000 characters or fewer.'),
+    website: z.string().max(500).default(''),
+    researchConsent: z.union([z.literal('on'), z.literal(true)]).optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.topic === 'research' && !value.email)
+      context.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'Email is required to arrange an interview.',
+      });
+    if (value.topic === 'research' && !value.researchConsent)
+      context.addIssue({
+        code: 'custom',
+        path: ['researchConsent'],
+        message: 'Agree to be contacted before expressing interview interest.',
+      });
+  });
 
 const topicLabels = {
+  research: 'Freelancer interview interest',
   feedback: 'Product feedback',
   accessibility: 'Accessibility',
   source: 'Source suggestion',
@@ -43,6 +60,9 @@ function formatMessage(input: z.infer<typeof contactPayloadSchema>) {
     `Name: ${input.name || 'Not provided'}`,
     `Email: ${input.email || 'Not provided'}`,
     '',
+    ...(input.topic === 'research'
+      ? ['Consent to interview contact: given. Recording and public quotation permission not granted.', '']
+      : []),
     'Message:',
     input.message,
     '',

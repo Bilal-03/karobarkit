@@ -47,6 +47,17 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
+          <h2>Research interview interest</h2>
+          <p>
+            The optional research form sends your name, email, process description and contact consent through
+            our email provider to the project owner. These details are not product analytics. They are used to
+            arrange a research session, not to enroll you in marketing. Submitting interest does not book a
+            session or authorize recording or public quotes. Participation is voluntary; you can withdraw or
+            request deletion by replying to the scheduling email or using the contact page. Do not submit
+            client records or financial documents.
+          </p>
+        </section>
+        <section>
           <h2>Error handling</h2>
           <p>
             Route errors may carry a short framework digest in development diagnostics. Safe logging filters

@@ -50,7 +50,10 @@ export default function FreelancersPage() {
           stuck or what you needed to repeat. Please leave out client details, financial records and document
           contents.
         </p>
-        <Link href="/contact">Share feedback or volunteer for a short usability session</Link>
+        <Link href="/research">Volunteer for a 20-minute research session</Link>
+        <p>
+          <Link href="/contact">Share product feedback</Link>
+        </p>
         <p>
           <Link href="/tools">Browse the full business toolkit</Link>
         </p>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export function ContactForm() {
+export function ContactForm({ research = false }: { research?: boolean }) {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isSending, setIsSending] = useState(false);
 
@@ -29,7 +29,12 @@ export function ContactForm() {
       }
 
       form.reset();
-      setStatus({ type: 'success', message: 'Thanks — your message has been sent.' });
+      setStatus({
+        type: 'success',
+        message: research
+          ? 'Your interview interest has been sent. We can reply by email to arrange a time; no session is booked yet.'
+          : 'Thanks — your message has been sent.',
+      });
     } catch {
       setStatus({
         type: 'error',
@@ -62,27 +67,34 @@ export function ContactForm() {
             id="contact-email"
             name="email"
             type="email"
+            required={research}
             autoComplete="email"
             aria-describedby="contact-email-help"
           />
           <div className="field__help" id="contact-email-help">
-            Optional. Do not include account numbers or sensitive documents.
+            {research
+              ? 'Required so we can arrange the interview. Do not include client or financial records.'
+              : 'Optional. Do not include account numbers or sensitive documents.'}
           </div>
         </div>
-        <div className="field">
-          <label className="field__label" htmlFor="contact-topic">
-            What is this about?
-          </label>
-          <select className="input input--select" id="contact-topic" name="topic" defaultValue="feedback">
-            <option value="feedback">Product feedback</option>
-            <option value="accessibility">Accessibility</option>
-            <option value="source">Source suggestion</option>
-            <option value="other">Something else</option>
-          </select>
-        </div>
+        {research ? (
+          <input type="hidden" name="topic" value="research" />
+        ) : (
+          <div className="field">
+            <label className="field__label" htmlFor="contact-topic">
+              What is this about?
+            </label>
+            <select className="input input--select" id="contact-topic" name="topic" defaultValue="feedback">
+              <option value="feedback">Product feedback</option>
+              <option value="accessibility">Accessibility</option>
+              <option value="source">Source suggestion</option>
+              <option value="other">Something else</option>
+            </select>
+          </div>
+        )}
         <div className="field">
           <label className="field__label" htmlFor="contact-message">
-            Message
+            {research ? 'Tell us about your paperwork process' : 'Message'}
           </label>
           <textarea
             className="input input--textarea"
@@ -93,12 +105,21 @@ export function ContactForm() {
             aria-describedby="contact-message-help"
           />
           <div className="field__help" id="contact-message-help">
-            We will use your email only to reply. Please leave out private amounts, tax IDs, passwords and
-            document contents.
+            {research
+              ? 'Briefly describe the tools you currently use and when you last prepared a quotation or invoice. We will use your email to arrange this research session.'
+              : 'We will use your email only to reply.'}{' '}
+            Please leave out private amounts, tax IDs, passwords and document contents.
           </div>
         </div>
+        {research && (
+          <label className="field__label">
+            <input type="checkbox" name="researchConsent" required /> I agree to be contacted by email about
+            this interview. I can withdraw by replying. This does not give permission to record me or publish
+            my words.
+          </label>
+        )}
         <button className="button button--primary" type="submit" disabled={isSending}>
-          {isSending ? 'Sending…' : 'Send message'}
+          {isSending ? 'Sending…' : research ? 'Express interview interest' : 'Send message'}
         </button>
       </form>
       {status ? (
