@@ -133,11 +133,11 @@ export const toolPresentations: Record<string, ToolPresentation> = {
     conditionalFields: [],
     additionalSections: [
       {
-        title: 'Add contact details',
+        title: 'Contact details',
         fields: ['phone', 'email', 'website', 'customerAddress'],
       },
       {
-        title: 'Customize document',
+        title: 'Appearance',
         fields: [
           'tagline',
           'gstin',
@@ -207,6 +207,7 @@ export const toolPresentations: Record<string, ToolPresentation> = {
   'invoice-generator': {
     group: 'documents',
     primaryFields: [
+      'dueDate',
       'businessName',
       'businessAddress',
       'customerName',
@@ -216,12 +217,13 @@ export const toolPresentations: Record<string, ToolPresentation> = {
     ],
     conditionalFields: [],
     additionalSections: [
+      { title: 'Payment & terms', fields: ['notes', 'terms', 'paymentDetails'] },
       {
-        title: 'Add contact details',
+        title: 'Contact details',
         fields: ['phone', 'email', 'website', 'customerAddress', 'customerEmail', 'customerPhone'],
       },
       {
-        title: 'Customize document',
+        title: 'Appearance',
         fields: [
           'tagline',
           'gstin',
@@ -236,10 +238,6 @@ export const toolPresentations: Record<string, ToolPresentation> = {
           'logoAlignment',
           'headerDivider',
           'footerDivider',
-          'dueDate',
-          'notes',
-          'terms',
-          'paymentDetails',
           'signatoryName',
           'signatoryDesignation',
           'signaturePlaceholder',
@@ -259,15 +257,24 @@ export const toolPresentations: Record<string, ToolPresentation> = {
   },
   'quotation-generator': {
     group: 'documents',
-    primaryFields: ['businessName', 'businessAddress', 'customerName', 'quoteNumber', 'quoteDate', 'items'],
+    primaryFields: [
+      'validUntil',
+      'businessName',
+      'businessAddress',
+      'customerName',
+      'quoteNumber',
+      'quoteDate',
+      'items',
+    ],
     conditionalFields: [],
     additionalSections: [
+      { title: 'Payment & terms', fields: ['notes', 'terms', 'paymentDetails'] },
       {
-        title: 'Add contact details',
+        title: 'Contact details',
         fields: ['phone', 'email', 'website', 'customerAddress', 'customerEmail', 'customerPhone'],
       },
       {
-        title: 'Customize document',
+        title: 'Appearance',
         fields: [
           'tagline',
           'gstin',
@@ -282,9 +289,6 @@ export const toolPresentations: Record<string, ToolPresentation> = {
           'logoAlignment',
           'headerDivider',
           'footerDivider',
-          'validUntil',
-          'notes',
-          'terms',
           'signatoryName',
           'signatoryDesignation',
           'signaturePlaceholder',
@@ -297,6 +301,7 @@ export const toolPresentations: Record<string, ToolPresentation> = {
   'gst-invoice-generator': {
     group: 'tax',
     primaryFields: [
+      'dueDate',
       'invoiceNumber',
       'invoiceDate',
       'supplier',
@@ -309,12 +314,13 @@ export const toolPresentations: Record<string, ToolPresentation> = {
     ],
     conditionalFields: [],
     additionalSections: [
+      { title: 'Payment & terms', fields: ['notes', 'terms', 'paymentDetails'] },
       {
-        title: 'Customize document',
-        fields: ['dueDate', 'notes', 'terms', 'paymentDetails', 'logo'],
+        title: 'Appearance',
+        fields: ['logo'],
       },
       {
-        title: 'Add contact details',
+        title: 'Contact details',
         fields: [
           'supplier.phone',
           'supplier.email',

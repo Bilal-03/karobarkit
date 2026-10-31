@@ -60,9 +60,7 @@ test.describe('QR generators', () => {
       'upi://pay?pa=ravi.shop%40bank&pn=Ravi%20%26%20Sons&am=125.5&cu=INR&tn=Order%20%231%20%26%20tea',
     );
     await expect(
-      page
-        .getByRole('region', { name: 'Your UPI standee is ready' })
-        .getByText(/not proof that the account exists/),
+      page.getByRole('region', { name: 'Ready to download' }).getByText(/not proof that the account exists/),
     ).toBeVisible();
 
     const downloadPromise = page.waitForEvent('download');
@@ -85,8 +83,8 @@ test.describe('QR generators', () => {
     const resetClickPromise = page.getByRole('button', { name: 'Reset' }).click();
     await (await dialogPromise).accept();
     await resetClickPromise;
-    await expect(field(page, 'Payee name')).toHaveValue('KarobarKit Demo');
-    await expect(field(page, 'UPI ID')).toHaveValue('demo@upi');
-    await expect(page.getByTestId('qr-preview')).toBeVisible();
+    await expect(field(page, 'Payee name')).toHaveValue('');
+    await expect(field(page, 'UPI ID')).toHaveValue('');
+    await expect(page.getByTestId('qr-preview')).toHaveCount(0);
   });
 });

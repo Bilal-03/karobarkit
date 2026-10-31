@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   blankWorkspace,
@@ -10,11 +10,26 @@ import {
   WORKSPACE_KEY,
   type Workspace,
 } from '@/domain/workspace';
+import { draftHref } from './saved-drafts';
 export function WorkspaceManager() {
   const [workspace, setWorkspace] = useState<Workspace>(blankWorkspace);
   const [snapshot, setSnapshot] = useState('');
   const [loaded, setLoaded] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('Loading saved drafts…');
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      try {
+        const current = readWorkspace();
+        setWorkspace(current);
+        setSnapshot(JSON.stringify(current));
+        setLoaded(true);
+        setMessage('');
+      } catch (e) {
+        setMessage(e instanceof Error ? e.message : 'Storage unavailable.');
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
   function run(action: () => void) {
     try {
       action();
@@ -24,9 +39,7 @@ export function WorkspaceManager() {
   }
   function save(next: Workspace) {
     if (snapshot !== JSON.stringify(readWorkspace()))
-      throw new Error(
-        'The saved workspace changed in another page. Open device workspace again before saving.',
-      );
+      throw new Error('Saved data changed in another page. Reload this page before saving.');
     writeWorkspace(next);
     setSnapshot(JSON.stringify(next));
     setWorkspace(next);
@@ -34,136 +47,109 @@ export function WorkspaceManager() {
   }
   return (
     <div>
-      <p className="notice">
-        Optional local storage. No account or server backup. Anyone with this browser profile can read these
-        details. Backups contain your business details and drafts; keep them private. Nothing is saved
-        automatically.
+      <p>
+        Saved only when you choose, in this browser. No account or cloud backup. Anyone using this browser
+        profile can access these records.
       </p>
-      <button
-        className="button button--primary"
-        onClick={() =>
-          run(() => {
-            const current = readWorkspace();
-            setWorkspace(current);
-            setSnapshot(JSON.stringify(current));
-            setLoaded(true);
-            setMessage('Workspace opened.');
-          })
-        }
-      >
-        Open device workspace
-      </button>
-      {!loaded && (
-        <button
-          className="button button--secondary"
-          onClick={() =>
-            run(() => {
-              if (
-                !window.confirm(
-                  'Clear saved workspace data without opening it? This also clears unreadable backups on this device. Downloaded files remain unchanged.',
-                )
-              )
-                return;
-              localStorage.removeItem(WORKSPACE_KEY);
-              setWorkspace(blankWorkspace());
-              setSnapshot(JSON.stringify(blankWorkspace()));
-              setLoaded(true);
-              setMessage('Device workspace cleared.');
-            })
-          }
-        >
-          Clear device workspace
-        </button>
-      )}
       {loaded && (
         <>
-          <p>
-            <Link href="/product-studio">Plan experiments and roadmap decisions in Product Studio</Link>.
-            Studio records are included in workspace backups and full deletion.
-          </p>
-          <h2>Reusable business details</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              run(() => save(workspace));
-            }}
-          >
-            {Object.keys(emptyProfile).map((key) => (
-              <label className="field" key={key}>
-                {
-                  {
-                    businessName: 'Business name',
-                    businessAddress: 'Business address',
-                    phone: 'Phone',
-                    email: 'Email',
-                    gstin: 'GSTIN',
-                  }[key as keyof typeof emptyProfile]
-                }
-                <input
-                  className="input"
-                  value={workspace.profile[key as keyof typeof emptyProfile]}
-                  maxLength={
-                    key === 'businessAddress'
-                      ? 600
-                      : key === 'email'
-                        ? 254
-                        : key === 'businessName'
-                          ? 120
-                          : 100
-                  }
-                  onChange={(e) =>
-                    setWorkspace({ ...workspace, profile: { ...workspace.profile, [key]: e.target.value } })
-                  }
-                />
-              </label>
-            ))}
-            <button className="button button--secondary">Save business details</button>
-          </form>
-          <h2>Document drafts</h2>
-          {workspace.drafts.length === 0 && (
-            <p>No saved drafts. Save from a quotation, invoice or receipt form.</p>
+          <h2>Your drafts</h2>
+          {!workspace.drafts.length && (
+            <p>
+              No saved drafts yet. <Link href="/tools/quotation-generator">Prepare a quotation</Link> or{' '}
+              <Link href="/tools/invoice-generator">create an invoice</Link>, then choose Save draft.
+            </p>
           )}
-          <ul>
+          <ul className="saved-draft-list">
             {workspace.drafts.map((d) => (
               <li key={d.id}>
-                {d.name} ({d.kind}){' '}
-                <Link href={`/tools/${d.kind === 'receipt' ? 'payment-receipt' : d.kind}-generator`}>
-                  Open form to load
-                </Link>{' '}
-                <button
-                  onClick={() =>
-                    run(() =>
-                      save({
-                        ...workspace,
-                        drafts: [
-                          ...workspace.drafts,
-                          { ...d, id: crypto.randomUUID(), name: (d.name + ' copy').slice(0, 80) },
-                        ],
-                      }),
-                    )
-                  }
-                >
-                  Duplicate
-                </button>{' '}
-                <button
-                  onClick={() =>
-                    run(() => {
-                      if (window.confirm('Delete this saved draft?'))
-                        save({ ...workspace, drafts: workspace.drafts.filter((x) => x.id !== d.id) });
-                    })
-                  }
-                >
-                  Delete
-                </button>
+                <strong>{d.name}</strong> <span>({d.kind})</span>
+                <div className="inline-actions">
+                  <Link className="button button--secondary" href={draftHref(d.id, d.kind)}>
+                    Continue editing
+                  </Link>
+                  <button
+                    className="button button--ghost"
+                    onClick={() =>
+                      run(() =>
+                        save({
+                          ...workspace,
+                          drafts: [
+                            ...workspace.drafts,
+                            { ...d, id: crypto.randomUUID(), name: (d.name + ' copy').slice(0, 80) },
+                          ],
+                        }),
+                      )
+                    }
+                  >
+                    Make a copy
+                  </button>
+                  <button
+                    className="button button--ghost"
+                    onClick={() =>
+                      run(() => {
+                        if (window.confirm('Delete this saved draft?'))
+                          save({ ...workspace, drafts: workspace.drafts.filter((x) => x.id !== d.id) });
+                      })
+                    }
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
-          <h2>Saved comparisons</h2>
-          <p>
-            {workspace.scenarios.length} scenario(s).{' '}
-            <Link href="/decision-workbench">Open the workbench and load saved scenarios</Link>.
-          </p>
-          <div className="inline-actions">
+          <details className="field-group">
+            <summary>My business details</summary>
+            <p>Save once and choose Use saved details when creating a document.</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                run(() => save(workspace));
+              }}
+            >
+              {Object.keys(emptyProfile).map((key) => (
+                <label className="field" key={key}>
+                  {
+                    {
+                      businessName: 'Business name',
+                      businessAddress: 'Business address',
+                      phone: 'Phone',
+                      email: 'Email',
+                      gstin: 'GSTIN',
+                    }[key as keyof typeof emptyProfile]
+                  }
+                  <input
+                    className="input"
+                    value={workspace.profile[key as keyof typeof emptyProfile]}
+                    maxLength={
+                      key === 'businessAddress'
+                        ? 600
+                        : key === 'email'
+                          ? 254
+                          : key === 'businessName'
+                            ? 120
+                            : 100
+                    }
+                    onChange={(e) =>
+                      setWorkspace({ ...workspace, profile: { ...workspace.profile, [key]: e.target.value } })
+                    }
+                  />
+                </label>
+              ))}
+              <button className="button button--secondary">Save business details</button>
+            </form>
+          </details>
+        </>
+      )}
+      <details className="field-group">
+        <summary>Backup &amp; data settings</summary>
+        <p>
+          Backups contain private business details, drafts, and any legacy comparison or portfolio records.
+          Keep them safe. Downloaded backups are not deleted by this site.
+        </p>
+        {loaded && (
+          <>
             <button
               className="button button--secondary"
               onClick={() =>
@@ -182,7 +168,7 @@ export function WorkspaceManager() {
               Download private backup
             </button>
             <label className="field">
-              Restore backup (replaces saved workspace)
+              Restore backup (replaces saved data)
               <input
                 type="file"
                 accept="application/json,.json"
@@ -193,37 +179,40 @@ export function WorkspaceManager() {
                   try {
                     if (file.size > 512000) throw new Error('Backup exceeds 512 KB.');
                     const next = parseWorkspace(await file.text());
-                    if (!window.confirm('Replace this device workspace? Download a backup first if needed.'))
-                      return;
-                    save(next);
+                    if (
+                      window.confirm('Replace saved data in this browser? Download a backup first if needed.')
+                    )
+                      save(next);
                   } catch (err) {
                     setMessage(err instanceof Error ? err.message : 'Invalid backup.');
                   }
                 }}
               />
             </label>
-            <button
-              className="button button--secondary"
-              onClick={() =>
-                run(() => {
-                  if (
-                    !window.confirm(
-                      'Delete all saved business details, scenarios, drafts and Product Studio records on this device? Downloaded backups are not deleted.',
-                    )
-                  )
-                    return;
-                  localStorage.removeItem(WORKSPACE_KEY);
-                  setWorkspace(blankWorkspace());
-                  setSnapshot(JSON.stringify(blankWorkspace()));
-                  setMessage('Device workspace deleted. Downloaded backups remain yours to manage.');
-                })
-              }
-            >
-              Delete entire workspace
-            </button>
-          </div>
-        </>
-      )}
+          </>
+        )}
+        <button
+          className="button button--secondary"
+          onClick={() =>
+            run(() => {
+              if (
+                !window.confirm(
+                  'Delete all saved data in this browser, including drafts, business details and legacy planning records? Downloaded backups remain unchanged.',
+                )
+              )
+                return;
+              localStorage.removeItem(WORKSPACE_KEY);
+              const blank = blankWorkspace();
+              setWorkspace(blank);
+              setSnapshot(JSON.stringify(blank));
+              setLoaded(true);
+              setMessage('Saved data deleted. Downloaded backups remain yours to manage.');
+            })
+          }
+        >
+          {loaded ? 'Delete all saved data' : 'Clear unreadable saved data'}
+        </button>
+      </details>
       <p role="status">{message}</p>
     </div>
   );

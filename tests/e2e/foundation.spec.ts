@@ -27,8 +27,8 @@ const overflowRoutes = [
 const metadataRoutes = [
   {
     path: '/',
-    title: 'The Business Toolkit for India',
-    h1: 'Your work, made simpler.',
+    title: 'Simple business paperwork, pricing and payments',
+    h1: 'Everyday business, made simpler.',
   },
   { path: '/tools', title: 'Business tools for India', h1: 'All tools' },
   {

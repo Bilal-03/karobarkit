@@ -659,10 +659,14 @@ export function calculateBusinessEconomics(
     const customerPrice = discountedPreTax.plus(taxAmount);
     return result(
       kind,
-      metric('Recommended customer price', money(customerPrice), 'currency'),
+      metric('Calculated selling price', money(customerPrice), 'currency'),
       'positive',
       'A cost-plus scenario using a target margin, expected discount and user-supplied tax rate.',
       [
+        metric('Unit cost', money(unitCost), 'currency'),
+        metric('Target margin on pre-tax selling price', targetMargin, 'percentage'),
+        metric('Expected discount rate', discount, 'percentage'),
+        metric('User-supplied tax rate', taxRate, 'percentage'),
         metric('Target pre-tax price', money(preTaxPrice), 'currency'),
         metric('List price before discount', money(listPrice), 'currency'),
         metric('Discount amount', money(discountAmount), 'currency'),

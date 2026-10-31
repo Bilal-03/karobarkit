@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { InfoPage } from '@/components/layout/info-page';
 import { AnalyticsExample } from '@/components/portfolio/analytics-example';
 import { pageMetadata } from '@/lib/seo';
@@ -12,7 +13,7 @@ export default function CaseStudyPage() {
   return (
     <InfoPage
       eyebrow="Independent product project"
-      title="Turning a broad toolkit into a focused workflow"
+      title="Simplifying everyday business work"
       intro="KarobarKit is a portfolio project demonstrating product decisions, analytical thinking and delivery. It is not a validated business; no customer interviews, adoption or revenue are claimed."
     >
       <div className="prose">
@@ -21,6 +22,46 @@ export default function CaseStudyPage() {
           A freelancer preparing a quotation, invoice and receipt may repeat the same details across tools. I
           chose this connected task as a focused entry point into a much broader toolkit. This audience choice
           is a hypothesis, not a research finding.
+        </p>
+        <h2>Choosing simplicity over more features</h2>
+        <p>
+          The owner found the growing application too complicated for small businesses and freelancers. A
+          review of the live interface found competing entry points, overlapping directory filters, and
+          portfolio planning tools inside the customer workspace. This is an owner-led usability finding, not
+          customer research.
+        </p>
+        <p>
+          I prioritised six everyday tasks, removed the goal-guide detour, separated portfolio planning, and
+          simplified explicit draft saving. Existing specialist tools remain available through More tools.
+          Forms now start without demo identities, examples cannot be exported, and result breakdowns show the
+          adjustments behind the total.
+        </p>
+        <figure>
+          <Image
+            src="/case-study/home-before.jpg"
+            alt="Before: homepage with multiple entry sections and six toolkit navigation categories"
+            width={1280}
+            height={720}
+            sizes="(max-width: 767px) 100vw, 900px"
+          />
+          <figcaption>Before: overlapping paths to the same work.</figcaption>
+        </figure>
+        <figure>
+          <Image
+            src="/case-study/home-after.jpg"
+            alt="After: six direct everyday tasks and a small saved drafts section"
+            width={1280}
+            height={720}
+            sizes="(max-width: 767px) 100vw, 900px"
+          />
+          <figcaption>
+            After: direct tasks, saved drafts, and secondary access to the full toolkit.
+          </figcaption>
+        </figure>
+        <p>
+          Accounts, payment tracking, reminders, CRM, inventory and more AI were deferred. The release is
+          evaluated through workflow, export and storage checks. No improvement in customer conversion,
+          retention or revenue is claimed.
         </p>
         <h2>My role and implementation approach</h2>
         <p>

@@ -1,4 +1,6 @@
 'use client';
+import { blankDocument, localDocumentDate } from '@/domain/documents/starting-values';
+import { DocumentExampleActions } from './document-example-actions';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -6,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { FieldError } from '@/domain/calculations/types';
-import { GST_CUSTOM_RATE_ID, GST_POLICY_AS_OF, getActiveGstPolicy } from '@/domain/policies/gst';
+import { GST_CUSTOM_RATE_ID } from '@/domain/policies/gst';
 import {
   INVOICE_LAST_REVIEWED,
   getInvoiceRateOptions,
@@ -44,33 +46,18 @@ interface InvoiceToolProps {
 }
 
 function cloneInvoiceInput(value: unknown): GstInvoiceInput {
-  const source = (value as GstInvoiceInput | undefined) ?? invoiceDefaultValues;
-  return {
-    ...source,
-    dueDate: '',
-    supplier: { ...source.supplier, address: { ...source.supplier.address } },
-    recipient: { ...source.recipient, address: { ...source.recipient.address } },
-    placeOfSupply: { ...source.placeOfSupply },
-    items: source.items.map((item) => ({ ...item })),
-  };
+  return blankDocument((value as GstInvoiceInput | undefined) ?? invoiceDefaultValues);
 }
 
 function fieldError(errors: FieldError[], field: string) {
   return errors.find((error) => error.field === field)?.message;
 }
 
-function policySummary(invoiceDate: string) {
-  try {
-    const policy = getActiveGstPolicy(invoiceDate || GST_POLICY_AS_OF);
-    return `${policy.id} · applies to ${invoiceDate || GST_POLICY_AS_OF} · effective ${policy.effectiveFrom} · last verified ${policy.lastVerifiedOn}`;
-  } catch {
-    return 'The reviewed GST policy is unavailable.';
-  }
-}
-
 export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
+  const [exampleMode, setExampleMode] = useState(false);
+  const [reviewedValues, setReviewedValues] = useState('');
   const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<GstInvoiceInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -93,6 +80,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       calculate: (input) => calculateGstInvoice(input),
       onResult: (_nextResult, source) => {
         if (source === 'submit') {
+          setReviewedValues(JSON.stringify(values));
           trackEvent('tool_completed', { toolId: tool.id });
           trackEvent('result_generated', { toolId: tool.id });
           window.requestAnimationFrame(() => focusResult(resultRef.current));
@@ -249,7 +237,8 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       items: [
         ...current.items,
         {
-          ...invoiceDefaultValues.items[0],
+          ...blankDocument(invoiceDefaultValues.items[0]),
+          ratePresetId: current.items.at(-1)?.ratePresetId ?? '',
           id: `item-${current.items.length + 1}`,
         } as InvoiceItemInput,
       ],
@@ -298,8 +287,10 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
     clearResult();
   }
 
+  const readyToExport = !exampleMode && reviewedValues === JSON.stringify(values);
+
   async function downloadPdf() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     setIsExporting(true);
     setExportError(null);
     setExportStatus('Preparing your invoice PDF locally…');
@@ -316,6 +307,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function printPreview() {
+    if (!readyToExport) return;
     try {
       printDocument(printTargetId);
       trackEvent('result_printed', { toolId: tool.id, pageSize: 'a4' });
@@ -328,7 +320,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function continueToReceipt() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'GST Invoice Generator',
@@ -373,7 +365,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function continueToUpi() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'GST Invoice Generator',
@@ -526,6 +518,31 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+        <DocumentExampleActions
+          example={exampleMode}
+          onExample={() => {
+            if (
+              !window.confirm('Replace the current form with sample details? Unsaved changes will be lost.')
+            )
+              return;
+            setExampleMode(true);
+            setReviewedValues('');
+            setValues({
+              ...structuredClone(tool.defaultValues as GstInvoiceInput),
+              invoiceDate: localDocumentDate(),
+              dueDate: '',
+            });
+            clearErrors();
+            setResetVersion((v) => v + 1);
+          }}
+          onStart={() => {
+            setExampleMode(false);
+            setReviewedValues('');
+            setValues(cloneInvoiceInput(tool.defaultValues));
+            clearErrors();
+            setResetVersion((v) => v + 1);
+          }}
+        />
         <GuidedDocumentForm
           key={resetVersion}
           definition={documentFlows.gstInvoice}
@@ -606,6 +623,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               <div className="form-grid form-grid--two">
                 <InputField
                   id="invoiceNumber"
+                  placeholder="e.g. INV-2026-001"
                   label="Invoice number"
                   value={values.invoiceNumber}
                   onChange={(event) => updateValue('invoiceNumber', event.target.value)}
@@ -827,7 +845,7 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </p>
             </PresentedControls>
           </DocumentSection>
-          <DocumentSection stepId="details" optional="Customize document" className="document-form-section">
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Optional details</legend>
             <PresentedControls toolId={tool.id}>
               <TextareaField
@@ -888,9 +906,11 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Preview and export</p>
-                <h2 id="gst-invoice-result-title">Your GST invoice draft is ready</h2>
+                <h2 id="gst-invoice-result-title">
+                  {exampleMode ? 'Example preview' : readyToExport ? 'Ready to download' : 'Preview'}
+                </h2>
               </div>
-              <span className="result-status">Live · review</span>
+              <span className="result-status">Review before sharing</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (
@@ -909,17 +929,19 @@ export function GstInvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </p>
             ) : null}
             <div className="inline-actions generator-actions">
-              <Button type="button" onClick={downloadPdf} disabled={isExporting}>
+              <Button type="button" onClick={downloadPdf} disabled={isExporting || !readyToExport}>
                 {isExporting ? 'Preparing PDF…' : 'Download PDF'}
               </Button>
-              <Button type="button" variant="secondary" onClick={printPreview}>
+              <Button type="button" variant="secondary" onClick={printPreview} disabled={!readyToExport}>
                 Print
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToReceipt}>
-                Continue to payment receipt
+            </div>
+            <div className="inline-actions document-next-actions" aria-label="Next steps">
+              <Button type="button" variant="secondary" onClick={continueToReceipt} disabled={!readyToExport}>
+                Create receipt
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToUpi}>
-                Continue to UPI QR
+              <Button type="button" variant="secondary" onClick={continueToUpi} disabled={!readyToExport}>
+                Create payment QR
               </Button>
             </div>
             <p className="document-export-help">

@@ -8,9 +8,9 @@ Current objective: demonstrate product judgment, analytical reasoning and delive
 
 The funnel demo uses 12 invented sessions in two deliberately modeled scenarios. It counts unique session/stage combinations, requires start → result → export sequencing and reports a completion denominator and median duration. Downloaded JSON can be reproduced with public/portfolio/funnel.sql in SQLite using a bound events_json parameter. This is not an A/B test, measured uplift, acquisition experiment or evidence of real users. Vercel custom-event collection remains disabled on Hobby.
 
-## Integrated decision and workspace features
+## Simplified customer experience and advanced tools
 
-/get-started provides goal-based, skippable journeys. /decision-workbench compares up to three commercial assumptions with downside cases and reuses the break-even engine. /workspace offers explicit local saving, private JSON backup/restore, duplication and deletion. Quotation, invoice and receipt forms can apply business details and save/restore incomplete drafts. These are implemented capabilities, not validated retention or growth outcomes. See business-workspace.md for boundaries.
+Home provides six direct everyday tasks; /get-started redirects there. /decision-workbench compares up to three commercial assumptions with downside cases and reuses the break-even engine. /workspace is Saved drafts: one-click resume, explicit updates, copies, private JSON backup/restore and deletion. Quotation, invoice and receipt forms can apply business details and save/restore incomplete drafts. These are implemented capabilities, not validated retention or growth outcomes. See business-workspace.md for boundaries.
 
 ## Experimentation and prioritization
 
@@ -41,3 +41,5 @@ Why no mandatory login? What does an export prove? Why use deterministic arithme
 ## Completion criteria
 
 A recruiter can reach the case study from About or the freelancer workflow, inspect the live product, interact with the clearly labeled analytical example, download data/SQL and trace the acceptance tests in GitHub. No claim depends on fabricated users or metrics. Technical scaling is limited to the existing local-first processing and hosting; no speculative infrastructure, billing, accounts or additional AI is introduced.
+
+The customer experience excludes portfolio planning links. Product Studio is reached through /case-study. See simplification.md for the removal decisions, compatibility boundaries and before/after evidence.

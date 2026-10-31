@@ -1,9 +1,15 @@
 'use client';
-import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
+import { blankDocument, localDocumentDate } from '@/domain/documents/starting-values';
+import { DocumentExampleActions, detachDraftReference } from './document-example-actions';
+import {
+  DocumentWorkspaceControls,
+  SavedBusinessDetails,
+} from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import type { FieldError } from '@/domain/calculations/types';
@@ -40,8 +46,7 @@ interface InvoiceToolProps {
 }
 
 function cloneInvoiceInput(value: unknown): InvoiceInput {
-  const source = (value as InvoiceInput | undefined) ?? invoiceDefaultValues;
-  return { ...source, dueDate: '', items: source.items.map((item) => ({ ...item })) };
+  return blankDocument((value as InvoiceInput | undefined) ?? invoiceDefaultValues);
 }
 
 function fieldError(errors: FieldError[], field: string) {
@@ -90,6 +95,8 @@ function importQuotationValues(transfer: LocalScenarioTransfer, current: Invoice
 export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneInvoiceInput(tool.defaultValues), [tool.defaultValues]);
+  const [exampleMode, setExampleMode] = useState(false);
+  const [reviewedValues, setReviewedValues] = useState('');
   const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<InvoiceInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -111,6 +118,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
       calculate: (input) => calculateInvoice(input),
       onResult: (_nextResult, source) => {
         if (source === 'submit') {
+          setReviewedValues(JSON.stringify(values));
           trackEvent('tool_completed', { toolId: tool.id });
           trackEvent('result_generated', { toolId: tool.id });
           window.requestAnimationFrame(() => focusResult(resultRef.current));
@@ -223,8 +231,10 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
     clearResult();
   }
 
+  const readyToExport = !exampleMode && reviewedValues === JSON.stringify(values);
+
   async function downloadPdf() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     setIsExporting(true);
     setExportError(null);
     setExportStatus('Preparing your invoice PDF locally…');
@@ -241,6 +251,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function printPreview() {
+    if (!readyToExport) return;
     try {
       printDocument(printTargetId);
       trackEvent('result_printed', { toolId: tool.id, pageSize: 'a4' });
@@ -253,7 +264,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function continueToReceipt() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'Invoice Generator',
@@ -282,7 +293,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
   }
 
   function continueToUpi() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'Invoice Generator',
@@ -307,13 +318,44 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <DocumentWorkspaceControls
-          kind="invoice"
+        <p className="invoice-type-choice">
+          Invoice without GST calculation ·{' '}
+          <Link href="/tools/gst-invoice-generator">Need a GST tax invoice?</Link>
+        </p>
+
+        <SavedBusinessDetails
           values={values}
+          disabled={exampleMode}
           onLoad={(next) => {
             setValues(next);
             clearErrors();
-            clearResult();
+            setExportError(null);
+          }}
+        />
+        <DocumentExampleActions
+          example={exampleMode}
+          onExample={() => {
+            if (
+              !window.confirm('Replace the current form with sample details? Unsaved changes will be lost.')
+            )
+              return;
+            detachDraftReference();
+            setExampleMode(true);
+            setReviewedValues('');
+            setValues({
+              ...structuredClone(tool.defaultValues as InvoiceInput),
+              invoiceDate: localDocumentDate(),
+              dueDate: '',
+            });
+            clearErrors();
+            setResetVersion((v) => v + 1);
+          }}
+          onStart={() => {
+            setExampleMode(false);
+            setReviewedValues('');
+            setValues(cloneInvoiceInput(tool.defaultValues));
+            clearErrors();
+            setResetVersion((v) => v + 1);
           }}
         />
         <GuidedDocumentForm
@@ -374,8 +416,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                 rows={3}
                 required
               />
-              <details className="optional-fields">
-                <summary>More options</summary>
+              <>
                 <div className="form-grid form-grid--two">
                   <InputField
                     id="phone"
@@ -411,8 +452,10 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
                   error={fieldError(errors, 'gstin')}
                   help="Displayed as entered; not verified. This draft does not calculate GST."
                 />
-                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
-              </details>
+                <div id="logo">
+                  <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+                </div>
+              </>
             </PresentedControls>
           </DocumentSection>
           <DocumentSection stepId="details" className="document-form-section">
@@ -421,6 +464,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               <div className="form-grid form-grid--three">
                 <InputField
                   id="invoiceNumber"
+                  placeholder="e.g. INV-2026-001"
                   label="Invoice number"
                   value={values.invoiceNumber}
                   onChange={(event) => updateValue('invoiceNumber', event.target.value)}
@@ -591,7 +635,7 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </Button>
             </PresentedControls>
           </DocumentSection>
-          <DocumentSection stepId="details" optional="Customize document" className="document-form-section">
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Terms and style</legend>
             <PresentedControls toolId={tool.id}>
               <TextareaField
@@ -682,6 +726,19 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
             </div>
           </DocumentSection>
         </GuidedDocumentForm>
+        <DocumentWorkspaceControls
+          key={exampleMode ? 'example' : 'document'}
+          kind="invoice"
+          values={values}
+          disabled={exampleMode}
+          onLoad={(next) => {
+            setExampleMode(false);
+            setReviewedValues('');
+            setValues(next);
+            clearErrors();
+            clearResult();
+          }}
+        />
       </section>
       <section
         className="calculator-result document-result"
@@ -698,7 +755,9 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Preview and export</p>
-                <h2 id="invoice-result-title">Your invoice draft is ready</h2>
+                <h2 id="invoice-result-title">
+                  {exampleMode ? 'Example preview' : readyToExport ? 'Ready to download' : 'Preview'}
+                </h2>
               </div>
               <span className="result-status">Live · non-GST draft</span>
             </div>
@@ -719,22 +778,24 @@ export function InvoiceGeneratorForm({ tool }: { tool: InvoiceToolProps }) {
               </p>
             ) : null}
             <div className="inline-actions generator-actions">
-              <Button type="button" onClick={downloadPdf} disabled={isExporting}>
+              <Button type="button" onClick={downloadPdf} disabled={isExporting || !readyToExport}>
                 {isExporting ? 'Preparing PDF…' : 'Download PDF'}
               </Button>
-              <Button type="button" variant="secondary" onClick={printPreview}>
+              <Button type="button" variant="secondary" onClick={printPreview} disabled={!readyToExport}>
                 Print
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToReceipt}>
-                Continue to payment receipt
+            </div>
+            <div className="inline-actions document-next-actions" aria-label="Next steps">
+              <Button type="button" variant="secondary" onClick={continueToReceipt} disabled={!readyToExport}>
+                Create receipt
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToUpi}>
-                Continue to UPI QR
+              <Button type="button" variant="secondary" onClick={continueToUpi} disabled={!readyToExport}>
+                Create payment QR
               </Button>
             </div>
             <p className="document-export-help">
-              This is a commercial invoice draft, not a GST tax invoice. Handoffs copy selected fields into
-              destination forms in this tab&apos;s session storage and always require review.
+              This invoice does not calculate GST. Review the copied details when creating a receipt or
+              payment QR.
             </p>
           </>
         ) : (

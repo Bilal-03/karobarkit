@@ -1,5 +1,10 @@
 'use client';
-import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
+import { blankDocument, localDocumentDate } from '@/domain/documents/starting-values';
+import { DocumentExampleActions, detachDraftReference } from './document-example-actions';
+import {
+  DocumentWorkspaceControls,
+  SavedBusinessDetails,
+} from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -50,7 +55,7 @@ function fieldError(errors: FieldError[], field: string) {
 
 function getInitialValues(kind: DocumentKind, value: unknown): DocumentInput {
   if (kind === 'letterhead') return (value as LetterheadInput) ?? letterheadDefaultValues;
-  return (value as PaymentReceiptInput) ?? paymentReceiptDefaultValues;
+  return blankDocument((value as PaymentReceiptInput) ?? paymentReceiptDefaultValues);
 }
 
 function getResetValues(kind: DocumentKind, value: DocumentInput): DocumentInput {
@@ -88,7 +93,7 @@ function getResetValues(kind: DocumentKind, value: DocumentInput): DocumentInput
     : ({
         ...commonValues,
         receiptNumber: '',
-        receiptDate: '',
+        receiptDate: localDocumentDate(),
         receivedFrom: '',
         amount: '',
         paymentPurpose: '',
@@ -106,6 +111,8 @@ function getResetValues(kind: DocumentKind, value: DocumentInput): DocumentInput
 export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool: DocumentToolProps }) {
   const isLetterhead = kind === 'letterhead';
   const initialValues = useMemo(() => getInitialValues(kind, tool.defaultValues), [kind, tool.defaultValues]);
+  const [exampleMode, setExampleMode] = useState(false);
+  const [reviewedValues, setReviewedValues] = useState('');
   const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<DocumentInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -131,6 +138,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
           : calculatePaymentReceipt(input as PaymentReceiptInput),
       onResult: (_nextResult, source) => {
         if (source === 'submit') {
+          setReviewedValues(JSON.stringify(values));
           trackEvent('tool_completed', { toolId: tool.id });
           trackEvent('result_generated', { toolId: tool.id });
           window.requestAnimationFrame(() => focusResult(resultRef.current));
@@ -228,8 +236,10 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
     setExportStatus(null);
   }
 
+  const readyToExport = !exampleMode && reviewedValues === JSON.stringify(values);
+
   async function downloadPdf() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     setIsExporting(true);
     setExportError(null);
     setExportStatus('Preparing your PDF locally…');
@@ -246,6 +256,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   }
 
   function printPreview() {
+    if (!readyToExport) return;
     try {
       printDocument(printTargetId);
       trackEvent('result_printed', { toolId: tool.id, pageSize: 'a4' });
@@ -258,7 +269,6 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
   }
 
   const title = isLetterhead ? 'Letterhead generator' : 'Payment receipt generator';
-  const resultTitle = isLetterhead ? 'Your letterhead is ready' : 'Your payment receipt is ready';
 
   return (
     <div className="calculator-layout document-generator-layout">
@@ -270,14 +280,42 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+
         {!isLetterhead && (
-          <DocumentWorkspaceControls
-            kind="receipt"
+          <SavedBusinessDetails
             values={values}
+            disabled={exampleMode}
             onLoad={(next) => {
               setValues(next);
               clearErrors();
               setExportError(null);
+            }}
+          />
+        )}
+        {!isLetterhead && (
+          <DocumentExampleActions
+            example={exampleMode}
+            onExample={() => {
+              if (
+                !window.confirm('Replace the current form with sample details? Unsaved changes will be lost.')
+              )
+                return;
+              detachDraftReference();
+              setExampleMode(true);
+              setReviewedValues('');
+              setValues({
+                ...structuredClone(paymentReceiptDefaultValues),
+                receiptDate: localDocumentDate(),
+              });
+              clearErrors();
+              setResetVersion((v) => v + 1);
+            }}
+            onStart={() => {
+              setExampleMode(false);
+              setReviewedValues('');
+              setValues(blankDocument(paymentReceiptDefaultValues));
+              clearErrors();
+              setResetVersion((v) => v + 1);
             }}
           />
         )}
@@ -345,8 +383,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
                 rows={3}
                 required
               />
-              <details className="optional-fields">
-                <summary>More options</summary>
+              <>
                 <div className="form-grid form-grid--two">
                   <InputField
                     id="phone"
@@ -393,7 +430,9 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
                     error={fieldError(errors, 'additionalContact')}
                   />
                 </div>
-                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+                <div id="logo">
+                  <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+                </div>
                 <div className="form-grid form-grid--three">
                   <InputField
                     id="gstin"
@@ -420,7 +459,7 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
                     help="Displayed as entered; not verified."
                   />
                 </div>
-              </details>
+              </>
             </PresentedControls>
           </DocumentSection>
 
@@ -679,15 +718,17 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
             </DocumentSection>
           )}
 
-          <TextareaField
-            id="footerText"
-            label="Footer text (optional)"
-            value={values.footerText}
-            onChange={(event) => updateValue('footerText', event.target.value)}
-            error={fieldError(errors, 'footerText')}
-            rows={2}
-            help="Keep it short for clean A4 printing."
-          />
+          <DocumentSection stepId="details" optional="Appearance">
+            <TextareaField
+              id="footerText"
+              label="Footer text (optional)"
+              value={values.footerText}
+              onChange={(event) => updateValue('footerText', event.target.value)}
+              error={fieldError(errors, 'footerText')}
+              rows={2}
+              help="Keep it short for clean A4 printing."
+            />
+          </DocumentSection>
           <DocumentSection stepId="review">
             <div className="document-form__actions">
               <Button type="submit" fullWidth>{`Create ${isLetterhead ? 'letterhead' : 'receipt'}`}</Button>
@@ -697,6 +738,21 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
             </div>
           </DocumentSection>
         </GuidedDocumentForm>
+        {!isLetterhead && (
+          <DocumentWorkspaceControls
+            key={exampleMode ? 'example' : 'document'}
+            kind="receipt"
+            values={values}
+            disabled={exampleMode}
+            onLoad={(next) => {
+              setExampleMode(false);
+              setReviewedValues('');
+              setValues(next);
+              clearErrors();
+              setExportError(null);
+            }}
+          />
+        )}
       </section>
 
       <section
@@ -718,9 +774,11 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Preview and export</p>
-                <h2 id="document-result-title">{resultTitle}</h2>
+                <h2 id="document-result-title">
+                  {exampleMode ? 'Example preview' : readyToExport ? 'Ready to download' : 'Preview'}
+                </h2>
               </div>
-              <span className="result-status">Live · ready</span>
+              <span className="result-status">Review before sharing</span>
             </div>
             <DocumentPreview document={result} targetId={printTargetId} />
             {exportStatus ? (
@@ -734,10 +792,10 @@ export function DocumentGeneratorForm({ kind, tool }: { kind: DocumentKind; tool
               </p>
             ) : null}
             <div className="inline-actions generator-actions">
-              <Button type="button" onClick={downloadPdf} disabled={isExporting}>
+              <Button type="button" onClick={downloadPdf} disabled={isExporting || !readyToExport}>
                 {isExporting ? 'Preparing PDF…' : 'Download PDF'}
               </Button>
-              <Button type="button" variant="secondary" onClick={printPreview}>
+              <Button type="button" variant="secondary" onClick={printPreview} disabled={!readyToExport}>
                 Print
               </Button>
             </div>

@@ -49,12 +49,12 @@ test('plans experiments, ranks candidates and persists reasoned decisions', asyn
   await expect(page.getByRole('heading', { name: 'Planned title — simulated', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'B — investigate', exact: true })).toBeVisible();
   await page.goto('/workspace');
-  await page.getByRole('button', { name: 'Open device workspace', exact: true }).click();
+  await page.getByText('Backup & data settings', { exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download private backup', exact: true }).click();
   const file = await download;
   const backupPath = await file.path();
-  await page.getByRole('button', { name: 'Delete entire workspace', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete all saved data', exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem('karobarkit:workspace:v1'))).toBeNull();
   await page.locator('input[type="file"]').setInputFiles(backupPath!);
   await page.goto('/product-studio');

@@ -3,8 +3,7 @@ import { env } from './env';
 export const siteConfig = {
   name: 'KarobarKit',
   positioning: 'The Business Toolkit for India',
-  description:
-    'Trusted calculators, generators and operational tools for Indian freelancers, sellers, founders and small businesses.',
+  description: 'Simple tools for your everyday business paperwork, pricing, and payments. No account needed.',
   url: env.NEXT_PUBLIC_SITE_URL,
 };
 

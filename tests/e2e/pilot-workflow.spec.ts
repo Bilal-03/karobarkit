@@ -24,14 +24,14 @@ test('quotation to invoice to receipt exports with explicit imports', async ({ p
     await page.getByRole('button', { name: 'Download PDF', exact: true }).click();
     expect((await downloaded).suggestedFilename()).toMatch(/\.pdf$/);
     if (stage === 'quotation') {
-      await page.getByRole('button', { name: 'Continue to invoice', exact: true }).click();
+      await page.getByRole('button', { name: 'Create invoice', exact: true }).click();
       await page.getByRole('button', { name: 'Import quotation details', exact: true }).click();
       await page.getByRole('button', { name: 'Next', exact: true }).click();
       await expect(field(page, 'Invoice number')).toHaveValue('PILOT-001');
       await expect(page.locator('[id="items.0.description"]')).toHaveValue('Demo service');
       await reviewDocument(page);
     } else if (stage === 'invoice') {
-      await page.getByRole('button', { name: 'Continue to payment receipt', exact: true }).click();
+      await page.getByRole('button', { name: 'Create receipt', exact: true }).click();
       await page.getByRole('button', { name: 'Import invoice details', exact: true }).click();
       await page.getByRole('button', { name: 'Next', exact: true }).click();
       await expect(field(page, 'Received from')).toHaveValue('Demo Client');

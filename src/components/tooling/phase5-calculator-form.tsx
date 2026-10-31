@@ -231,7 +231,7 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Your scenario</p>
-                <h2 id="phase5-calculator-result-title">A transparent Phase 5 view</h2>
+                <h2 id="phase5-calculator-result-title">Your result</h2>
               </div>
               <span className="result-status" aria-label="Live calculation complete">
                 Live
@@ -243,7 +243,7 @@ export function Phase5CalculatorForm({ kind, tool }: Phase5CalculatorFormProps) 
               tone={result.tone}
             >
               <dl className="result-breakdown">
-                {result.details.slice(0, 3).map((detail) => (
+                {result.details.map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>

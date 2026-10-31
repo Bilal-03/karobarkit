@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   type FormHTMLAttributes,
-  type ReactNode,
   type FieldsetHTMLAttributes,
 } from 'react';
 import type { FieldError } from '@/domain/calculations/types';
@@ -45,7 +44,7 @@ export const documentFlows = {
     steps: [
       {
         id: 'parties',
-        label: 'Parties',
+        label: 'Business & customer',
         fields: [
           'businessName',
           'businessAddress',
@@ -62,7 +61,7 @@ export const documentFlows = {
       },
       {
         id: 'details',
-        label: 'Document & items',
+        label: 'Details & items',
         fields: [
           'invoiceNumber',
           'invoiceDate',
@@ -79,14 +78,14 @@ export const documentFlows = {
           'footerText',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
   quotation: {
     steps: [
       {
         id: 'parties',
-        label: 'Parties',
+        label: 'Business & customer',
         fields: [
           'businessName',
           'businessAddress',
@@ -104,7 +103,7 @@ export const documentFlows = {
       },
       {
         id: 'details',
-        label: 'Document & items',
+        label: 'Details & items',
         fields: [
           'quoteNumber',
           'quoteDate',
@@ -120,19 +119,19 @@ export const documentFlows = {
           'footerText',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
   gstInvoice: {
     steps: [
       {
         id: 'parties',
-        label: 'Parties',
+        label: 'Business & customer',
         fields: ['supplier', 'recipient', 'recipientRegistrationStatus', 'logo'],
       },
       {
         id: 'details',
-        label: 'Document & items',
+        label: 'Details & items',
         fields: [
           'invoiceNumber',
           'invoiceDate',
@@ -146,7 +145,7 @@ export const documentFlows = {
           'paymentDetails',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
   letterhead: {
@@ -189,14 +188,14 @@ export const documentFlows = {
           'footerDivider',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
   receipt: {
     steps: [
       {
         id: 'parties',
-        label: 'Parties',
+        label: 'Business & customer',
         fields: [
           'businessName',
           'businessAddress',
@@ -213,7 +212,7 @@ export const documentFlows = {
       },
       {
         id: 'details',
-        label: 'Payment',
+        label: 'Payment details',
         fields: [
           'receiptNumber',
           'receiptDate',
@@ -237,7 +236,7 @@ export const documentFlows = {
           'footerDivider',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
   businessCard: {
@@ -276,7 +275,7 @@ export const documentFlows = {
           'footerDivider',
         ],
       },
-      { id: 'review', label: 'Review', fields: [] },
+      { id: 'review', label: 'Review & download', fields: [] },
     ],
   },
 } satisfies Record<string, DocumentFlow>;
@@ -300,8 +299,7 @@ export function GuidedDocumentForm({
 }: Props) {
   const [step, setStep] = useState(0),
     [completed, setCompleted] = useState(0),
-    [issues, setIssues] = useState<FieldError[]>([]),
-    [preview, setPreview] = useState(false);
+    [issues, setIssues] = useState<FieldError[]>([]);
   const ref = useRef<HTMLFormElement>(null);
   const last = definition.steps.length - 1;
   const stepFor = (field: string) =>
@@ -338,26 +336,17 @@ export function GuidedDocumentForm({
     setCompleted((value) => Math.max(value, next));
     setStep(next);
     if (next === last) {
-      setPreview(true);
       onPreview();
     }
   }
   if (simple) return <form {...props}>{children}</form>;
   return (
     <>
-      <button
-        className="button button--secondary mobile-preview-button"
-        type="button"
-        aria-pressed={preview}
-        onClick={() => setPreview((value) => !value)}
-      >
-        {preview ? 'Hide preview' : 'Preview'}
-      </button>
       <form
         ref={ref}
         {...props}
         data-step={definition.steps[step].id}
-        data-preview={preview}
+        data-preview={step === last}
         className="guided-document-form"
         onSubmit={(event) => {
           if (step < last) {

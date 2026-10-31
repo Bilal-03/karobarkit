@@ -259,7 +259,27 @@ export function LiveToolSearch({
   const tools = useMemo(() => {
     const searched = normalizeSearchQuery(query) ? searchTools(availableTools, query) : [...availableTools];
     if (variant !== 'directory') return searched;
-    return filterToolDirectory(searched, { category, kind, execution, regulated, group });
+    const filtered = filterToolDirectory(searched, {
+      category,
+      kind,
+      execution,
+      regulated,
+      group: group === 'documents' ? 'all' : group,
+    });
+    if (group !== 'documents') return filtered;
+    const priority = [
+      'quotation-generator',
+      'invoice-generator',
+      'gst-invoice-generator',
+      'payment-receipt-generator',
+    ];
+    return filtered
+      .filter((t) => priority.includes(t.slug) || filterToolDirectory([t], { group: 'documents' }).length > 0)
+      .sort(
+        (a, b) =>
+          (priority.includes(a.slug) ? priority.indexOf(a.slug) : 99) -
+          (priority.includes(b.slug) ? priority.indexOf(b.slug) : 99),
+      );
   }, [availableTools, group, category, execution, kind, query, regulated, variant]);
 
   useEffect(() => {
@@ -354,79 +374,9 @@ export function LiveToolSearch({
               maxLength={80}
             />
           </div>
-          <div>
-            <label htmlFor="directory-category">Category</label>
-            <select
-              className="select"
-              id="directory-category"
-              name="category"
-              value={category}
-              onChange={(event) => handleFilterChange(setCategory, event.target.value)}
-            >
-              <option value="all">All categories</option>
-              {categoryRegistry.map((item) => (
-                <option key={item.id} value={item.slug}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <details className="advanced-filters">
-            <summary>
-              More filters
-              {[kind, execution, regulated].filter((value) => value !== 'all').length > 0
-                ? ` (${[kind, execution, regulated].filter((value) => value !== 'all').length})`
-                : ''}
-            </summary>
-            <div className="advanced-filters__body">
-              <div>
-                <label htmlFor="directory-type">Tool type</label>
-                <select
-                  className="select"
-                  id="directory-type"
-                  name="type"
-                  value={kind}
-                  onChange={(event) => handleFilterChange(setKind, event.target.value)}
-                >
-                  <option value="all">All types</option>
-                  <option value="calculator">Calculators</option>
-                  <option value="generator">Generators</option>
-                  <option value="worksheet">Worksheets</option>
-                  <option value="comparison">Comparisons</option>
-                  <option value="data-backed">Data-backed</option>
-                  <option value="ai-assisted">AI-assisted</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="directory-execution">Data use</label>
-                <select
-                  className="select"
-                  id="directory-execution"
-                  name="execution"
-                  value={execution}
-                  onChange={(event) => handleFilterChange(setExecution, event.target.value)}
-                >
-                  <option value="all">All data modes</option>
-                  <option value="local">Runs locally</option>
-                  <option value="network">Network or cloud</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="directory-regulated">Scope</label>
-                <select
-                  className="select"
-                  id="directory-regulated"
-                  name="regulated"
-                  value={regulated}
-                  onChange={(event) => handleFilterChange(setRegulated, event.target.value)}
-                >
-                  <option value="all">All scopes</option>
-                  <option value="regulated">Tax or regulated</option>
-                  <option value="general">General business</option>
-                </select>
-              </div>
-            </div>
-          </details>
+          {[category, kind, execution, regulated].some((value) => value !== 'all') && (
+            <p role="status">Filters from this link are applied. Choose Clear to see all tools.</p>
+          )}
           <button
             type="button"
             className="button button--ghost"
@@ -442,9 +392,10 @@ export function LiveToolSearch({
             Clear
           </button>
           <button className="button button--secondary" type="submit">
-            Apply filters
+            Search
           </button>
         </form>
+        {group === 'documents' && <h2>Everyday documents</h2>}
         <ToolResults
           tools={tools}
           visibleTools={visibleTools}
@@ -453,6 +404,10 @@ export function LiveToolSearch({
           resultsId={resultsId}
           onShowMore={showMoreTools}
         />
+        <section className="section">
+          <h2>Advanced business tools</h2>
+          <Link href="/decision-workbench">Compare prices and costs</Link>
+        </section>
       </>
     );
   }

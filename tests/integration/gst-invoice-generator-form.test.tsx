@@ -16,6 +16,8 @@ function field(id: string) {
 function fillMinimumInvoice() {
   const values: Record<string, string> = {
     invoiceNumber: 'INV-001',
+    'placeOfSupply.state': 'Karnataka',
+    'placeOfSupply.stateCode': '29',
     'supplier.legalName': 'Supplier Private Limited',
     'supplier.gstin': '27ABCDE1234F1Z5',
     'supplier.address.line1': '12 Market Road',
@@ -34,6 +36,10 @@ function fillMinimumInvoice() {
     'items.0.unitPrice': '1000',
   };
 
+  fireEvent.change(document.getElementById('supplyType')!, { target: { value: 'inter-state' } });
+  fireEvent.change(document.getElementById('items.0.ratePresetId')!, {
+    target: { value: 'gst-headline-rate-18' },
+  });
   for (const [id, value] of Object.entries(values)) {
     fireEvent.change(field(id), { target: { value } });
   }

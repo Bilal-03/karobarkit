@@ -90,7 +90,10 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
     [fields, tool.defaultValues],
   );
   const [values, setValues] = useState<BusinessCalculatorInput>(() =>
-    emptyPrimaryValues(tool.id, initialValues),
+    emptyPrimaryValues(
+      tool.id,
+      kind === 'pricing' ? { ...initialValues, discountPercent: '0', taxRate: '0' } : initialValues,
+    ),
   );
   const [transferSaved, setTransferSaved] = useState(false);
   const [pendingTransfer, setPendingTransfer] = useState<
@@ -219,6 +222,12 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
               </div>
             </div>
           ) : null}
+          {kind === 'pricing' && (
+            <p className="applied-assumptions">
+              Applied: discount {values.discountPercent || '0'}% · tax {values.taxRate || '0'}%. Adjust these
+              under Additional assumptions.
+            </p>
+          )}
           <FieldGroups
             toolId={tool.id}
             fields={fields}
@@ -265,7 +274,7 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Your scenario</p>
-                <h2 id="business-calculator-result-title">A decision-ready view</h2>
+                <h2 id="business-calculator-result-title">Your result</h2>
               </div>
               <span className="result-status" aria-label="Live calculation complete">
                 Live
@@ -275,9 +284,10 @@ export function BusinessCalculatorForm({ kind, tool }: BusinessCalculatorFormPro
               label={result.headline.label}
               value={formatMetric(result.headline)}
               tone={result.tone}
+              detail={result.detail}
             >
               <dl className="result-breakdown">
-                {result.details.slice(0, 3).map((detail) => (
+                {result.details.map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>

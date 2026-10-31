@@ -1421,3 +1421,112 @@ html[data-theme='dark'] .tool-icon {
 .task-chips button {
   min-height: 44px;
 }
+
+/* Everyday tasks stay ahead of secondary tools. */
+.business-home-intro {
+  padding: 28px 0 20px;
+  max-width: 780px;
+}
+.business-home-intro h1 {
+  margin: 8px 0 12px;
+}
+.business-task-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.business-task-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ink-950);
+}
+.business-task-card:hover {
+  border-color: var(--accent-600);
+  background: var(--accent-050);
+}
+.business-task-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+.business-task-card p {
+  margin: 0;
+  color: var(--ink-650);
+}
+.saved-draft-list {
+  display: grid;
+  gap: 12px;
+  padding-left: 20px;
+}
+@media (max-width: 700px) {
+  .business-task-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .business-task-card {
+    padding: 16px;
+  }
+}
+
+.draft-controls {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.draft-controls > label {
+  display: block;
+  max-width: 340px;
+}
+.draft-controls .inline-actions {
+  margin-top: 10px;
+}
+.document-next-actions {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.document-example-actions {
+  margin: 12px 0;
+}
+.applied-assumptions {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--accent-050);
+}
+.directory-filters {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+@media (max-width: 700px) {
+  .directory-filters {
+    grid-template-columns: 1fr;
+  }
+  .document-steps button {
+    font-size: 11px;
+    white-space: normal;
+  }
+}
+
+.saved-details-shortcut {
+  margin-block: 8px;
+}
+.saved-details-shortcut .example-button {
+  min-height: 40px;
+}
+.draft-controls {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.saved-details-shortcut,
+.document-example-actions {
+  display: inline-block;
+  vertical-align: top;
+  margin: 8px 12px 8px 0;
+}
+.saved-details-shortcut:has(p),
+.document-example-actions:has(.notice) {
+  display: block;
+}

@@ -271,12 +271,7 @@ export function FinanceCalculatorForm({ kind, tool }: FinanceCalculatorFormProps
               tone={result.tone}
             >
               <dl className="result-breakdown">
-                {(kind === 'emi'
-                  ? result.details.filter((detail) =>
-                      ['Loan amount', 'Total interest', 'Total cost'].includes(detail.label),
-                    )
-                  : result.details.slice(0, 3)
-                ).map((detail) => (
+                {result.details.map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
                     <dd>{formatMetric(detail)}</dd>

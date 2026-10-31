@@ -1,5 +1,10 @@
 'use client';
-import { DocumentWorkspaceControls } from '@/components/workspace/document-workspace-controls';
+import { blankDocument, localDocumentDate } from '@/domain/documents/starting-values';
+import { DocumentExampleActions, detachDraftReference } from './document-example-actions';
+import {
+  DocumentWorkspaceControls,
+  SavedBusinessDetails,
+} from '@/components/workspace/document-workspace-controls';
 import { PresentedControls } from '@/components/ui/field-groups';
 import { GuidedDocumentForm, DocumentSection, documentFlows } from './guided-document-form';
 
@@ -37,8 +42,7 @@ interface QuotationToolProps {
 }
 
 function cloneQuotationInput(value: unknown): QuotationInput {
-  const source = (value as QuotationInput | undefined) ?? quotationDefaultValues;
-  return { ...source, validUntil: '', items: source.items.map((item) => ({ ...item })) };
+  return blankDocument((value as QuotationInput | undefined) ?? quotationDefaultValues);
 }
 
 function fieldError(errors: FieldError[], field: string) {
@@ -48,6 +52,8 @@ function fieldError(errors: FieldError[], field: string) {
 export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   const router = useRouter();
   const initialValues = useMemo(() => cloneQuotationInput(tool.defaultValues), [tool.defaultValues]);
+  const [exampleMode, setExampleMode] = useState(false);
+  const [reviewedValues, setReviewedValues] = useState('');
   const [resetVersion, setResetVersion] = useState(0);
   const [values, setValues] = useState<QuotationInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -68,6 +74,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
       calculate: (input) => calculateQuotation(input),
       onResult: (_nextResult, source) => {
         if (source === 'submit') {
+          setReviewedValues(JSON.stringify(values));
           trackEvent('tool_completed', { toolId: tool.id });
           trackEvent('result_generated', { toolId: tool.id });
           window.requestAnimationFrame(() => focusResult(resultRef.current));
@@ -121,7 +128,10 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   function addItem() {
     setValues((current) => ({
       ...current,
-      items: [...current.items, { ...quotationDefaultItem, id: `quote-item-${current.items.length + 1}` }],
+      items: [
+        ...current.items,
+        { ...blankDocument(quotationDefaultItem), id: `quote-item-${current.items.length + 1}` },
+      ],
     }));
     clearResult();
   }
@@ -151,8 +161,10 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
     clearResult();
   }
 
+  const readyToExport = !exampleMode && reviewedValues === JSON.stringify(values);
+
   async function downloadPdf() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     setIsExporting(true);
     setExportError(null);
     setExportStatus('Preparing your quotation PDF locally…');
@@ -169,6 +181,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   }
 
   function printPreview() {
+    if (!readyToExport) return;
     try {
       printDocument(printTargetId);
       trackEvent('result_printed', { toolId: tool.id, pageSize: 'a4' });
@@ -181,7 +194,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   }
 
   function continueToInvoice() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'Quotation Generator',
@@ -199,7 +212,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
   }
 
   function continueToCommercialInvoice() {
-    if (!result) return;
+    if (!result || !readyToExport) return;
     const saved = saveLocalScenarioTransfer({
       sourceToolId: tool.id,
       sourceToolName: 'Quotation Generator',
@@ -226,13 +239,40 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
-        <DocumentWorkspaceControls
-          kind="quotation"
+
+        <SavedBusinessDetails
           values={values}
+          disabled={exampleMode}
           onLoad={(next) => {
             setValues(next);
             clearErrors();
-            clearResult();
+            setExportError(null);
+          }}
+        />
+        <DocumentExampleActions
+          example={exampleMode}
+          onExample={() => {
+            if (
+              !window.confirm('Replace the current form with sample details? Unsaved changes will be lost.')
+            )
+              return;
+            detachDraftReference();
+            setExampleMode(true);
+            setReviewedValues('');
+            setValues({
+              ...structuredClone(tool.defaultValues as QuotationInput),
+              quoteDate: localDocumentDate(),
+              validUntil: '',
+            });
+            clearErrors();
+            setResetVersion((v) => v + 1);
+          }}
+          onStart={() => {
+            setExampleMode(false);
+            setReviewedValues('');
+            setValues(cloneQuotationInput(tool.defaultValues));
+            clearErrors();
+            setResetVersion((v) => v + 1);
           }}
         />
         <GuidedDocumentForm
@@ -271,8 +311,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
                 rows={3}
                 required
               />
-              <details className="optional-fields">
-                <summary>More options</summary>
+              <>
                 <div className="form-grid form-grid--two">
                   <InputField
                     id="phone"
@@ -317,8 +356,10 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
                     error={fieldError(errors, 'tagline')}
                   />
                 </div>
-                <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
-              </details>
+                <div id="logo">
+                  <LogoUploader logo={values.logo} onChange={(logo) => updateValue('logo', logo)} />
+                </div>
+              </>
             </PresentedControls>
           </DocumentSection>
           <DocumentSection stepId="details" className="document-form-section">
@@ -327,6 +368,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
               <div className="form-grid form-grid--two">
                 <InputField
                   id="quoteNumber"
+                  placeholder="e.g. QUO-2026-001"
                   label="Quote number"
                   value={values.quoteNumber}
                   onChange={(event) => updateValue('quoteNumber', event.target.value)}
@@ -500,7 +542,7 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
               </Button>
             </PresentedControls>
           </DocumentSection>
-          <DocumentSection stepId="details" optional="Customize document" className="document-form-section">
+          <DocumentSection stepId="details" className="document-form-section">
             <legend>Optional notes and style</legend>
             <PresentedControls toolId={tool.id}>
               <div className="form-grid form-grid--two">
@@ -581,6 +623,19 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
             </div>
           </DocumentSection>
         </GuidedDocumentForm>
+        <DocumentWorkspaceControls
+          key={exampleMode ? 'example' : 'document'}
+          kind="quotation"
+          values={values}
+          disabled={exampleMode}
+          onLoad={(next) => {
+            setExampleMode(false);
+            setReviewedValues('');
+            setValues(next);
+            clearErrors();
+            clearResult();
+          }}
+        />
       </section>
       <section
         className="calculator-result document-result"
@@ -601,7 +656,9 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Preview and export</p>
-                <h2 id="quotation-result-title">Your quotation is ready</h2>
+                <h2 id="quotation-result-title">
+                  {exampleMode ? 'Example preview' : readyToExport ? 'Ready to download' : 'Preview'}
+                </h2>
               </div>
               <span className="result-status">Live · estimate</span>
             </div>
@@ -622,22 +679,28 @@ export function QuotationGeneratorForm({ tool }: { tool: QuotationToolProps }) {
               </p>
             ) : null}
             <div className="inline-actions generator-actions">
-              <Button type="button" onClick={downloadPdf} disabled={isExporting}>
+              <Button type="button" onClick={downloadPdf} disabled={isExporting || !readyToExport}>
                 {isExporting ? 'Preparing PDF…' : 'Download PDF'}
               </Button>
-              <Button type="button" variant="secondary" onClick={printPreview}>
+              <Button type="button" variant="secondary" onClick={printPreview} disabled={!readyToExport}>
                 Print
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToCommercialInvoice}>
-                Continue to invoice
+            </div>
+            <div className="inline-actions document-next-actions" aria-label="Next steps">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={continueToCommercialInvoice}
+                disabled={!readyToExport}
+              >
+                Create invoice
               </Button>
-              <Button type="button" variant="secondary" onClick={continueToInvoice}>
-                Continue to GST invoice
+              <Button type="button" variant="secondary" onClick={continueToInvoice} disabled={!readyToExport}>
+                Create GST tax invoice
               </Button>
             </div>
             <p className="document-export-help">
-              The handoff copies selected quote fields into the GST invoice form in this tab’s session
-              storage. Review all parties, dates, classifications, rates and tax choices before issue.
+              Create an invoice from this quotation, then review the copied details before downloading.
             </p>
           </>
         ) : (

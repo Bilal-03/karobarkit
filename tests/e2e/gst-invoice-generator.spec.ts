@@ -12,11 +12,6 @@ test.describe('GST invoice generator', () => {
     await expect(page.locator('form[data-interactive="true"]')).toBeVisible({ timeout: 30_000 });
     await fillMinimumGstInvoice(page);
     await page.locator('[id="invoiceDate"]').fill('2026-10-31');
-    await page
-      .locator('details.field-group')
-      .filter({ has: page.locator('[id="dueDate"]') })
-      .locator('summary')
-      .click();
     await page.locator('[id="dueDate"]').fill('');
 
     await page.getByRole('button', { name: 'Review document' }).click();

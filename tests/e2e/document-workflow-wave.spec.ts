@@ -34,10 +34,25 @@ test.describe('Phase 3 document workflow wave', () => {
     await page.getByRole('button', { name: 'Print' }).click();
     await expect(page.locator('body')).toHaveAttribute('data-print-called', 'true');
 
-    await page.getByRole('button', { name: 'Continue to GST invoice' }).click();
+    await page.getByRole('button', { name: 'Create GST tax invoice' }).click();
     await expect(page).toHaveURL(/\/tools\/gst-invoice-generator$/u);
     await expect(page.getByText('A quotation is ready to continue')).toBeVisible();
     await page.getByRole('button', { name: 'Import quotation details' }).click();
+    await expect(page.locator('[id="supplier.gstin"]')).toHaveValue('');
+    for (const [id, value] of Object.entries({
+      'supplier.gstin': '27ABCDE1234F1Z5',
+      'supplier.address.city': 'Pune',
+      'supplier.address.state': 'Maharashtra',
+      'supplier.address.stateCode': '27',
+      'supplier.address.postalCode': '411001',
+      'recipient.gstin': '27AAAAA0000A1Z5',
+      'recipient.address.line1': 'Market Road',
+      'recipient.address.city': 'Pune',
+      'recipient.address.state': 'Maharashtra',
+      'recipient.address.stateCode': '27',
+      'recipient.address.postalCode': '411001',
+    }))
+      await page.locator(`[id="${id}"]`).fill(value);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(field(page, 'Invoice number')).toHaveValue('QT/2026-001');
     await expect(page.locator('[id="items.0.description"]')).toHaveValue('Consulting retainer');
@@ -93,7 +108,7 @@ test.describe('Phase 3 document workflow wave', () => {
     await page.getByRole('button', { name: 'Print' }).click();
     await expect(page.locator('body')).toHaveAttribute('data-print-called', 'true');
 
-    await page.getByRole('button', { name: 'Continue to payment receipt' }).click();
+    await page.getByRole('button', { name: 'Create receipt' }).click();
     await expect(page).toHaveURL(/\/tools\/payment-receipt-generator$/u);
     await expect(page.getByText('An invoice is ready for a receipt draft')).toBeVisible();
     await page.getByRole('button', { name: 'Import invoice details' }).click();
@@ -109,7 +124,7 @@ test.describe('Phase 3 document workflow wave', () => {
     await fillMinimumGstInvoice(page);
     await page.getByRole('button', { name: 'Review document' }).click();
     await expect(page.getByTestId('document-preview')).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: 'Continue to payment receipt' }).click();
+    await page.getByRole('button', { name: 'Create receipt' }).click();
     await expect(page).toHaveURL(/\/tools\/payment-receipt-generator$/u);
     await expect(page.getByText('An invoice is ready for a receipt draft')).toBeVisible();
     await page.getByRole('button', { name: 'Import invoice details' }).click();
@@ -121,7 +136,7 @@ test.describe('Phase 3 document workflow wave', () => {
     await waitForInteractive(page);
     await fillMinimumGstInvoice(page);
     await page.getByRole('button', { name: 'Review document' }).click();
-    await page.getByRole('button', { name: 'Continue to UPI QR' }).click();
+    await page.getByRole('button', { name: 'Create payment QR' }).click();
     await expect(page).toHaveURL(/\/tools\/upi-standee$/u);
     await expect(page.getByText('An invoice total is ready for a UPI QR draft')).toBeVisible();
     await page.getByRole('button', { name: 'Import invoice amount' }).click();

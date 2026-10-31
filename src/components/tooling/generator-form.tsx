@@ -1,4 +1,5 @@
 'use client';
+import { DocumentExampleActions } from '@/components/documents/document-example-actions';
 import { PresentedControls } from '@/components/ui/field-groups';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +14,7 @@ import {
   validateUrlQrInput,
 } from '@/domain/qr/url';
 import { exportErrorMessage, downloadDataUrl, printElement, safeFilename } from '@/lib/qr/export';
-import { QR_LOCAL_PRIVACY_NOTE, UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
+import { UPI_OWNERSHIP_DISCLAIMER } from '@/lib/qr/privacy';
 import { trackEvent } from '@/lib/analytics';
 import {
   clearLocalScenarioTransfer,
@@ -49,9 +50,14 @@ function hasValues(values: GeneratorInput) {
 export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: GeneratorToolProps }) {
   const isUrl = kind === 'url-qr';
   const initialValues = useMemo(
-    () => (isUrl ? (tool.defaultValues as UrlQrInput) : (tool.defaultValues as UpiInput)),
+    () =>
+      isUrl
+        ? (tool.defaultValues as UrlQrInput)
+        : ({ payeeName: '', upiId: '', amount: '', note: '' } as UpiInput),
     [isUrl, tool.defaultValues],
   );
+  const [exampleMode, setExampleMode] = useState(false);
+  const [reviewedValues, setReviewedValues] = useState('');
   const [values, setValues] = useState<GeneratorInput>(initialValues);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
@@ -78,6 +84,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
     calculate: (input) => (isUrl ? calculateUrlQr(input as UrlQrInput) : calculateUpi(input as UpiInput)),
     onResult: (_nextResult, source) => {
       if (source === 'submit') {
+        setReviewedValues(JSON.stringify(values));
         trackEvent('tool_completed', { toolId: tool.id });
         trackEvent('result_generated', { toolId: tool.id });
         window.requestAnimationFrame(() => focusResult(resultRef.current));
@@ -168,7 +175,9 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
     setExportError(null);
   }
 
+  const readyToExport = isUrl || (!exampleMode && reviewedValues === JSON.stringify(values));
   function downloadPng() {
+    if (!readyToExport) return;
     if (!qrImage.dataUrl) {
       setExportError('The QR preview is still preparing. Try the download again in a moment.');
       return;
@@ -187,6 +196,7 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
   }
 
   function printPreview() {
+    if (!readyToExport) return;
     try {
       printElement(printTargetId);
       trackEvent('result_printed', { toolId: tool.id, pageSize: isUrl ? 'qr' : 'standee' });
@@ -208,6 +218,24 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
           </div>
           <span className="local-badge">Runs locally</span>
         </div>
+        {!isUrl && (
+          <DocumentExampleActions
+            example={exampleMode}
+            onExample={() => {
+              if (!window.confirm('Replace current payment details with an example?')) return;
+              setExampleMode(true);
+              setReviewedValues('');
+              setValues({ ...(tool.defaultValues as UpiInput) });
+              clearErrors();
+            }}
+            onStart={() => {
+              setExampleMode(false);
+              setReviewedValues('');
+              setValues(initialValues);
+              clearErrors();
+            }}
+          />
+        )}
         <form
           onSubmit={onSubmit}
           noValidate
@@ -357,10 +385,18 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
             <div className="calculator-result__heading">
               <div>
                 <p className="eyebrow">Preview and export</p>
-                <h2 id="generator-result-title">{resultTitle}</h2>
+                <h2 id="generator-result-title">
+                  {isUrl
+                    ? resultTitle
+                    : exampleMode
+                      ? 'Example preview'
+                      : readyToExport
+                        ? 'Ready to download'
+                        : 'Preview'}
+                </h2>
               </div>
               <span className="result-status" aria-label="QR preview updates live">
-                Live · ready
+                Review before sharing
               </span>
             </div>
             <div id={printTargetId} className={`qr-output ${isUrl ? 'qr-output--url' : 'qr-output--upi'}`}>
@@ -404,10 +440,15 @@ export function GeneratorForm({ kind, tool }: { kind: GeneratorKind; tool: Gener
               </p>
             ) : null}
             <div className="inline-actions generator-actions">
-              <Button type="button" onClick={downloadPng} disabled={!qrImage.dataUrl}>
+              <Button type="button" onClick={downloadPng} disabled={!qrImage.dataUrl || !readyToExport}>
                 Download PNG
               </Button>
-              <Button type="button" variant="secondary" onClick={printPreview} disabled={!qrImage.dataUrl}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={printPreview}
+                disabled={!qrImage.dataUrl || !readyToExport}
+              >
                 Print
               </Button>
             </div>

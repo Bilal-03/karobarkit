@@ -1,108 +1,51 @@
 import Link from 'next/link';
 import { Container, Section } from '@/components/ui/container';
 import { JsonLd } from '@/components/seo/json-ld';
-import { LiveToolSearch } from '@/components/search/live-tool-search';
-import { ToolCard } from '@/components/ui/tool-card';
-import { ToolIcon } from '@/components/ui/tool-icon';
-import { toolDiscoveryIndex } from '@/domain/registry';
-import { taskGroups } from '@/domain/registry/presentation';
-import { StudioReveal } from '@/components/ui/studio-motion';
+import { SavedDrafts } from '@/components/workspace/saved-drafts';
 import { pageMetadata } from '@/lib/seo';
 import { websiteStructuredData } from '@/lib/structured-data';
 export const metadata = pageMetadata({
-  title: 'Quotations, invoices and receipts for Indian freelancers',
-  description:
-    'Prepare quotations, invoices and payment receipts without creating an account. A free toolkit for Indian freelancers.',
+  title: 'Simple business paperwork, pricing and payments',
+  description: 'Simple tools for your everyday business paperwork, pricing, and payments. No account needed.',
   path: '/',
 });
-const quickSlugs = [
-  'quotation-generator',
-  'invoice-generator',
-  'payment-receipt-generator',
-  'emi-calculator',
-  'upi-standee',
-  'photo-resizer-compressor',
+const tasks = [
+  ['Create an invoice', 'Prepare a clear invoice for your customer.', 'invoice-generator'],
+  ['Prepare a quotation', 'Send an itemised offer before work begins.', 'quotation-generator'],
+  ['Make a payment receipt', 'Acknowledge a payment you have received.', 'payment-receipt-generator'],
+  ['Create a UPI payment QR', 'Make a payment QR to share or print.', 'upi-standee'],
+  ['Calculate selling price', 'Work out a price from your costs and margin.', 'pricing-calculator'],
+  ['Add or remove GST', 'See the tax amount and total clearly.', 'gst-calculator'],
 ];
 export default function HomePage() {
   return (
     <>
       <JsonLd data={websiteStructuredData()} />
-      <section className="home-intro">
-        <Container>
-          <p className="eyebrow">For independent work in India.</p>
-          <h1>From quotation to payment receipt.</h1>
-          <p>Prepare quotations, invoices and payment receipts without creating an account.</p>
-          <LiveToolSearch id="home-search" tools={toolDiscoveryIndex} variant="home" />
-          <p className="home-reassurance">Free to use · No account needed</p>
-        </Container>
-      </section>
       <Container>
-        <Section title="What would you like to accomplish?">
-          <div className="inline-actions">
-            <Link className="button button--primary" href="/get-started">
-              Find my next step
+        <section className="business-home-intro">
+          <p className="eyebrow">For small businesses and freelancers in India</p>
+          <h1>Everyday business, made simpler.</h1>
+          <p>Simple tools for your everyday business paperwork, pricing, and payments. No account needed.</p>
+        </section>
+        <section aria-label="Everyday business tasks" className="business-task-grid">
+          {tasks.map(([title, text, slug]) => (
+            <Link className="business-task-card" href={`/tools/${slug}`} key={slug}>
+              <h2>
+                {title}
+                <span aria-hidden="true"> ↗</span>
+              </h2>
+              <p>{text}</p>
             </Link>
-            <Link className="button button--secondary" href="/decision-workbench">
-              Compare business scenarios
-            </Link>
-            <Link className="button button--secondary" href="/workspace">
-              My device workspace
-            </Link>
-          </div>
+          ))}
+        </section>
+        <Section title="Saved drafts on this device">
+          <SavedDrafts compact />
         </Section>
-        <Section title="Your freelance paperwork, in order">
-          <p>
-            Start with a quotation, carry its details into an invoice, then create a receipt after payment.
-            You review each step before exporting.
-          </p>
-          <div className="inline-actions">
-            <Link className="button button--primary" href="/tools/quotation-generator">
-              Prepare a quotation
-            </Link>
-            <Link className="button button--secondary" href="/freelancers">
-              See the workflow
-            </Link>
-          </div>
-        </Section>
-        <Section title="Quick tools">
-          <StudioReveal>
-            <div className="tool-grid">
-              {quickSlugs.map((slug) => {
-                const tool = toolDiscoveryIndex.find((t) => t.slug === slug);
-                return tool ? (
-                  <ToolCard
-                    key={slug}
-                    href={`/tools/${slug}`}
-                    name={tool.name}
-                    summary={tool.summary}
-                    presentation={tool.presentation}
-                    categoryLabel={tool.categoryLabel}
-                    featured
-                    lifecycle={tool.lifecycle}
-                    executionMode={tool.executionMode}
-                  />
-                ) : null;
-              })}
-            </div>
-          </StudioReveal>
-          <Link className="text-link browse-all" href="/tools">
-            See all tools →
+        <p>
+          <Link className="text-link" href="/tools">
+            Browse all tools →
           </Link>
-        </Section>
-        <Section title="What are you working on?">
-          <div className="category-grid compact-categories">
-            {taskGroups.map((group) => (
-              <Link className="category-tile" key={group.id} href={`/tools?group=${group.id}`}>
-                <ToolIcon category={group.id} />
-                <span>
-                  <strong>{group.name}</strong>
-                  <small>{group.description}</small>
-                </span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </div>
-        </Section>
+        </p>
       </Container>
     </>
   );

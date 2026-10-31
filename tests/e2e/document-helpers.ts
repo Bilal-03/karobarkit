@@ -37,6 +37,10 @@ export async function fillMinimumGstInvoice(page: Page) {
   await fill('invoiceNumber', 'INV-001');
   await fill('items.0.description', 'Consulting service');
   await fill('items.0.unitPrice', '1000');
+  await fill('placeOfSupply.state', 'Karnataka');
+  await fill('placeOfSupply.stateCode', '29');
+  await page.locator('#supplyType').selectOption('inter-state');
+  await page.locator('[id="items.0.ratePresetId"]').selectOption('gst-headline-rate-18');
 }
 
 // Help summaries also have accessible names; address the actual form control.

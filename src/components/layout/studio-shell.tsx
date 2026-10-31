@@ -13,13 +13,14 @@ import {
   X,
   Home,
   Grid2X2,
+  FileText,
+  FolderOpen,
   CircleHelp,
   ArrowUpRight,
 } from 'lucide-react';
 import { BrandLockup } from './brand-lockup';
 import { ToolIcon } from '@/components/ui/tool-icon';
 import { MotionProvider } from '@/components/ui/studio-motion';
-import { taskGroups } from '@/domain/registry/presentation';
 import { searchTools } from '@/domain/discovery';
 import type { ToolDiscoveryRecord } from '@/domain/registry/types';
 
@@ -112,25 +113,20 @@ export function StudioShell({
           <Home size={19} />
           <span>Home</span>
         </Link>
-        <Link
-          href="/tools"
-          aria-current={pathname === '/tools' ? 'page' : undefined}
-          onClick={() => setDrawer(false)}
-          title="All tools"
-        >
-          <Grid2X2 size={19} />
-          <span>All tools</span>
-        </Link>
-        <p className="nav-caption">Your toolkit</p>
-        {taskGroups.map((group) => (
+        {[
+          { href: '/tools?group=documents', label: 'Documents', icon: FileText },
+          { href: '/workspace', label: 'Saved drafts', icon: FolderOpen },
+          { href: '/tools', label: 'More tools', icon: Grid2X2 },
+        ].map(({ href, label, icon: Icon }) => (
           <Link
-            href={`/tools?group=${group.id}`}
-            key={group.id}
+            href={href}
+            key={href}
+            title={label}
+            aria-current={pathname === href ? 'page' : undefined}
             onClick={() => setDrawer(false)}
-            title={group.name}
           >
-            <ToolIcon category={group.id} />
-            <span>{group.name}</span>
+            <Icon size={19} />
+            <span>{label}</span>
           </Link>
         ))}
       </nav>
