@@ -25,16 +25,26 @@ export function AnalyticsExample() {
         examples, not real users, experiments, traction or measured improvements.
       </p>
       <div className="form-grid form-grid--two">
-        <label className="field">
-          Scenario
-          <select className="input" value={mode} onChange={(e) => setMode(e.target.value as 'a' | 'b')}>
+        <div className="field">
+          <label htmlFor="portfolio-scenario">Scenario</label>
+          <select
+            id="portfolio-scenario"
+            className="input"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as 'a' | 'b')}
+          >
             <option value="a">Sample A</option>
             <option value="b">Modeled B — more exports, shorter completion</option>
           </select>
-        </label>
-        <label className="field">
-          Channel
-          <select className="input" value={channel} onChange={(e) => setChannel(e.target.value)}>
+        </div>
+        <div className="field">
+          <label htmlFor="portfolio-channel">Channel</label>
+          <select
+            id="portfolio-channel"
+            className="input"
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+          >
             <option value="all">All channels</option>
             {channels.map((c) => (
               <option key={c} value={c}>
@@ -42,7 +52,7 @@ export function AnalyticsExample() {
               </option>
             ))}
           </select>
-        </label>
+        </div>
       </div>
       <dl className="result-breakdown" aria-live="polite">
         <div>
